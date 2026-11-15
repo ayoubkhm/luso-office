@@ -1,3 +1,4 @@
+import { Activity } from "./ActivityJournal";
 import { Settlements, settlementLabels } from "./Settlements";
 import { DemoGuide, GuideProgress } from "./DemoGuide";
 import {
@@ -150,13 +151,11 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   };
   const act = (a: Action) => {
     const result = transition(state, role, a);
+    const event = result.ok ? result.state.audit.at(-1) : undefined;
     if (!["message-draft", "message-read"].includes(a.type))
       setNotice(
-        result.ok
-          ? t(
-              "Simulation mise à jour. Aucun envoi ni paiement réel.",
-              "Simulação atualizada. Sem envio nem pagamento real.",
-            )
+        event
+          ? `${t(...event.title)}${event.caseId ? ` · ${event.caseId}` : ""}. ${t("Enregistré dans la démo.", "Guardado na demo.")}`
           : t(
               "Action indisponible : vérifiez les champs, les droits et l’étape du dossier.",
               "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
@@ -674,9 +673,25 @@ function Requests() {
               </button>
             ))
           ) : (
-            <p className="ws-empty">
-              {t("Aucun dossier dans cet état.", "Nenhum pedido neste estado.")}
-            </p>
+            <div className="ws-empty">
+              <p>
+                {t(
+                  "Aucun dossier ne correspond à votre recherche.",
+                  "Nenhum pedido corresponde à sua pesquisa.",
+                )}
+              </p>
+              {(query || filter !== "all") && (
+                <Button
+                  secondary
+                  onClick={() => {
+                    setQuery("");
+                    setFilter("all");
+                  }}
+                >
+                  {t("Effacer les filtres", "Limpar filtros")}
+                </Button>
+              )}
+            </div>
           )}
         </section>
         {current && <CaseDetail key={current.id} c={current} />}
@@ -828,6 +843,17 @@ function CaseDetail({ c }: { c: Case }) {
           {t("Voir les documents", "Ver documentos")}
         </Button>
       </div>
+      {role === "team" && (
+        <details className="ws-internal">
+          <summary>
+            {t(
+              "Consulter l’activité du dossier",
+              "Consultar atividade do pedido",
+            )}
+          </summary>
+          <Activity caseId={c.id} />
+        </details>
+      )}
       <CaseDecisions
         key={`${c.id}-${c.stage}-${Boolean(c.cancellation)}`}
         c={c}
@@ -1921,36 +1947,7 @@ function Administration() {
           </p>
         </Panel>
       </div>
-      <Panel
-        title={t(
-          "Journal des actions de la session",
-          "Registo de ações da sessão",
-        )}
-      >
-        <p>
-          {t(
-            "Trace de démonstration sans valeur d’audit : rôle, action et dossier. En production : identité vérifiée, date serveur, objet, modification et résultat.",
-            "Registo de demonstração sem valor de auditoria: função, ação e pedido. Em produção: identidade verificada, data do servidor, objeto, alteração e resultado.",
-          )}
-        </p>
-        {state.audit.length ? (
-          <ol className="ws-audit">
-            {state.audit
-              .slice()
-              .reverse()
-              .map((a) => (
-                <li key={a}>{a}</li>
-              ))}
-          </ol>
-        ) : (
-          <p className="ws-empty">
-            {t(
-              "Aucune action depuis l’ouverture. Essayez le parcours d’un dossier.",
-              "Sem ações desde a abertura. Experimente o percurso de um pedido.",
-            )}
-          </p>
-        )}
-      </Panel>
+      <Activity />
     </>
   );
 }

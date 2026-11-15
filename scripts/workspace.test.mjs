@@ -22,7 +22,171 @@ import {
   openTasks,
   visibleTasks,
   matchingCases,
+  matchingActivity,
 } from "../.ssr/entry-server.js";
+
+test("Activity links new requests, documents and tasks to their actual case without copying private content", () => {
+  let s = initialState();
+  s = apply(s, "member", {
+    type: "request",
+    service: services[0].id,
+    property: "",
+    description: "PRIVATE_DESCRIPTION",
+  });
+  assert.equal(s.audit.at(-1).caseId, s.cases.at(-1).id);
+  s = apply(s, "member", {
+    type: "document",
+    id: "DEMO-001",
+    name: "PRIVATE_DOCUMENT",
+  });
+  s = apply(s, "team", {
+    type: "document-review",
+    id: s.documents.at(-1).id,
+    review: "rejected",
+    reason: "PRIVATE_REASON",
+  });
+  assert.equal(s.audit.at(-1).caseId, "DEMO-001");
+  assert.equal(s.audit.at(-1).title[0], "Correction de la pièce demandée");
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "PRIVATE_TASK_NOTE",
+  });
+  assert.equal(s.audit.at(-1).caseId, "DEMO-001");
+  s = apply(s, "team", { type: "note", id: "DEMO-001", body: "PRIVATE_NOTE" });
+  s = apply(s, "member", {
+    type: "message",
+    id: "DEMO-001",
+    body: "PRIVATE_MESSAGE",
+  });
+  assert.equal(JSON.stringify(s.audit).includes("PRIVATE_"), false);
+  assert.deepEqual(
+    s.audit.map((e) => e.id),
+    [1, 2, 3, 4, 5, 6],
+  );
+});
+
+test("The team can combine activity filters in both languages; other roles cannot read the journal", () => {
+  let s = initialState();
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "",
+  });
+  s = apply(s, "team", { type: "note", id: "DEMO-001", body: "Private" });
+  s = apply(s, "member", { type: "message", id: "DEMO-002", body: "Hello" });
+  assert.deepEqual(
+    matchingActivity(s, "team", {}, "fr").map((e) => e.id),
+    [3, 2, 1],
+  );
+  assert.deepEqual(
+    matchingActivity(
+      s,
+      "team",
+      {
+        query: "  TERMINEE ",
+        category: "tasks",
+        actor: "partner",
+        caseId: "DEMO-001",
+      },
+      "fr",
+    ).map((e) => e.id),
+    [1],
+  );
+  assert.deepEqual(
+    matchingActivity(s, "team", { query: "concluida" }, "pt").map((e) => e.id),
+    [1],
+  );
+  assert.equal(
+    matchingActivity(s, "team", { caseId: "DEMO-002", category: "tasks" }, "fr")
+      .length,
+    0,
+  );
+  assert.equal(matchingActivity(s, "member", {}, "fr").length, 0);
+  assert.equal(matchingActivity(s, "partner", {}, "pt").length, 0);
+  assert.equal(
+    s.audit[0].id,
+    1,
+    "Filtering must not reorder the source journal",
+  );
+});
+
+test("Activity distinguishes opposite decisions and records payment results only after valid transitions", () => {
+  let s = initialState();
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id: "DEMO-001",
+    reason: "Example",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id: "DEMO-001",
+    confirm: false,
+    reason: "Example",
+  });
+  assert.equal(s.audit.at(-1).title[0], "Annulation refusée par l’équipe");
+  s = apply(s, "team", { type: "assign", id: "DEMO-001", assigned: false });
+  assert.equal(
+    s.audit.at(-1).title[0],
+    "Accès au dossier retiré au partenaire",
+  );
+  s = apply(s, "member", { type: "accept-quote", id: "DEMO-002", version: 1 });
+  assert.match(s.audit.at(-1).title[0], /v1 acceptée/);
+  rejected(s, "member", { type: "pay", id: "DEMO-002", result: "paid" });
+  s = apply(s, "member", { type: "pay", id: "DEMO-002", result: "pending" });
+  assert.match(s.audit.at(-1).title[0], /en vérification/);
+  s = apply(s, "member", { type: "pay", id: "DEMO-002", result: "failed" });
+  assert.match(s.audit.at(-1).title[0], /refusé/);
+  assert.match(s.audit.at(-1).title[1], /recusado/);
+});
+
+test("Restart activity opens the new case and Family sharing resolves its document case", () => {
+  let s = initialState();
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id: "DEMO-001",
+    reason: "Example",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id: "DEMO-001",
+    confirm: true,
+    reason: "Example",
+  });
+  s = apply(s, "member", { type: "restart", id: "DEMO-001" });
+  assert.equal(s.audit.at(-1).caseId, "DEMO-003");
+  s = apply(s, "member", {
+    type: "subscription",
+    plan: "Family",
+    period: "annual",
+  });
+  s = apply(s, "member", { type: "subscription-payment", result: "paid" });
+  s = apply(s, "member", { type: "invite", email: "example@example.test" });
+  const invite = s.invitations.at(-1);
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: invite.id,
+    status: "active",
+    generation: invite.generation,
+  });
+  s = apply(s, "member", {
+    type: "family-case",
+    id: invite.id,
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  s = apply(s, "member", {
+    type: "family-document",
+    id: invite.id,
+    documentId: "doc-1",
+    granted: true,
+  });
+  assert.equal(s.audit.at(-1).caseId, "DEMO-001");
+  assert.equal(s.audit.at(-1).category, "profile");
+  assert.equal(JSON.stringify(s.audit).includes("example@example.test"), false);
+});
 
 const apply = (s, role, action) => {
   const r = transition(s, role, action);

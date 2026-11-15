@@ -18,3 +18,4 @@ export const render = (page: Page, lang: Lang) =>
 export * from "./workspace/model";
 
 export * from "./workspace/scenarios";
+export { matchingActivity } from "./workspace/activity";

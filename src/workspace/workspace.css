@@ -752,10 +752,40 @@ body:has(.workspace) {
   overflow-y: auto;
 }
 .ws-audit li {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 14px;
   border-bottom: 1px solid var(--ws-line);
   padding: 12px 0;
   overflow-wrap: anywhere;
+}
+.ws-audit li > div {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.ws-audit small {
+  display: block;
+  color: #4b6078;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.ws-audit strong {
+  display: block;
+  line-height: 1.5;
+}
+.ws-activity-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ws-activity-filters select {
+  width: 100%;
+  min-width: 0;
 }
 .ws-footer {
   border-top: 1px solid var(--ws-line);

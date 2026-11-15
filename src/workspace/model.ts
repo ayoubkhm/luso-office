@@ -1,5 +1,6 @@
 // In-memory design prototype. These checks demonstrate rules, not server authorization.
 import { services } from "../catalogue";
+import { createActivity, type ActivityEvent } from "./activity";
 export type Role = "member" | "team" | "partner";
 export type Stage =
   | "submitted"
@@ -161,7 +162,7 @@ export interface State {
     delivered: string[];
   };
   invitations: FamilyInvitation[];
-  audit: string[];
+  audit: ActivityEvent[];
 }
 export const stages: Stage[] = [
   "submitted",
@@ -1496,10 +1497,7 @@ export function transition(
     ok: true,
     state: {
       ...next,
-      audit: [
-        ...s.audit,
-        `${s.audit.length + 1}. ${role} / ${a.type}${"id" in a ? " / " + a.id : ""}`,
-      ],
+      audit: [...s.audit, createActivity(s, next, role, a)],
     },
   };
 }

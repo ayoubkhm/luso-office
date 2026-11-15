@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 43 tests réussis (7 contrôles du site, 36 scénarios métier et parcours). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 47 tests réussis (7 contrôles du site, 40 scénarios métier et parcours). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -178,6 +178,16 @@ Un sixième parcours guidé charge une mission close avec une provision fictive 
 
 Validation : six nouveaux tests couvrent éligibilité, montants, corrections/version obsolète, double confirmation, échecs/reprise, différence nulle, réouverture et dossier repris sans historique financier. Les six parcours guidés passent également jusqu’à leur dernière étape. Build et 43 tests réussis. La validation visuelle reste à compléter compte tenu de l’indisponibilité persistante du pilotage Chrome lors des dernières tentatives.
 
+### Lisibilité du suivi et des confirmations
+
+- Les actions réussies affichent une confirmation précise FR/PT avec le numéro du dossier lorsqu’il existe. Les décisions opposées (accord/refus, partage/retrait, activation/suspension) et les résultats de paiement simulés sont distingués.
+- Administration → Activité de la session : journal lisible, du plus récent au plus ancien, filtrable par texte, rubrique, rôle et dossier. Les actions ouvrent la rubrique concernée ; les tâches ouvrent leur dossier, dont la section Tâches permet de retrouver aussi les éléments terminés.
+- Chaque dossier dispose d’un historique repliable réservé à l’équipe. Les événements liés aux documents et tâches sont rattachés au bon dossier ; une reprise renvoie au nouveau dossier.
+- Le journal contient uniquement le libellé d’action, le rôle, la rubrique, un numéro de séquence et éventuellement le dossier. Les textes des messages, notes, motifs et coordonnées ne sont pas recopiés. Aucune date serveur, identité vérifiée ou conservation durable n’est simulée comme acquise.
+- Les recherches de dossiers et d’activité sans résultat permettent d’effacer les filtres.
+
+Validation : quatre tests supplémentaires couvrent rattachement des événements, absence de contenu privé recopié, filtres combinés FR/PT, restriction aux vues équipe et libellés des décisions/paiements. Build et 47 tests réussis. Contrôle visuel des nouveaux éléments à compléter : le pilotage Chrome échoue encore lors de l’accès à l’onglet local.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -200,6 +210,8 @@ Validation : six nouveaux tests couvrent éligibilité, montants, corrections/ve
 14. Retirer le dossier puis le repartager : la pièce reste masquée. Retirer le bénéficiaire et renouveler son invitation : aucun accès n’est rétabli automatiquement. Tester une tentative échouée de passage à Member (accès conservés), puis une confirmation (accès retirés).
 
 15. Parcours guidés → Le bilan d’une mission : charger l’exemple, proposer un bilan fictif inférieur à la provision, puis basculer en adhérent pour le relire et l’approuver. Équipe : préparer le remboursement, simuler un échec, réessayer et confirmer. Vérifier l’historique et le classement dans les bilans soldés.
+
+16. Équipe → Administration : après quelques actions, filtrer l’activité par rôle, dossier et rubrique. Essayer une recherche sans résultat puis effacer les filtres. Ouvrir un événement et retrouver son dossier ou sa rubrique. Dans un dossier, déplier « Consulter l’activité du dossier ». Vérifier l’absence de cette section dans les vues adhérent et partenaire.
 
 ### Modèle serveur proposé
 
