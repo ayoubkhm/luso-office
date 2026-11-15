@@ -4,16 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7fbff">
-  <meta name="description" content="Vos démarches au Portugal, même depuis la France. Découvrez un accompagnement humain, avec une présence sur place et un suivi clair.">
-  <title>Perto de Casa — Vos démarches au Portugal</title>
-  <link rel="canonical" href="https://ayoubkhm.github.io/perto-de-casa/">
+  <meta name="description" content="Un relais au Portugal pour les Portugais et leurs descendants vivant en France : démarches, patrimoine et maison, avec un accompagnement humain.">
+  <title>Luso Office — Vos démarches au Portugal</title>
+  <link rel="canonical" href="https://lusooffice.com/">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:site_name" content="Luso Office">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Luso Office — Vos démarches au Portugal">
+  <meta property="og:description" content="Un relais au Portugal pour les Portugais et leurs descendants vivant en France : démarches, patrimoine et maison, avec un accompagnement humain.">
+  <meta property="og:url" content="https://lusooffice.com/">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:locale:alternate" content="pt_PT">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Luso Office — Vos démarches au Portugal">
+  <meta name="twitter:description" content="Un relais au Portugal pour les Portugais et leurs descendants vivant en France : démarches, patrimoine et maison, avec un accompagnement humain.">
+  <link rel="alternate" hreflang="fr" href="https://lusooffice.com/">
+  <link rel="alternate" hreflang="pt" href="https://lusooffice.com/?lang=pt">
+  <link rel="alternate" hreflang="x-default" href="https://lusooffice.com/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/manrope-800.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="assets/azulejos.png" as="image">
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <link rel="preload" href="assets/manrope-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=20261115">
+  <script src="app.js?v=20261115" defer></script>
 </head>
 <body>
+  <noscript><p class="preview-banner">Activez JavaScript pour changer de langue et préparer votre récapitulatif.</p></noscript>
   <a class="skip-link" href="#main" data-i18n="skip">Aller au contenu</a>
   <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="icon-document" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></symbol>
@@ -28,12 +42,12 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="#" aria-label="Perto de Casa, accueil">Perto <span class="wordmark-qualifier">de casa</span></a>
+      <a class="wordmark" href="index.html" aria-label="Luso Office, accueil" data-preserve-language>Luso <span class="wordmark-qualifier">Office</span></a>
       <nav class="desktop-nav" aria-label="Navigation principale">
         <a href="#services" data-i18n="navServices">Nos services</a>
-        <a href="#fonctionnement" data-i18n="navHow">Comment ça marche</a>
-        <a href="#equipe" data-i18n="navTeam">Notre équipe</a>
-        <a href="tarifs.html" data-preserve-language data-i18n="navPricing">Tarifs</a>
+        <a href="#fonctionnement" data-i18n="navHow">Les étapes</a>
+        <a href="#equipe" data-i18n="navTeam">À propos</a>
+        <a href="tarifs.html" data-preserve-language data-i18n="navPricing">Accompagnement</a>
       </nav>
       <div class="header-actions">
         <div class="language-switch" aria-label="Langue du site">
@@ -41,31 +55,31 @@
           <span aria-hidden="true">/</span>
           <button type="button" data-language="pt" aria-pressed="false" aria-label="Português">PT</button>
         </div>
-        <button class="button button-primary client-button" type="button" data-open="client" data-i18n="client">Espace client</button>
-        <button class="menu-button" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-navigation"><svg class="icon"><use href="#icon-menu"/></svg></button>
+        <button class="button button-primary client-button" type="button" data-open="request" data-i18n="describe">Préparer mon échange</button>
+        <button class="menu-button" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-navigation"><svg class="icon" aria-hidden="true"><use href="#icon-menu"/></svg></button>
       </div>
     </div>
     <nav id="mobile-navigation" class="mobile-nav" aria-label="Navigation mobile" hidden>
       <a href="#services" data-i18n="navServices">Nos services</a>
-      <a href="#fonctionnement" data-i18n="navHow">Comment ça marche</a>
-      <a href="#equipe" data-i18n="navTeam">Notre équipe</a>
-        <a href="tarifs.html" data-preserve-language data-i18n="navPricing">Tarifs</a>
-      <button type="button" data-open="client" data-i18n="client">Espace client</button>
+      <a href="#fonctionnement" data-i18n="navHow">Les étapes</a>
+      <a href="#equipe" data-i18n="navTeam">À propos</a>
+        <a href="tarifs.html" data-preserve-language data-i18n="navPricing">Accompagnement</a>
+      <button type="button" data-open="request" data-i18n="describe">Préparer mon échange</button>
     </nav>
   </header>
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-art">
-        <img src="assets/azulejos.png" width="1536" height="1024" alt="Azulejos portugais bleus et blancs, un carreau jaune, des documents et un vase en céramique." fetchpriority="high">
+        <img src="assets/azulejos-960.webp" srcset="assets/azulejos-640.webp 640w, assets/azulejos-960.webp 960w, assets/azulejos-1536.webp 1536w" sizes="(max-width: 760px) 100vw, 48vw" width="1536" height="1024" alt="Azulejos portugais bleus et blancs, un carreau jaune, des documents et un vase en céramique." fetchpriority="high">
       </div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <h1 id="hero-title" data-i18n-html="heroTitle"><span>Vos démarches</span><span>au Portugal, même</span><span>depuis la France.</span></h1>
-          <p class="hero-description" data-i18n="heroDescription">Un abonnement pour garder un interlocuteur sur place et suivre vos démarches au fil des mois.</p>
+          <h1 id="hero-title" data-i18n-html="heroTitle"><span>Un relais</span><span>au Portugal,</span><span>même à distance.</span></h1>
+          <p class="hero-description" data-i18n="heroDescription">Vous vivez en France et avez des sujets à régler au Portugal ? Un relais pour comprendre les démarches, organiser les échanges et suivre les prochaines étapes.</p>
           <div class="hero-actions">
-            <button class="button button-primary hero-cta" type="button" data-open="request" data-i18n="describe">Décrire mon besoin</button>
-            <a class="text-link" href="tarifs.html" data-preserve-language><span data-i18n="discover">Découvrir les abonnements</span><svg class="icon"><use href="#icon-arrow"/></svg></a>
+            <button class="button button-primary hero-cta" type="button" data-open="request" data-i18n="describe">Préparer mon échange</button>
+            <a class="text-link" href="tarifs.html" data-preserve-language><span data-i18n="discover">Découvrir l’accompagnement</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
           </div>
         </div>
       </div>
@@ -73,101 +87,73 @@
 
     <section id="services" class="services" aria-labelledby="services-title">
       <div class="page-width">
-        <h2 id="services-title" data-i18n="servicesTitle">Un accompagnement à chaque étape</h2>
-        <div class="services-grid">
-          <button class="service" type="button" data-service="documents">
-            <span class="service-icon"><svg class="icon"><use href="#icon-document"/></svg></span>
-            <span class="service-name" data-i18n="documents">Documents</span>
-            <span class="service-description" data-i18n="documentsDescription">Faire le point sur les pièces et les formalités de votre dossier.</span>
-          </button>
-          <button class="service" type="button" data-service="remote">
-            <span class="service-icon"><svg class="icon"><use href="#icon-laptop"/></svg></span>
-            <span class="service-name" data-i18n="remote">Démarches à distance</span>
-            <span class="service-description" data-i18n="remoteDescription">Un relais au Portugal, même lorsque vous êtes à l’étranger.</span>
-          </button>
-          <button class="service" type="button" data-service="return">
-            <span class="service-icon"><svg class="icon"><use href="#icon-house"/></svg></span>
-            <span class="service-name" data-i18n="return">Retour au Portugal</span>
-            <span class="service-description" data-i18n="returnDescription">Préparer votre retour et organiser les prochaines démarches.</span>
-          </button>
-        </div>
-      </div>
-    </section>
+        <h2 id="services-title" data-i18n="servicesTitle">Qu’avez-vous à organiser au Portugal ?</h2>
+<p data-i18n="servicesIntro" class="services-intro">Trois points de départ pour comprendre votre situation. Les actions possibles sont définies avec vous, selon le besoin et les intervenants nécessaires.</p><div class="services-grid"><article class="service"><span class="service-icon"><svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg></span><h3 data-i18n="documents" class="service-name">Démarches administratives</h3><p data-i18n="documentsDescription" class="service-description">Une formalité à comprendre, des pièces à réunir, un interlocuteur à identifier.</p><details class="service-detail"><summary data-i18n="serviceDetails">Comprendre l’accompagnement</summary><div class="service-detail-body"><h4 data-i18n="yourSituation">Votre situation</h4><p data-i18n="documentsSituation">Vous avez reçu un courrier administratif ou vous ne savez pas par quelle démarche commencer. Décrivez le sujet, l’organisme concerné et les échéances connues.</p><h4 data-i18n="ourRole">Le rôle de Luso Office</h4><p data-i18n="documentsRole">Faire le point sur les informations disponibles, repérer les pièces à réunir et organiser les échanges avec les interlocuteurs concernés.</p><h4 data-i18n="scopeLabel">Le cadre à définir</h4><p data-i18n="documentsScope">Les formalités prises en charge et les autorisations nécessaires sont précisées avant toute intervention. Les décisions restent celles des organismes compétents.</p><button data-i18n="documentsCta" type="button" class="button button-primary" data-service="documents">Préparer mon sujet administratif</button></div></details></article><article class="service"><span class="service-icon"><svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg></span><h3 data-i18n="heritage" class="service-name">Patrimoine et successions</h3><p data-i18n="heritageDescription" class="service-description">Une maison héritée ou un dossier familial à organiser entre plusieurs interlocuteurs.</p><details class="service-detail"><summary data-i18n="serviceDetails">Comprendre l’accompagnement</summary><div class="service-detail-body"><h4 data-i18n="yourSituation">Votre situation</h4><p data-i18n="heritageSituation">Un héritage soulève des questions et vous êtes à l’étranger. Vous souhaitez comprendre qui contacter et comment organiser les informations du dossier.</p><h4 data-i18n="ourRole">Le rôle de Luso Office</h4><p data-i18n="heritageRole">Clarifier les prochaines étapes et coordonner les échanges entre vous et les professionnels concernés.</p><h4 data-i18n="scopeLabel">Le cadre à définir</h4><p data-i18n="heritageScope">Les actes et conseils juridiques relèvent des professionnels habilités. Leur intervention et leurs honoraires sont distingués de l’accompagnement de Luso Office.</p><button data-i18n="heritageCta" type="button" class="button button-primary" data-service="heritage">Préparer mon sujet patrimonial</button></div></details></article><article class="service"><span class="service-icon"><svg class="icon" aria-hidden="true"><use href="#icon-house"/></svg></span><h3 data-i18n="property" class="service-name">Maison et immobilier</h3><p data-i18n="propertyDescription" class="service-description">Un bien à suivre à distance ou des échanges à coordonner autour de la maison.</p><details class="service-detail"><summary data-i18n="serviceDetails">Comprendre l’accompagnement</summary><div class="service-detail-body"><h4 data-i18n="yourSituation">Votre situation</h4><p data-i18n="propertySituation">Vous avez une maison au Portugal et la distance complique les échanges. Un besoin de suivi du bien ou un projet de travaux peut être le point de départ de la discussion.</p><h4 data-i18n="ourRole">Le rôle de Luso Office</h4><p data-i18n="propertyRole">Identifier ce qui doit être organisé sur place et les intervenants à solliciter, puis définir avec vous les échanges à coordonner.</p><h4 data-i18n="scopeLabel">Le cadre à définir</h4><p data-i18n="propertyScope">La localisation du bien, les déplacements et les interventions possibles sont à confirmer au cas par cas. Le suivi de travaux ne suppose pas une mission technique ou une maîtrise d’œuvre.</p><button data-i18n="propertyCta" type="button" class="button button-primary" data-service="property">Préparer mon sujet immobilier</button></div></details></article></div><p data-i18n="servicesNote" class="services-note">Un projet de retour au Portugal ? Présentez les démarches et les sujets liés à votre logement dans votre premier échange.</p></div></section>
 
     <section id="fonctionnement" class="how section-space" aria-labelledby="how-title">
       <div class="page-width how-layout">
         <div class="section-intro">
-          <h2 id="how-title" data-i18n="howTitle">Un abonnement.<br>Un suivi clair.</h2>
-          <p data-i18n="howDescription">Vous savez ce qu’il faut préparer, qui vous accompagne et quelle est la prochaine étape.</p>
-          <button class="text-link" type="button" data-open="request"><span data-i18n="talk">Parlons de votre situation</span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+          <h2 id="how-title" data-i18n="howTitle">Un besoin précis.
+Des étapes lisibles.</h2>
+          <p data-i18n="howDescription">L’objectif du premier échange : comprendre ce qui vous bloque et déterminer ce qui peut être organisé à distance ou sur place.</p>
+          <button class="text-link" type="button" data-open="request"><span data-i18n="talk">Préparer un premier échange</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
         </div>
         <ol class="steps">
-          <li><span class="step-number" aria-hidden="true">1</span><div><h3 data-i18n="stepOneTitle">Vous nous expliquez votre besoin</h3><p data-i18n="stepOneDescription">Votre situation, votre projet et les difficultés que vous rencontrez.</p></div></li>
-          <li><span class="step-number" aria-hidden="true">2</span><div><h3 data-i18n="stepTwoTitle">Vous choisissez votre formule</h3><p data-i18n="stepTwoDescription">Un niveau d’aide et un volume de temps mensuel adaptés à votre situation.</p></div></li>
-          <li><span class="step-number" aria-hidden="true">3</span><div><h3 data-i18n="stepThreeTitle">Vous avancez avec un interlocuteur</h3><p data-i18n="stepThreeDescription">Un contact pour suivre votre dossier et comprendre les prochaines étapes.</p></div></li>
+          <li><span class="step-number" aria-hidden="true">1</span><div><h3 data-i18n="stepOneTitle">Vous nous expliquez votre besoin</h3><p data-i18n="stepOneDescription">Le sujet, la commune concernée, les démarches déjà engagées et les éventuelles échéances. Aucun document sensible n’est nécessaire à ce stade.</p></div></li>
+          <li><span class="step-number" aria-hidden="true">2</span><div><h3 data-i18n="stepTwoTitle">Nous définissons le cadre ensemble</h3><p data-i18n="stepTwoDescription">Les actions envisagées, les responsabilités, les conditions financières et les éventuels frais de tiers sont à convenir avant de commencer.</p></div></li>
+          <li><span class="step-number" aria-hidden="true">3</span><div><h3 data-i18n="stepThreeTitle">Vous avancez avec un interlocuteur</h3><p data-i18n="stepThreeDescription">Les interlocuteurs, le mode d’échange et les points de suivi sont définis en fonction de votre dossier.</p></div></li>
         </ol>
       </div>
     </section>
 
     <section id="equipe" class="team" aria-labelledby="team-title">
       <div class="page-width team-layout">
-        <div class="team-identity"><span class="team-name">Hélèna</span><span class="team-location" data-i18n="teamLocation">Un lien entre la France et le Portugal.</span><span class="identity-line" aria-hidden="true"></span></div>
+<div class="team-identity"><h3 data-i18n="personTitle">Votre interlocuteur</h3><span data-i18n="personName" class="team-name">TBD</span><p data-i18n="personRole">Présentation personnelle à compléter</p><dl><div><dt data-i18n="coverage">Zones d’intervention au Portugal</dt><dd>TBD</dd></div><div><dt data-i18n="languages">Langues du site</dt><dd data-i18n="siteLanguages">Français et portugais</dd></div></dl></div>
         <div class="team-copy">
-          <h2 id="team-title" data-i18n="teamTitle">Une présence sur place.<br>Une relation de confiance.</h2>
-          <p data-i18n="teamDescription">Issue d’une famille portugaise installée en France, Hélèna est revenue au Portugal pour entreprendre. Elle connaît ce lien que l’on garde avec son pays, même lorsque l’on vit ailleurs.</p>
-          <p data-i18n="teamDescriptionTwo">À Lisbonne, elle souhaite vous apporter un accompagnement humain et une présence locale pour vos démarches.</p>
-          <button class="button button-primary" type="button" data-open="request" data-i18n="describe">Décrire mon besoin</button>
+          <h2 id="team-title" data-i18n="teamTitle">Un relais humain,
+un rôle clairement défini.</h2>
+          <p data-i18n="teamDescription">Luso Office s’adresse aux Portugais et à leurs descendants vivant à l’étranger, avec la France comme premier marché. L’idée est simple : avoir un interlocuteur pour organiser les sujets que la distance rend plus difficiles.</p>
+          <p data-i18n="teamDescriptionTwo">Son rôle est de faire le lien, d’aider à structurer le besoin et de coordonner les échanges. Lorsqu’un dossier nécessite un professionnel spécialisé, les responsabilités de chacun sont précisées avant l’intervention.</p>
+          <button class="button button-primary" type="button" data-open="request" data-i18n="describe">Préparer mon échange</button>
         </div>
       </div>
     </section>
+<section id="contact" class="contact-section" aria-labelledby="contact-title"><div class="page-width contact-layout"><div><h2 data-i18n="contactTitle" id="contact-title">Préparons le premier échange.</h2><p data-i18n="contactIntro">Notez votre besoin et les questions à aborder. Les coordonnées directes seront ajoutées ici une fois confirmées.</p><button data-i18n="describe" type="button" class="button button-primary" data-open="request">Préparer mon échange</button><p data-i18n="contactNote" class="preview-note">Version de préparation : aucun rendez-vous n’est réservé et aucune demande n’est envoyée depuis ce site.</p></div><dl class="contact-details"><div><dt data-i18n="contactEmail">E-mail de contact</dt><dd>TBD</dd></div><div><dt data-i18n="contactPhone">Téléphone</dt><dd>TBD</dd></div><div><dt data-i18n="coverage">Zones d’intervention au Portugal</dt><dd>TBD</dd></div></dl></div></section>
   </main>
 
   <footer class="site-footer">
-    <div class="page-width footer-inner"><a class="wordmark" href="#">Perto <span class="wordmark-qualifier">de casa</span></a><p data-i18n="footer">Vos démarches au Portugal, avec quelqu’un sur place.</p><button class="footer-link" type="button" data-open="privacy" data-i18n="privacy">Confidentialité</button></div>
+    <div class="page-width footer-inner"><a class="wordmark" href="index.html" data-preserve-language aria-label="Luso Office, accueil">Luso <span class="wordmark-qualifier">Office</span></a><p data-i18n="footer">Vos liens au Portugal, avec un relais sur place.</p><a data-i18n="navContact" href="index.html#contact" class="footer-link" data-preserve-language>Contact</a><button class="footer-link" type="button" data-open="privacy" data-i18n="privacy">Confidentialité</button></div>
   </footer>
 
   <dialog id="request-dialog" class="modal request-modal" aria-labelledby="request-title">
-    <button class="modal-close" type="button" data-close aria-label="Fermer"><svg class="icon"><use href="#icon-close"/></svg></button>
+    <button class="modal-close" type="button" data-close aria-label="Fermer"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
     <div id="request-entry">
-      <span class="modal-mark">Perto de Casa</span>
-      <h2 id="request-title" data-i18n="requestTitle" tabindex="-1">Parlons de votre besoin.</h2>
-      <p class="modal-intro" data-i18n="requestIntro">Préparez votre demande pour rassembler les informations utiles à votre premier échange.</p>
-      <form id="request-form">
-        <div class="form-row"><label><span data-i18n="name">Votre nom</span><input name="name" type="text" autocomplete="name" maxlength="100" required></label><label><span data-i18n="email">Votre e-mail</span><input name="email" type="email" autocomplete="email" maxlength="150" required></label></div>
-        <div class="form-row"><label><span data-i18n="country">Vous vivez en</span><select name="country"><option value="France">France</option><option value="Suisse" data-i18n="switzerland">Suisse</option><option value="Allemagne" data-i18n="germany">Allemagne</option><option value="Royaume-Uni" data-i18n="uk">Royaume-Uni</option><option value="Portugal">Portugal</option><option value="Autre" data-i18n="other">Autre pays</option></select></label><label><span data-i18n="subject">Votre besoin concerne</span><select name="service"><option value="documents" data-i18n="documents">Documents</option><option value="remote" data-i18n="remote">Démarches à distance</option><option value="return" data-i18n="return">Retour au Portugal</option><option value="other" data-i18n="unsure">Je souhaite en discuter</option></select></label></div>
-        <label><span id="request-plan-label" data-i18n="plan">Formule envisagée</span><select name="plan" aria-labelledby="request-plan-label"><option value="none" data-i18n="noPlan">À définir ensemble</option><option value="essential" data-i18n="essentialTitle">Essentiel</option><option value="support" data-i18n="supportTitle">Accompagnement</option><option value="serenity" data-i18n="serenityTitle">Sérénité</option></select></label>
-        <label><span data-i18n="message">Expliquez-nous votre situation</span><textarea name="message" rows="4" maxlength="3000" required data-i18n-placeholder="messagePlaceholder" placeholder="Quelle démarche souhaitez-vous préparer ?"></textarea></label>
-        <p class="form-note" data-i18n="formNote">Ne joignez pas de document d’identité ni d’information sensible à ce premier descriptif.</p>
-        <button class="button button-primary form-submit" type="submit" data-i18n="prepare">Préparer ma demande</button>
+      <span class="modal-mark">Luso Office</span>
+      <h2 id="request-title" data-i18n="requestTitle" tabindex="-1">Préparez votre premier échange.</h2>
+      <p class="modal-intro" data-i18n="requestIntro">Rassemblez les éléments utiles dans un récapitulatif à télécharger. Ce formulaire ne transmet aucune demande.</p>
+      <form id="request-form" aria-describedby="required-note"><p data-i18n="requiredNote" class="form-note" id="required-note">Les champs marqués * sont obligatoires. Les autres sont facultatifs.</p>
+        <div class="form-row"><label><span data-i18n="nameField">Votre nom *</span><input name="name" type="text" autocomplete="name" maxlength="100" required></label><label><span data-i18n="emailField">Votre e-mail (facultatif)</span><input name="email" type="email" autocomplete="email" maxlength="150"></label></div>
+        <div class="form-row"><label><span data-i18n="countryField">Pays de résidence (facultatif)</span><select name="country"><option data-i18n="chooseCountry" value="">Choisir un pays</option><option value="France" data-i18n="france">France</option><option value="Suisse" data-i18n="switzerland">Suisse</option><option value="Allemagne" data-i18n="germany">Allemagne</option><option value="Royaume-Uni" data-i18n="uk">Royaume-Uni</option><option value="Portugal">Portugal</option><option value="Autre" data-i18n="other">Autre pays</option></select></label><label><span data-i18n="subjectField">Sujet à aborder (facultatif)</span><select name="service"><option data-i18n="chooseService" value="">À définir ensemble</option><option value="documents" data-i18n="documents">Démarches administratives</option><option value="heritage" data-i18n="heritage">Patrimoine et successions</option><option value="property" data-i18n="property">Maison et immobilier</option><option value="other" data-i18n="unsure">Je souhaite en discuter</option></select></label></div>
+        <label><span data-i18n="messageField">Votre situation *</span><textarea name="message" aria-describedby="form-note" rows="4" maxlength="3000" required data-i18n-placeholder="messagePlaceholder" placeholder="Quel est votre besoin ? Dans quelle commune au Portugal ? Qu’avez-vous déjà entrepris et quelles sont vos échéances ?"></textarea></label>
+        <p class="form-note" id="form-note" data-i18n="formNote">Ne joignez pas de document d’identité ni d’information sensible à ce premier descriptif.</p>
+        <button class="button button-primary form-submit" type="submit" data-i18n="prepare">Créer mon récapitulatif</button>
       </form>
     </div>
     <div id="request-result" hidden>
-      <span class="result-icon"><svg class="icon"><use href="#icon-check"/></svg></span>
-      <h2 data-i18n="resultTitle" tabindex="-1">Votre demande est prête.</h2>
-      <p class="modal-intro" data-i18n="resultIntro">Téléchargez ce récapitulatif pour votre premier échange. Aucune information n’a été envoyée.</p>
-      <div class="request-summary"><dl><dt data-i18n="name">Votre nom</dt><dd id="summary-name"></dd><dt data-i18n="subject">Votre besoin concerne</dt><dd id="summary-service"></dd><dt data-i18n="plan">Formule envisagée</dt><dd id="summary-plan"></dd><dt data-i18n="message">Expliquez-nous votre situation</dt><dd id="summary-message"></dd></dl></div>
-      <button id="download-request" class="button button-primary form-submit" type="button"><svg class="icon"><use href="#icon-download"/></svg><span data-i18n="download">Télécharger ma demande</span></button>
-      <button id="edit-request" class="text-link result-back" type="button" data-i18n="edit">Modifier ma demande</button>
-    </div>
-  </dialog>
-
-  <dialog id="client-dialog" class="modal client-modal" aria-labelledby="client-title">
-    <button class="modal-close" type="button" data-close aria-label="Fermer"><svg class="icon"><use href="#icon-close"/></svg></button>
-    <span class="modal-mark">Perto de Casa</span>
-    <h2 id="client-title" data-i18n="clientTitle" tabindex="-1">Votre dossier, au même endroit.</h2>
-    <p class="modal-intro" data-i18n="clientIntro">Un aperçu du suivi de votre accompagnement.</p>
-    <div class="client-preview">
-      <div class="preview-header"><span class="preview-icon"><svg class="icon"><use href="#icon-document"/></svg></span><div><span class="example-label" data-i18n="example">Exemple de dossier</span><h3 data-i18n="clientFile">Documents administratifs</h3></div></div>
-      <ol class="file-progress"><li class="completed"><span class="progress-dot"><svg class="icon"><use href="#icon-check"/></svg></span><div><strong data-i18n="fileReceived">Demande reçue</strong><span data-i18n="fileReceivedText">Votre besoin est identifié.</span></div></li><li class="current"><span class="progress-dot"></span><div><strong data-i18n="fileProgress">Préparation du dossier</strong><span data-i18n="fileProgressText">Les pièces utiles sont rassemblées.</span></div></li><li><span class="progress-dot"></span><div><strong data-i18n="fileNext">Prochaine étape</strong><span data-i18n="fileNextText">Un point avec votre interlocuteur.</span></div></li></ol>
-    </div>
-    <p class="client-note" data-i18n="clientNote">L’accès personnel aux dossiers sera disponible au lancement du service.</p>
-    <button class="button button-primary form-submit" type="button" data-open="request" data-i18n="describe">Décrire mon besoin</button>
+      <span class="result-icon"><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg></span>
+      <h2 id="result-title" data-i18n="resultTitle" tabindex="-1">Votre récapitulatif est prêt.</h2>
+      <p class="modal-intro" data-i18n="resultIntro">Aucune information n’a été envoyée. Téléchargez votre récapitulatif pour le conserver sur votre appareil.</p>
+      <div class="request-summary"><dl><dt data-i18n="name">Votre nom</dt><dd id="summary-name"></dd><dt data-i18n="subject">Votre besoin concerne</dt><dd id="summary-service"></dd><dt data-i18n="message">Expliquez-nous votre situation</dt><dd id="summary-message"></dd></dl></div>
+      <button id="download-request" class="button button-primary form-submit" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span data-i18n="download">Télécharger le récapitulatif</span></button>
+<div class="next-step"><h3 data-i18n="nextTitle">La prochaine étape</h3><p data-i18n="nextDescription">Gardez ce document pour votre premier échange avec Luso Office. Le canal de contact est encore à confirmer : vous n’avez aucune demande en attente de traitement.</p></div>
+      <button id="edit-request" class="text-link result-back" type="button" data-i18n="edit">Modifier le récapitulatif</button>
+<a data-i18n="contactBack" href="index.html#contact" data-preserve-language class="text-link result-back">Voir les informations de contact</a>    </div>
   </dialog>
 
   <dialog id="privacy-dialog" class="modal privacy-modal" aria-labelledby="privacy-title">
-    <button class="modal-close" type="button" data-close aria-label="Fermer"><svg class="icon"><use href="#icon-close"/></svg></button>
+    <button class="modal-close" type="button" data-close aria-label="Fermer"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
     <h2 id="privacy-title" data-i18n="privacy" tabindex="-1">Confidentialité</h2>
-    <p data-i18n="privacyText">Le formulaire prépare un récapitulatif sur votre appareil. Il ne transmet pas vos informations et ne les conserve pas après la fermeture de la page. Ce site n’utilise pas de cookies publicitaires ni d’outil de suivi.</p>
+    <p data-i18n="privacyText">Le formulaire prépare un récapitulatif dans cette page, sur votre appareil. Il ne transmet aucune information et ne l’enregistre pas dans le stockage du site. Le fichier téléchargé reste sur votre appareil jusqu’à ce que vous le supprimiez. Aucun cookie publicitaire ni outil de suivi n’est utilisé.</p>
   </dialog>
 </body>
 </html>
