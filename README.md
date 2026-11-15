@@ -70,26 +70,38 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 13 tests réussis (7 contrôles du site, 6 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Les styles étroits ont été renforcés, mais leur contrôle final reste à compléter.
+Validation de l’atelier : build et 18 tests réussis (7 contrôles du site, 11 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
 | Besoin | Parcours démontrable | Reste à connecter / concevoir en détail |
 | --- | --- | --- |
 | Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
-| Biens et documents | Ajout d’un bien, rattachement des demandes, dépôt fictif, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers, versions, conservation, preuves de garde et restitution |
-| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; échanges et notes internes | API, notifications transactionnelles, tâches datées/assignées, échéances, annulation, litige et réouverture |
+| Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
+| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges et notes internes | API, notifications et rappels, annulation, litige et réouverture |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
-| Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, journal d’actions démo | Rôles serveur séparés, invitations nominatives, tâches, gestion des clients, éditeur du catalogue et journal d’audit durable |
-| Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution et désinscription | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
+| Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
+| Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
+
+### Deuxième itération de la démo
+
+- Les tâches ont un responsable équipe/partenaire, une date facultative, quatre états et un motif de blocage. Leur liste se filtre et se trie par échéance. Les dossiers clos ne sont plus modifiables via ces opérations.
+- Une pièce déposée reste en attente de vérification. Un refus exige un motif ; son remplacement conserve la version précédente. Les pièces requises non acceptées bloquent le démarrage, la remise et la clôture ; les tâches ouvertes bloquent la remise et la clôture.
+- Suspendre le partenaire retire ses dossiers, pièces, tâches et conversations de sa vue démo. L’équipe conserve les attributions et peut reprendre ses tâches. Le rétablissement réactive les attributions conservées après confirmation explicite dans la maquette.
+- Une édition publiée peut être archivée pour commencer le brouillon suivant. Une campagne encore en attente doit d’abord être annulée. L’archive conserve le contenu et le bilan simulé ; aucune diffusion réelle.
+- La recherche de dossiers accepte accents et numéros, les fiches de biens sont modifiables, et la navigation mobile expose toutes les sections dans un sélecteur.
+
+Les cinq nouveaux scénarios automatisés couvrent les corrections documentaires, les restrictions et échéances des tâches, la suspension/reprise partenaire, les archives éditoriales et la recherche liée aux biens.
 
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
 2. Adhérent : simuler l’accord puis le paiement. Un refus laisse la mission bloquée ; une nouvelle tentative confirmée autorise son démarrage par l’équipe.
-3. Équipe : attribuer au partenaire. Dans Documents, autoriser uniquement les pièces nécessaires. Partenaire : consulter la mission, échanger, ajouter un livrable fictif et le remettre pour vérification. Équipe : clôturer après contrôle.
+3. Équipe : attribuer au partenaire. Dans Documents, autoriser uniquement les pièces nécessaires. Partenaire : consulter la mission, échanger, ajouter un livrable fictif et le remettre pour vérification. Partenaire → Tâches : terminer les actions attribuées. Équipe : vérifier les pièces demandées, puis clôturer après contrôle.
 4. Adhérent → Adhésion : simuler le passage à Family. Un échec conserve Member ; une confirmation applique Family. Mon compte : préparer trois invitations au maximum. Résilier à échéance conserve les droits de la période courante.
-5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, relire la version enregistrée et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé.
+5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, relire la version enregistrée et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé. Préparer l’édition suivante et retrouver le contenu publié dans les archives.
+6. Adhérent → DEMO-002 : fournir la pièce attendue. Équipe → Documents : demander une correction avec un motif. Adhérent : déposer une nouvelle version. Équipe : vérifier la version corrigée ; la précédente reste consultable.
+7. Équipe → Tâches : créer une action avec une date, l’attribuer au partenaire du dossier. Partenaire : la bloquer avec un motif. Équipe → Administration : suspendre son accès, puis reprendre la tâche pour la terminer. Vérifier la disparition des dossiers dans la vue partenaire.
 
 ### Modèle serveur proposé
 

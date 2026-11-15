@@ -1,12 +1,29 @@
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
+  WorkspaceContext,
+  useWorkspace,
+  labels,
+  roleNames,
+  icons,
+  type View,
+  Button,
+  Field,
+  Panel,
+  Badge,
+  Form,
+  value,
+  CaseSelect,
+  useMoney,
+  serviceName,
+} from "./ui";
+import {
+  Tasks,
+  CaseRequirements,
+  DocumentReview,
+  PropertyEditor,
+  PartnerAccess,
+  EditionArchives,
+} from "./Operations";
+import { useEffect, useRef, useState } from "react";
 import { services, plans, type Lang } from "../catalogue";
 import { href } from "../routes";
 import {
@@ -14,6 +31,9 @@ import {
   transition,
   visibleCases,
   visibleDocuments,
+  matchingCases,
+  missingRequirements,
+  openTasks,
   eligibleRecipients,
   total,
   stageLabels,
@@ -26,166 +46,6 @@ import {
 } from "./model";
 import "./workspace.css";
 
-type View =
-  | "overview"
-  | "requests"
-  | "properties"
-  | "documents"
-  | "messages"
-  | "billing"
-  | "profile"
-  | "newsletter"
-  | "admin";
-type Context = {
-  state: State;
-  role: Role;
-  lang: Lang;
-  act: (a: Action) => boolean;
-  go: (v: View, id?: string) => void;
-  selected: string;
-  select: (id: string) => void;
-  t: (fr: string, pt: string) => string;
-};
-const WorkspaceContext = createContext<Context>(null!);
-const useWorkspace = () => useContext(WorkspaceContext);
-const labels: Record<View, [string, string]> = {
-  overview: ["Vue d’ensemble", "Visão geral"],
-  requests: ["Demandes", "Pedidos"],
-  properties: ["Mes biens", "Os meus imóveis"],
-  documents: ["Documents", "Documentos"],
-  messages: ["Messages", "Mensagens"],
-  billing: ["Adhésion et paiements", "Adesão e pagamentos"],
-  profile: ["Mon compte", "A minha conta"],
-  newsletter: ["Le journal", "O jornal"],
-  admin: ["Administration", "Administração"],
-};
-const roleNames: Record<Role, [string, string]> = {
-  member: ["Adhérent", "Aderente"],
-  team: ["Équipe", "Equipa"],
-  partner: ["Partenaire", "Parceiro"],
-};
-const icons: Record<View, string> = {
-  overview: "◈",
-  requests: "↗",
-  properties: "⌂",
-  documents: "▤",
-  messages: "◌",
-  billing: "€",
-  profile: "◎",
-  newsletter: "▥",
-  admin: "⚙",
-};
-function Button({
-  children,
-  onClick,
-  type = "button",
-  secondary = false,
-  disabled = false,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit";
-  secondary?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type={type}
-      className={`ws-button ${secondary ? "ws-secondary" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {children}
-    </button>
-  );
-}
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="ws-field">
-      <span>{label}</span>
-      {children}
-    </label>
-  );
-}
-function Panel({
-  title,
-  children,
-  className = "",
-}: {
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={`ws-panel ${className}`}>
-      <h2>{title}</h2>
-      {children}
-    </section>
-  );
-}
-function Badge({
-  children,
-  good = false,
-}: {
-  children: ReactNode;
-  good?: boolean;
-}) {
-  return (
-    <span className={`ws-badge ${good ? "ws-good" : ""}`}>{children}</span>
-  );
-}
-function useMoney() {
-  const { lang } = useWorkspace();
-  return (n: number) =>
-    new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "pt-PT", {
-      style: "currency",
-      currency: "EUR",
-    }).format(n);
-}
-function serviceName(id: string, lang: Lang) {
-  return services.find((s) => s.id === id)?.name[lang] || id;
-}
-function Form({
-  children,
-  onSave,
-  className = "",
-}: {
-  children: ReactNode;
-  onSave: (d: FormData) => boolean | void;
-  className?: string;
-}) {
-  return (
-    <form
-      className={`ws-form ${className}`}
-      onSubmit={(e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        if (onSave(new FormData(form)) === true) form.reset();
-      }}
-    >
-      {children}
-    </form>
-  );
-}
-const value = (d: FormData, k: string) => String(d.get(k) || "").trim();
-function CaseSelect({
-  name = "case",
-  current,
-}: {
-  name?: string;
-  current?: string;
-}) {
-  const { state, role, lang } = useWorkspace();
-  return (
-    <select name={name} defaultValue={current} required>
-      {visibleCases(state, role).map((c) => (
-        <option key={c.id} value={c.id}>
-          {c.id} — {serviceName(c.service, lang)}
-        </option>
-      ))}
-    </select>
-  );
-}
 function PaymentControls({
   status,
   onChange,
@@ -287,6 +147,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       ? [
           "overview",
           "requests",
+          "tasks",
           "properties",
           "documents",
           "messages",
@@ -298,13 +159,14 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
         ? [
             "overview",
             "requests",
+            "tasks",
             "documents",
             "messages",
             "billing",
             "newsletter",
             "admin",
           ]
-        : ["overview", "requests", "documents", "messages"];
+        : ["overview", "requests", "tasks", "documents", "messages"];
   return (
     <WorkspaceContext.Provider
       value={{ state, role, lang, act, go, selected, select, t }}
@@ -393,6 +255,20 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 ))}
               </select>
             </Field>
+            <div className="ws-mobile-navigation">
+              <Field label={t("Rubrique", "Secção")}>
+                <select
+                  value={view}
+                  onChange={(e) => go(e.target.value as View)}
+                >
+                  {views.map((v) => (
+                    <option key={v} value={v}>
+                      {t(...labels[v])}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
             <nav aria-label={t("Navigation de l’espace", "Navegação da área")}>
               {views.map((v) => (
                 <button
@@ -440,12 +316,15 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             </p>
             {view === "overview" && <Overview />}
             {view === "requests" && <Requests />}
+            {view === "tasks" && <Tasks />}
             {view === "properties" && <Properties />}
             {view === "documents" && <Documents />}
             {view === "messages" && <Messages />}
             {view === "billing" && <Billing />}
             {view === "profile" && <Profile />}
-            {view === "newsletter" && <Newsletter />}
+            {view === "newsletter" && (
+              <Newsletter key={state.archives.length} />
+            )}
             {view === "admin" && <Administration />}
             <footer className="ws-footer">
               <strong>
@@ -477,6 +356,19 @@ function Overview() {
         ? c.stage === "inprogress"
         : ["submitted", "review", "delivered"].includes(c.stage),
   );
+  if (role === "partner" && !state.partnerEnabled)
+    return (
+      <Panel
+        title={t("Votre accès est suspendu", "O seu acesso está suspenso")}
+      >
+        <p>
+          {t(
+            "Aucun dossier ou document n’est accessible dans cette vue. L’équipe peut revoir l’accès depuis Administration.",
+            "Nenhum pedido ou documento está acessível nesta vista. A equipa pode rever o acesso em Administração.",
+          )}
+        </p>
+      </Panel>
+    );
   return (
     <>
       <div className="ws-welcome">
@@ -529,6 +421,36 @@ function Overview() {
           <span>{t("documents accessibles", "documentos acessíveis")}</span>
         </div>
       </div>
+      {role !== "partner" && (
+        <Panel title={t("Les pièces à compléter", "Os documentos a completar")}>
+          {cases
+            .filter((c) => missingRequirements(state, c.id).length > 0)
+            .map((c) => (
+              <button
+                className="ws-case-row"
+                key={c.id}
+                onClick={() => go("requests", c.id)}
+              >
+                <span>
+                  <small>{c.id}</small>
+                  <strong>{serviceName(c.service, lang)}</strong>
+                </span>
+                <Badge>
+                  {missingRequirements(state, c.id).length}{" "}
+                  {t("pièce(s) en attente", "documento(s) pendente(s)")}
+                </Badge>
+              </button>
+            ))}
+          {!cases.some((c) => missingRequirements(state, c.id).length) && (
+            <p>
+              {t(
+                "Toutes les pièces demandées sont vérifiées.",
+                "Todos os documentos pedidos estão verificados.",
+              )}
+            </p>
+          )}
+        </Panel>
+      )}
       <Panel title={t("La prochaine étape", "O próximo passo")}>
         {pending.length ? (
           pending.map((c) => (
@@ -600,12 +522,24 @@ function Requests() {
   const { state, role, lang, t, act, selected, select } = useWorkspace();
   const cases = visibleCases(state, role);
   const [filter, setFilter] = useState("all"),
-    [create, setCreate] = useState(false);
-  const shown = cases.filter((c) => filter === "all" || c.stage === filter);
+    [create, setCreate] = useState(false),
+    [query, setQuery] = useState("");
+  const shown = matchingCases(state, role, query, filter, lang);
   const current = shown.find((c) => c.id === selected) || shown[0];
   return (
     <>
       <div className="ws-toolbar">
+        <Field label={t("Rechercher un dossier", "Pesquisar pedido")}>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t(
+              "Service, numéro, bien…",
+              "Serviço, número, imóvel…",
+            )}
+          />
+        </Field>
         <Field label={t("État du dossier", "Estado do pedido")}>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">{t("Tous", "Todos")}</option>
@@ -638,6 +572,7 @@ function Requests() {
               if (ok) {
                 setCreate(false);
                 setFilter("all");
+                setQuery("");
                 select(
                   `DEMO-${String(state.cases.length + 1).padStart(3, "0")}`,
                 );
@@ -685,6 +620,9 @@ function Requests() {
           </Form>
         </Panel>
       )}
+      <p className="ws-hint" role="status">
+        {shown.length} {t("dossier(s) trouvé(s)", "pedido(s) encontrado(s)")}
+      </p>
       <div className="ws-case-layout">
         <section
           className="ws-case-list"
@@ -717,6 +655,8 @@ function Requests() {
 function CaseDetail({ c }: { c: Case }) {
   const { state, role, lang, t, act, go } = useWorkspace();
   const money = useMoney();
+  const missing = missingRequirements(state, c.id).length;
+  const remaining = openTasks(state, c.id).length;
   return (
     <article className="ws-panel ws-case-detail">
       <div className="ws-detail-heading">
@@ -801,7 +741,7 @@ function CaseDetail({ c }: { c: Case }) {
         )}
         {role === "team" && c.stage === "approved" && (
           <Button
-            disabled={c.payment !== "paid"}
+            disabled={c.payment !== "paid" || missing > 0}
             onClick={() =>
               act({ type: "stage", id: c.id, stage: "inprogress" })
             }
@@ -811,6 +751,7 @@ function CaseDetail({ c }: { c: Case }) {
         )}
         {role !== "member" && c.stage === "inprogress" && (
           <Button
+            disabled={missing > 0 || remaining > 0}
             onClick={() => act({ type: "stage", id: c.id, stage: "delivered" })}
           >
             {t("Remettre pour vérification", "Entregar para verificação")}
@@ -818,12 +759,32 @@ function CaseDetail({ c }: { c: Case }) {
         )}
         {role === "team" && c.stage === "delivered" && (
           <Button
+            disabled={missing > 0 || remaining > 0}
             onClick={() => act({ type: "stage", id: c.id, stage: "completed" })}
           >
             {t("Valider la clôture", "Validar conclusão")}
           </Button>
         )}
       </div>
+      {(missing > 0 || remaining > 0) && (
+        <p className="ws-blocker">
+          {t("Avant la remise du dossier :", "Antes da entrega do pedido:")}{" "}
+          {missing > 0 &&
+            t(
+              "des pièces restent à vérifier. ",
+              "há documentos por verificar. ",
+            )}
+          {remaining > 0 &&
+            `${remaining} ${t("tâche(s) à terminer.", "tarefa(s) por concluir.")}`}
+        </p>
+      )}
+      <CaseRequirements caseId={c.id} />
+      <details className="ws-case-tasks">
+        <summary>
+          {t("Tâches du dossier", "Tarefas do pedido")} ({remaining})
+        </summary>
+        <Tasks key={c.id} caseId={c.id} />
+      </details>
       {role === "member" && c.stage === "approved" && (
         <PaymentControls
           status={c.payment}
@@ -973,6 +934,7 @@ function Properties() {
                   {c.id}
                 </Button>
               ))}
+            <PropertyEditor id={p.id} />
           </Panel>
         ))}
       </div>
@@ -1041,6 +1003,10 @@ function Documents() {
               <article className="ws-document" key={d.id}>
                 <small>{d.caseId}</small>
                 <h3>{d.name}</h3>
+                <DocumentReview
+                  key={`${d.id}-${d.version}-${d.review}`}
+                  doc={d}
+                />
                 <Badge>
                   {t(
                     d.shared
@@ -1936,6 +1902,7 @@ function Newsletter() {
           </Panel>
         </>
       )}
+      <EditionArchives />
     </>
   );
 }
@@ -1971,6 +1938,7 @@ function Administration() {
   const { state, t } = useWorkspace();
   return (
     <>
+      <PartnerAccess />
       <div className="ws-two">
         <Panel
           title={t(

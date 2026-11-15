@@ -8,6 +8,10 @@ import {
   total,
   eligibleRecipients,
   services,
+  missingRequirements,
+  openTasks,
+  visibleTasks,
+  matchingCases,
 } from "../.ssr/entry-server.js";
 
 const apply = (s, role, action) => {
@@ -189,4 +193,211 @@ test("Demo mutations reject blank inputs and do not mutate their starting snapsh
   });
   assert.equal(JSON.stringify(s), before);
   assert.ok(s.cases.every((c) => services.some((s) => s.id === c.service)));
+});
+
+test("Document correction retains its prior version and blocks execution until the requested piece is verified", () => {
+  let s = initialState();
+  const id = "DEMO-002";
+  s = apply(s, "member", { type: "stage", id, stage: "approved" });
+  s = apply(s, "member", { type: "pay", id, result: "pending" });
+  s = apply(s, "member", { type: "pay", id, result: "paid" });
+  rejected(s, "team", { type: "stage", id, stage: "inprogress" });
+  rejected(s, "member", {
+    type: "document",
+    id: "DEMO-001",
+    name: "Wrong case",
+    requirement: "need-1",
+  });
+  s = apply(s, "member", {
+    type: "document",
+    id,
+    name: "First copy",
+    requirement: "need-1",
+  });
+  const docId = s.documents.at(-1).id;
+  rejected(s, "member", {
+    type: "document",
+    id,
+    name: "Duplicate",
+    requirement: "need-1",
+  });
+  rejected(s, "member", {
+    type: "document-review",
+    id: docId,
+    review: "accepted",
+    reason: "",
+  });
+  rejected(s, "team", {
+    type: "document-review",
+    id: docId,
+    review: "rejected",
+    reason: "  ",
+  });
+  s = apply(s, "team", {
+    type: "document-review",
+    id: docId,
+    review: "rejected",
+    reason: "Missing page",
+  });
+  s = apply(s, "member", {
+    type: "document-replace",
+    id: docId,
+    name: "Corrected copy",
+  });
+  assert.equal(s.documents.at(-1).version, 2);
+  assert.equal(s.documents.at(-1).revisions[0].reason, "Missing page");
+  assert.equal(missingRequirements(s, id).length, 1);
+  s = apply(s, "team", {
+    type: "document-review",
+    id: docId,
+    review: "accepted",
+    reason: "",
+  });
+  assert.equal(missingRequirements(s, id).length, 0);
+  s = apply(s, "team", { type: "stage", id, stage: "inprogress" });
+});
+test("Tasks have explicit blockers, valid dates, restricted assignments and gate delivery", () => {
+  let s = initialState();
+  const id = "DEMO-001";
+  rejected(s, "partner", { type: "stage", id, stage: "delivered" });
+  rejected(s, "team", {
+    type: "task-create",
+    id,
+    title: "X",
+    due: "2026-02-30",
+    assignee: "team",
+  });
+  rejected(s, "team", {
+    type: "task-create",
+    id: "DEMO-002",
+    title: "X",
+    due: "",
+    assignee: "partner",
+  });
+  rejected(s, "member", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "",
+  });
+  rejected(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "blocked",
+    note: "",
+  });
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "blocked",
+    note: "Access to confirm",
+  });
+  assert.equal(openTasks(s, id).length, 1);
+  s = apply(s, "team", {
+    type: "task-assign",
+    id: "task-1",
+    assignee: "team",
+    due: "2026-12-01",
+  });
+  assert.equal(visibleTasks(s, "partner").length, 0);
+  rejected(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "",
+  });
+  s = apply(s, "team", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "Done",
+  });
+  s = apply(s, "team", { type: "stage", id, stage: "delivered" });
+  s = apply(s, "team", { type: "stage", id, stage: "completed" });
+  rejected(s, "team", {
+    type: "task-update",
+    id: "task-1",
+    status: "todo",
+    note: "",
+  });
+  rejected(s, "team", { type: "requirement", id, label: "Late requirement" });
+});
+test("Global partner suspension removes all simulated access and can be safely reassigned", () => {
+  let s = initialState();
+  rejected(s, "partner", { type: "partner-access", enabled: false });
+  s = apply(s, "team", { type: "partner-access", enabled: false });
+  assert.equal(visibleCases(s, "partner").length, 0);
+  assert.equal(visibleTasks(s, "partner").length, 0);
+  assert.equal(visibleDocuments(s, "partner").length, 0);
+  rejected(s, "partner", { type: "message", id: "DEMO-001", body: "Denied" });
+  rejected(s, "team", { type: "assign", id: "DEMO-002", assigned: true });
+  s = apply(s, "team", {
+    type: "task-assign",
+    id: "task-1",
+    assignee: "team",
+    due: "",
+  });
+  s = apply(s, "team", { type: "partner-access", enabled: true });
+  assert.equal(visibleCases(s, "partner").length, 1);
+  assert.equal(visibleTasks(s, "partner").length, 0);
+});
+test("A new edition archives an immutable published snapshot and cannot discard a queued campaign", () => {
+  let s = initialState();
+  s = apply(s, "team", {
+    type: "edition",
+    edition: {
+      title: "Issue one",
+      excerpt: "Public",
+      sections: ["A", "B", "C", "D"],
+      status: "review",
+    },
+  });
+  s = apply(s, "team", { type: "publish" });
+  s = apply(s, "team", { type: "queue" });
+  rejected(s, "team", { type: "next-edition" });
+  rejected(s, "member", { type: "cancel-campaign" });
+  s = apply(s, "team", { type: "cancel-campaign" });
+  s = apply(s, "team", { type: "next-edition" });
+  assert.equal(s.archives[0].edition.title, "Issue one");
+  assert.equal(s.edition.status, "draft");
+  assert.equal(s.campaign.status, "idle");
+  s = apply(s, "team", {
+    type: "edition",
+    edition: {
+      title: "Issue two",
+      excerpt: "New",
+      sections: ["1", "2", "3", "4"],
+      status: "review",
+    },
+  });
+  assert.deepEqual(s.archives[0].edition.sections, ["A", "B", "C", "D"]);
+});
+test("Property edits retain case links, and search combines accents, role isolation and stage", () => {
+  let s = initialState();
+  rejected(s, "partner", {
+    type: "property-edit",
+    id: "home-1",
+    name: "X",
+    town: "Y",
+  });
+  s = apply(s, "member", {
+    type: "property-edit",
+    id: "home-1",
+    name: "Maison rénovée",
+    town: "Démo",
+  });
+  assert.equal(s.cases[0].property, "home-1");
+  assert.equal(matchingCases(s, "member", "renovee", "all", "fr").length, 2);
+  assert.equal(matchingCases(s, "partner", "renovee", "all", "fr").length, 1);
+  assert.equal(matchingCases(s, "member", "renovee", "quote", "fr").length, 1);
+  assert.equal(
+    matchingCases(s, "member", "does not exist", "all", "fr").length,
+    0,
+  );
+  rejected(s, "member", {
+    type: "request",
+    service: "invented",
+    property: "",
+    description: "X",
+  });
 });

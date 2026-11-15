@@ -767,6 +767,220 @@ body:has(.workspace) {
 .ws-footer p {
   margin-top: 6px;
 }
+.ws-mobile-navigation {
+  display: none;
+}
+.ws-task-heading {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: start;
+  margin: 24px 0 20px;
+}
+.ws-task-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+}
+.ws-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.ws-filter-tabs button {
+  border: 1px solid #b6c8df;
+  background: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  min-height: 44px;
+  font-size: 12px;
+}
+.ws-filter-tabs button[aria-pressed="true"] {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+.ws-task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.ws-task-card {
+  background: white;
+  border: 1px solid var(--ws-line);
+  border-top: 3px solid #9db5d6;
+  border-radius: 6px;
+  padding: 22px;
+  min-width: 0;
+}
+.ws-task-doing {
+  border-top-color: var(--blue);
+}
+.ws-task-blocked {
+  border-top-color: #aa6729;
+}
+.ws-task-done {
+  border-top-color: #377d66;
+}
+.ws-task-card h3 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.ws-task-card .ws-form {
+  margin-top: 15px;
+}
+.ws-inline-link {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 5px 0;
+  min-height: 32px;
+  font-size: 12px;
+}
+.ws-task-card summary,
+.ws-add-task summary,
+.ws-property-editor summary,
+.ws-archive summary,
+.ws-case-tasks > summary {
+  cursor: pointer;
+  padding: 14px 0;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ws-task-note {
+  border-left: 2px solid var(--ws-line);
+  padding-left: 12px;
+  margin: 15px 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.ws-task-warning,
+.ws-blocker {
+  background: #fff3d9;
+  color: #6a4c12;
+  padding: 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 18px 0;
+}
+.ws-add-task {
+  background: #e9f2fc;
+  padding: 10px 22px;
+  border-radius: 6px;
+  margin: 24px 0;
+}
+.ws-add-task[open] {
+  padding-bottom: 22px;
+}
+.ws-required {
+  margin: 24px 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-required h3 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.ws-required-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--ws-line);
+}
+.ws-required-row > strong {
+  flex: 1;
+  min-width: 150px;
+  font-size: 13px;
+}
+.ws-required-row > p {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: #8b3a31;
+}
+.ws-required .ws-form {
+  margin-top: 20px;
+}
+.ws-doc-review {
+  background: #f2f6fc;
+  border-radius: 5px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.ws-doc-review .ws-form {
+  margin-top: 18px;
+}
+.ws-doc-review .ws-field {
+  margin: 0;
+}
+.ws-doc-review p {
+  white-space: pre-wrap;
+}
+.ws-property-editor {
+  border-top: 1px solid var(--ws-line);
+  margin-top: 20px;
+}
+.ws-case-tasks {
+  border-block: 1px solid var(--ws-line);
+  margin: 24px 0;
+}
+.ws-case-tasks .ws-task-grid {
+  grid-template-columns: 1fr;
+}
+.ws-archive {
+  border-top: 1px solid var(--ws-line);
+  margin-top: 20px;
+  padding-block: 10px;
+}
+.ws-archive p {
+  padding-block: 12px;
+  white-space: pre-wrap;
+}
+.ws-local-error {
+  color: #963d2e;
+  font-size: 12px;
+}
+.ws-local-success {
+  color: #19624b;
+  font-size: 12px;
+}
+.ws-toolbar {
+  flex-wrap: wrap;
+}
+.ws-toolbar > .ws-field {
+  flex: 1;
+  min-width: min(220px, 100%);
+}
+/* Compact the overview so action lists come before the fold. */
+.ws-welcome {
+  grid-template-columns: minmax(0, 1fr) 190px;
+}
+.ws-welcome h2 {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  margin-block: 12px;
+  max-width: 30ch;
+}
+.ws-welcome .ws-tile {
+  min-height: 220px;
+}
+.ws-welcome > div:first-child {
+  padding: 26px;
+}
+.ws-welcome p {
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+@media (max-width: 1100px) {
+  .ws-task-grid {
+    grid-template-columns: 1fr;
+  }
+  .ws-welcome {
+    grid-template-columns: 1fr 130px;
+  }
+}
 .ws-intro {
   margin: 20px 0 28px;
 }
@@ -861,10 +1075,21 @@ body:has(.workspace) {
     font-size: 11px;
   }
   .ws-sidebar nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 4px 0 10px;
-    gap: 8px;
+    display: none;
+  }
+  .ws-mobile-navigation {
+    display: block;
+    margin-top: 10px;
+  }
+  .ws-sidebar > .ws-field {
+    max-width: none;
+  }
+  .ws-task-heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ws-welcome .ws-tile {
+    display: none;
   }
   .ws-sidebar nav button {
     flex: none;

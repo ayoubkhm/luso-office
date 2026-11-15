@@ -1,4 +1,5 @@
 // In-memory design prototype. These checks demonstrate rules, not server authorization.
+import { services } from "../catalogue";
 export type Role = "member" | "team" | "partner";
 export type Stage =
   | "submitted"
@@ -30,6 +31,31 @@ export interface Document {
   caseId: string;
   shared: boolean;
   custody: "digital" | "received" | "returned";
+  version: number;
+  review: "pending" | "accepted" | "rejected";
+  reason: string;
+  requirement?: string;
+  revisions: {
+    version: number;
+    name: string;
+    review: Document["review"];
+    reason: string;
+  }[];
+}
+export type TaskStatus = "todo" | "doing" | "blocked" | "done";
+export interface Task {
+  id: string;
+  caseId: string;
+  title: string;
+  assignee: "team" | "partner";
+  due: string;
+  status: TaskStatus;
+  note: string;
+}
+export interface Requirement {
+  id: string;
+  caseId: string;
+  label: string;
 }
 export interface Edition {
   title: string;
@@ -38,6 +64,10 @@ export interface Edition {
   status: "draft" | "review" | "published";
 }
 export interface State {
+  tasks: Task[];
+  requirements: Requirement[];
+  partnerEnabled: boolean;
+  archives: { edition: Edition; delivered: number }[];
   cases: Case[];
   properties: { id: string; name: string; town: string }[];
   documents: Document[];
@@ -84,6 +114,27 @@ export const stageLabels: Record<Stage, [string, string]> = {
   completed: ["Terminée", "Concluído"],
 };
 export const initialState = (): State => ({
+  partnerEnabled: true,
+  archives: [],
+  requirements: [
+    {
+      id: "need-1",
+      caseId: "DEMO-002",
+      label: "Liste des pièces disponibles / Lista de documentos disponíveis",
+    },
+  ],
+  tasks: [
+    {
+      id: "task-1",
+      caseId: "DEMO-001",
+      title:
+        "Préparer le compte rendu de visite / Preparar o relatório da visita",
+      assignee: "partner",
+      due: "",
+      status: "doing",
+      note: "",
+    },
+  ],
   cases: [
     {
       id: "DEMO-001",
@@ -132,6 +183,10 @@ export const initialState = (): State => ({
       caseId: "DEMO-001",
       shared: true,
       custody: "digital",
+      version: 1,
+      review: "accepted",
+      reason: "",
+      revisions: [],
     },
     {
       id: "doc-2",
@@ -139,6 +194,10 @@ export const initialState = (): State => ({
       caseId: "DEMO-001",
       shared: false,
       custody: "received",
+      version: 1,
+      review: "accepted",
+      reason: "",
+      revisions: [],
     },
   ],
   messages: [
@@ -175,7 +234,8 @@ export const initialState = (): State => ({
 export function visibleCases(s: State, role: Role) {
   return s.cases.filter(
     (c) =>
-      role === "team" || (role === "partner" ? c.partner : c.owner === "demo"),
+      role === "team" ||
+      (role === "partner" ? c.partner && s.partnerEnabled : c.owner === "demo"),
   );
 }
 export function visibleDocuments(s: State, role: Role) {
@@ -188,6 +248,51 @@ export const eligibleRecipients = (s: State) =>
   s.profile.consent && s.subscription.active ? ["demo"] : [];
 export const total = (c: Case) =>
   Math.round((c.quote + c.fees + c.thirdParty) * 100) / 100;
+export function visibleTasks(s: State, role: Role) {
+  const ids = new Set(visibleCases(s, role).map((c) => c.id));
+  return s.tasks.filter(
+    (t) =>
+      ids.has(t.caseId) && (role !== "partner" || t.assignee === "partner"),
+  );
+}
+export function missingRequirements(s: State, id: string) {
+  return s.requirements.filter(
+    (r) =>
+      r.caseId === id &&
+      !s.documents.some(
+        (d) =>
+          d.caseId === id && d.requirement === r.id && d.review === "accepted",
+      ),
+  );
+}
+export function openTasks(s: State, id: string) {
+  return s.tasks.filter((t) => t.caseId === id && t.status !== "done");
+}
+export function matchingCases(
+  s: State,
+  role: Role,
+  query: string,
+  stage: string,
+  lang: "fr" | "pt",
+) {
+  const norm = (v: string) =>
+    v
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  return visibleCases(s, role).filter(
+    (c) =>
+      (stage === "all" || c.stage === stage) &&
+      norm(
+        [
+          c.id,
+          c.description,
+          services.find((x) => x.id === c.service)?.name[lang],
+          s.properties.find((p) => p.id === c.property)?.name,
+        ].join(" "),
+      ).includes(norm(query.trim())),
+  );
+}
 export const validEdition = (e: Edition) =>
   Boolean(
     e.title.trim() &&
@@ -196,6 +301,27 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | {
+      type: "task-create";
+      id: string;
+      title: string;
+      assignee: Task["assignee"];
+      due: string;
+    }
+  | { type: "task-update"; id: string; status: TaskStatus; note: string }
+  | { type: "task-assign"; id: string; assignee: Task["assignee"]; due: string }
+  | { type: "requirement"; id: string; label: string }
+  | {
+      type: "document-review";
+      id: string;
+      review: "accepted" | "rejected";
+      reason: string;
+    }
+  | { type: "document-replace"; id: string; name: string }
+  | { type: "property-edit"; id: string; name: string; town: string }
+  | { type: "partner-access"; enabled: boolean }
+  | { type: "next-edition" }
+  | { type: "cancel-campaign" }
   | { type: "request"; service: string; property: string; description: string }
   | { type: "stage"; id: string; stage: Stage }
   | {
@@ -210,7 +336,7 @@ export type Action =
   | { type: "message"; id: string; body: string }
   | { type: "note"; id: string; body: string }
   | { type: "property"; name: string; town: string }
-  | { type: "document"; id: string; name: string }
+  | { type: "document"; id: string; name: string; requirement?: string }
   | { type: "share"; id: string; shared: boolean }
   | { type: "custody"; id: string; custody: Document["custody"] }
   | {
@@ -244,12 +370,210 @@ export function transition(
     n >= 0 &&
     n <= 100000 &&
     Math.abs(Math.round(n * 100) - n * 100) < 0.000001;
+  const validDate = (d: string) =>
+    !d ||
+    (/^\d{4}-\d{2}-\d{2}$/.test(d) &&
+      !Number.isNaN(Date.parse(d)) &&
+      new Date(d).toISOString().slice(0, 10) === d);
   switch (a.type) {
+    case "task-create":
+      if (
+        role !== "team" ||
+        !c ||
+        c.stage === "completed" ||
+        !a.title.trim() ||
+        !validDate(a.due) ||
+        (a.assignee === "partner" && (!c.partner || !s.partnerEnabled))
+      )
+        return reject;
+      next = {
+        ...s,
+        tasks: [
+          ...s.tasks,
+          {
+            id: `task-${s.tasks.length + 1}`,
+            caseId: c.id,
+            title: a.title.trim(),
+            assignee: a.assignee,
+            due: a.due,
+            status: "todo",
+            note: "",
+          },
+        ],
+      };
+      break;
+    case "task-update":
+    case "task-assign": {
+      const task = visibleTasks(s, role).find((t) => t.id === a.id);
+      if (
+        role === "member" ||
+        !task ||
+        s.cases.find((c) => c.id === task.caseId)?.stage === "completed"
+      )
+        return reject;
+      if (a.type === "task-assign") {
+        if (
+          role !== "team" ||
+          !validDate(a.due) ||
+          (a.assignee === "partner" &&
+            (!s.partnerEnabled ||
+              !s.cases.find((c) => c.id === task.caseId)?.partner))
+        )
+          return reject;
+        next = {
+          ...s,
+          tasks: s.tasks.map((t) =>
+            t.id === a.id ? { ...t, assignee: a.assignee, due: a.due } : t,
+          ),
+        };
+      } else {
+        if (
+          !(["todo", "doing", "blocked", "done"] as string[]).includes(
+            a.status,
+          ) ||
+          (a.status === "blocked" && !a.note.trim())
+        )
+          return reject;
+        next = {
+          ...s,
+          tasks: s.tasks.map((t) =>
+            t.id === a.id ? { ...t, status: a.status, note: a.note.trim() } : t,
+          ),
+        };
+      }
+      break;
+    }
+    case "requirement":
+      if (
+        role !== "team" ||
+        !c ||
+        c.stage === "completed" ||
+        !a.label.trim() ||
+        s.requirements.some(
+          (r) =>
+            r.caseId === c.id &&
+            r.label.toLowerCase() === a.label.trim().toLowerCase(),
+        )
+      )
+        return reject;
+      next = {
+        ...s,
+        requirements: [
+          ...s.requirements,
+          {
+            id: `need-${s.requirements.length + 1}`,
+            caseId: c.id,
+            label: a.label.trim(),
+          },
+        ],
+      };
+      break;
+    case "document-review":
+    case "document-replace": {
+      const d = visibleDocuments(s, role).find((d) => d.id === a.id);
+      if (!d || s.cases.find((c) => c.id === d.caseId)?.stage === "completed")
+        return reject;
+      if (a.type === "document-review") {
+        if (
+          role !== "team" ||
+          d.review !== "pending" ||
+          (a.review === "rejected" && !a.reason.trim())
+        )
+          return reject;
+        next = {
+          ...s,
+          documents: s.documents.map((x) =>
+            x.id === d.id
+              ? { ...x, review: a.review, reason: a.reason.trim() }
+              : x,
+          ),
+        };
+      } else {
+        if (!a.name.trim() || d.review !== "rejected") return reject;
+        next = {
+          ...s,
+          documents: s.documents.map((x) =>
+            x.id === d.id
+              ? {
+                  ...x,
+                  name: a.name.trim(),
+                  review: "pending",
+                  reason: "",
+                  version: x.version + 1,
+                  revisions: [
+                    ...x.revisions,
+                    {
+                      version: x.version,
+                      name: x.name,
+                      review: x.review,
+                      reason: x.reason,
+                    },
+                  ],
+                }
+              : x,
+          ),
+        };
+      }
+      break;
+    }
+    case "property-edit":
+      if (
+        role !== "member" ||
+        !s.properties.some((p) => p.id === a.id) ||
+        !a.name.trim() ||
+        !a.town.trim()
+      )
+        return reject;
+      next = {
+        ...s,
+        properties: s.properties.map((p) =>
+          p.id === a.id
+            ? { ...p, name: a.name.trim(), town: a.town.trim() }
+            : p,
+        ),
+      };
+      break;
+    case "partner-access":
+      if (role !== "team" || s.partnerEnabled === a.enabled) return reject;
+      next = { ...s, partnerEnabled: a.enabled };
+      break;
+    case "cancel-campaign":
+      if (role !== "team" || s.campaign.status !== "queued") return reject;
+      next = {
+        ...s,
+        campaign: { status: "idle", recipients: [], delivered: [] },
+      };
+      break;
+    case "next-edition":
+      if (
+        role !== "team" ||
+        s.edition.status !== "published" ||
+        s.campaign.status === "queued"
+      )
+        return reject;
+      next = {
+        ...s,
+        archives: [
+          ...s.archives,
+          {
+            edition: { ...s.edition, sections: [...s.edition.sections] },
+            delivered: s.campaign.delivered.length,
+          },
+        ],
+        edition: {
+          title: "Portugal — Tão longe e tão perto",
+          sections: ["", "", "", ""],
+          excerpt: "",
+          status: "draft",
+        },
+        campaign: { status: "idle", recipients: [], delivered: [] },
+      };
+      break;
     case "request":
       if (
         role !== "member" ||
         !a.description.trim() ||
-        !a.service ||
+        !services.some((s) => s.id === a.service) ||
         (a.property && !s.properties.some((p) => p.id === a.property))
       )
         return reject;
@@ -289,6 +613,16 @@ export function transition(
               (c.stage === "inprogress" && a.stage === "delivered") ||
               (c.stage === "delivered" && a.stage === "completed");
       if (!allowed) return reject;
+      if (
+        ["inprogress", "delivered", "completed"].includes(a.stage) &&
+        missingRequirements(s, c.id).length
+      )
+        return reject;
+      if (
+        ["delivered", "completed"].includes(a.stage) &&
+        openTasks(s, c.id).length
+      )
+        return reject;
       next = update({ stage: a.stage, history: [...c.history, a.stage] });
       break;
     }
@@ -310,7 +644,13 @@ export function transition(
       });
       break;
     case "assign":
-      if (role !== "team" || !c || c.stage === "completed") return reject;
+      if (
+        role !== "team" ||
+        !c ||
+        c.stage === "completed" ||
+        (a.assigned && !s.partnerEnabled)
+      )
+        return reject;
       next = update({ partner: a.assigned });
       break;
     case "pay":
@@ -360,7 +700,16 @@ export function transition(
       };
       break;
     case "document":
-      if (!c || !a.name.trim()) return reject;
+      if (!c || !a.name.trim() || c.stage === "completed") return reject;
+      if (
+        a.requirement &&
+        (role === "partner" ||
+          !s.requirements.some(
+            (r) => r.id === a.requirement && r.caseId === c.id,
+          ) ||
+          s.documents.some((d) => d.requirement === a.requirement))
+      )
+        return reject;
       next = {
         ...s,
         documents: [
@@ -371,6 +720,11 @@ export function transition(
             caseId: c.id,
             shared: role === "partner",
             custody: "digital",
+            version: 1,
+            review: "pending",
+            reason: "",
+            revisions: [],
+            requirement: a.requirement,
           },
         ],
       };
