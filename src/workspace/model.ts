@@ -22,6 +22,23 @@ export interface Proposal {
   revisionReason?: string;
   revisionBy?: "member" | "team";
 }
+export interface Settlement {
+  version: number;
+  coordination: number;
+  official: number;
+  thirdParty: number;
+  explanation: string;
+  status:
+    | "proposed"
+    | "disputed"
+    | "approved"
+    | "pending"
+    | "failed"
+    | "settled"
+    | "superseded";
+  dispute?: string;
+  attempts: ("pending" | "failed" | "paid")[];
+}
 export interface Case {
   id: string;
   owner: string;
@@ -37,6 +54,7 @@ export interface Case {
   history: string[];
   notes: string[];
   proposals: Proposal[];
+  settlements: Settlement[];
   cancellation?: { reason: string; by: "member" | "team" };
   sourceCase?: string;
   decisions: {
@@ -204,6 +222,7 @@ export const initialState = (): State => ({
       payment: "paid",
       history: ["submitted", "review", "quote", "approved", "inprogress"],
       notes: [],
+      settlements: [],
       proposals: [
         {
           version: 1,
@@ -234,6 +253,7 @@ export const initialState = (): State => ({
       payment: "unpaid",
       history: ["submitted", "review", "quote"],
       notes: [],
+      settlements: [],
       proposals: [
         {
           version: 1,
@@ -390,6 +410,27 @@ export const validEdition = (e: Edition) =>
   );
 export type Action =
   | {
+      type: "settlement-propose";
+      id: string;
+      coordination: number;
+      official: number;
+      thirdParty: number;
+      explanation: string;
+    }
+  | {
+      type: "settlement-respond";
+      id: string;
+      version: number;
+      approve: boolean;
+      reason: string;
+    }
+  | {
+      type: "settlement-payment";
+      id: string;
+      version: number;
+      result: "pending" | "failed" | "paid";
+    }
+  | {
       type: "invite-state";
       id: string;
       status: "active" | "expired" | "revoked";
@@ -529,6 +570,102 @@ export function transition(
     reason: string,
   ) => [...c!.decisions, { kind, role, reason: reason.trim() }];
   switch (a.type) {
+    case "settlement-propose": {
+      const latest = c?.settlements.at(-1);
+      if (
+        !c ||
+        role !== "team" ||
+        !isClosed(c) ||
+        c.payment !== "paid" ||
+        (latest && !["disputed", "superseded"].includes(latest.status)) ||
+        ![a.coordination, a.official, a.thirdParty].every(money) ||
+        !a.explanation.trim() ||
+        a.explanation.length > 2000
+      )
+        return reject;
+      next = update({
+        settlements: [
+          ...c.settlements.map((b) => ({
+            ...b,
+            status: "superseded" as const,
+          })),
+          {
+            version: c.settlements.length + 1,
+            coordination: a.coordination,
+            official: a.official,
+            thirdParty: a.thirdParty,
+            explanation: a.explanation.trim(),
+            status: "proposed",
+            attempts: [],
+          },
+        ],
+      });
+      break;
+    }
+    case "settlement-respond": {
+      const b = c?.settlements.at(-1);
+      if (
+        !c ||
+        role !== "member" ||
+        !isClosed(c) ||
+        c.payment !== "paid" ||
+        !b ||
+        b.status !== "proposed" ||
+        a.version !== b.version ||
+        (!a.approve && !a.reason.trim()) ||
+        a.reason.length > 1000
+      )
+        return reject;
+      next = update({
+        settlements: c.settlements.map((x) =>
+          x.version === b.version
+            ? {
+                ...x,
+                status: a.approve
+                  ? settlementBalance(c, b) === 0
+                    ? "settled"
+                    : "approved"
+                  : "disputed",
+                dispute: a.approve ? undefined : a.reason.trim(),
+              }
+            : x,
+        ),
+      });
+      break;
+    }
+    case "settlement-payment": {
+      const b = c?.settlements.at(-1);
+      if (
+        !c ||
+        !isClosed(c) ||
+        c.payment !== "paid" ||
+        !b ||
+        a.version !== b.version ||
+        !["pending", "failed", "paid"].includes(a.result)
+      )
+        return reject;
+      const balance = settlementBalance(c, b);
+      if (!balance || role !== (balance < 0 ? "team" : "member")) return reject;
+      if (
+        a.result === "pending"
+          ? !["approved", "failed"].includes(b.status)
+          : b.status !== "pending"
+      )
+        return reject;
+      next = update({
+        settlements: c.settlements.map((x) =>
+          x.version === b.version
+            ? {
+                ...x,
+                status: a.result === "paid" ? "settled" : a.result,
+                attempts: [...x.attempts, a.result],
+              }
+            : x,
+        ),
+      });
+      break;
+    }
+
     case "cancel-request":
       if (!c || role === "partner" || !canWork(c) || !a.reason.trim())
         return reject;
@@ -573,6 +710,7 @@ export function transition(
         !c ||
         role === "partner" ||
         c.cancellation ||
+        settlementLocked(c) ||
         !a.reason.trim() ||
         (a.type === "correction"
           ? c.stage !== "delivered"
@@ -584,6 +722,10 @@ export function transition(
           stage: "inprogress",
           history: [...c.history, "inprogress"],
           decisions: decision(a.type, a.reason),
+          settlements: c.settlements.map((b) => ({
+            ...b,
+            status: "superseded" as const,
+          })),
         }),
         tasks: [
           ...s.tasks,
@@ -621,6 +763,7 @@ export function transition(
             payment: "unpaid",
             history: ["submitted"],
             notes: [],
+            settlements: [],
             proposals: [],
             sourceCase: c.id,
             decisions: [{ kind: "restart", role, reason: c.id }],
@@ -853,6 +996,7 @@ export function transition(
             payment: "unpaid",
             history: ["submitted"],
             notes: [],
+            settlements: [],
             proposals: [],
             decisions: [],
           },
@@ -1385,12 +1529,16 @@ export type AttentionKind =
   | "review-documents"
   | "correct-documents"
   | "tasks"
-  | "return-originals";
+  | "return-originals"
+  | "settlement-prepare"
+  | "settlement-review"
+  | "settlement-pay"
+  | "settlement-refund";
 export interface AttentionItem {
   caseId: string;
   kind: AttentionKind;
   count: number;
-  target: "requests" | "documents" | "messages";
+  target: "requests" | "documents" | "messages" | "settlements";
 }
 export function attentionItems(s: State, role: Role): AttentionItem[] {
   const result: AttentionItem[] = [];
@@ -1410,6 +1558,23 @@ export function attentionItems(s: State, role: Role): AttentionItem[] {
           .length,
         "documents",
       );
+    if (isClosed(c) && c.payment === "paid" && role !== "partner") {
+      const b = c.settlements.at(-1);
+      if (
+        role === "team" &&
+        (!b || ["disputed", "superseded"].includes(b.status))
+      )
+        add("settlement-prepare", 1, "settlements");
+      if (b?.status === "proposed" && role === "member")
+        add("settlement-review", 1, "settlements");
+      if (b && ["approved", "pending", "failed"].includes(b.status)) {
+        const balance = settlementBalance(c, b);
+        if (balance < 0 && role === "team")
+          add("settlement-refund", 1, "settlements");
+        if (balance > 0 && role === "member")
+          add("settlement-pay", 1, "settlements");
+      }
+    }
     if (c.cancellation) {
       if (role === "team") add("cancellation");
       if (role === "member" && c.payment === "pending") add("payment-result");
@@ -1506,3 +1671,14 @@ export function familyPreview(s: State, id: string) {
       })),
   };
 }
+
+export const settlementTotal = (b: Settlement) =>
+  Math.round((b.coordination + b.official + b.thirdParty) * 100) / 100;
+export const settlementBalance = (c: Case, b: Settlement) =>
+  Math.round(
+    (settlementTotal(b) - (c.payment === "paid" ? total(c) : 0)) * 100,
+  ) / 100;
+export const settlementLocked = (c: Case) =>
+  ["approved", "pending", "failed", "settled"].includes(
+    c.settlements.at(-1)?.status || "",
+  );

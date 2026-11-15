@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   initialState,
+  settlementBalance,
+  settlementTotal,
   demoScenarios,
   scenarioState,
   advanceScenario,
@@ -1240,7 +1242,7 @@ test("Replacing a document clears Family sharing, and revocation clears all gran
 
 test("Guided examples start independently with no completed first step or changed original state", () => {
   const original = initialState();
-  assert.equal(new Set(demoScenarios.map((s) => s.id)).size, 5);
+  assert.equal(new Set(demoScenarios.map((s) => s.id)).size, 6);
   for (const scenario of demoScenarios) {
     const seed = scenarioState(scenario.id);
     assert.equal(advanceScenario(scenario, seed, 0), 0, scenario.id);
@@ -1258,8 +1260,49 @@ test("Guided examples start independently with no completed first step or change
   assert.equal(scenarioState("journal").edition.status, "draft");
 });
 
-test("All five guided walkthroughs complete using the real demo transition rules", () => {
+test("All guided walkthroughs complete using the real demo transition rules", () => {
   const runs = {
+    settlement: [
+      [
+        "team",
+        {
+          type: "settlement-propose",
+          id: "DEMO-001",
+          coordination: 25,
+          official: 0,
+          thirdParty: 0,
+          explanation: "Bilan fictif pour tester le remboursement",
+        },
+      ],
+      [
+        "member",
+        {
+          type: "settlement-respond",
+          id: "DEMO-001",
+          version: 1,
+          approve: true,
+          reason: "",
+        },
+      ],
+      [
+        "team",
+        {
+          type: "settlement-payment",
+          id: "DEMO-001",
+          version: 1,
+          result: "pending",
+        },
+      ],
+      [
+        "team",
+        {
+          type: "settlement-payment",
+          id: "DEMO-001",
+          version: 1,
+          result: "paid",
+        },
+      ],
+    ],
     proposal: [
       [
         "member",
@@ -1420,4 +1463,255 @@ test("Guided sharing cannot be marked tested by revoking a beneficiary before an
     status: "revoked",
   });
   assert.equal(advanceScenario(scenario, s, done), 1);
+});
+
+const closedPaid = () => scenarioState("settlement");
+const proposeBalance = (s, amount) =>
+  apply(s, "team", {
+    type: "settlement-propose",
+    id: "DEMO-001",
+    coordination: amount,
+    official: 0,
+    thirdParty: 0,
+    explanation: "Bilan de démonstration",
+  });
+test("A balance is proposed only for a closed paid case, with valid amounts and an explanation", () => {
+  const proposal = {
+    type: "settlement-propose",
+    id: "DEMO-001",
+    coordination: 25,
+    official: 0,
+    thirdParty: 0,
+    explanation: "Bilan",
+  };
+  rejected(initialState(), "team", proposal);
+  let s = closedPaid();
+  rejected(s, "member", proposal);
+  rejected(s, "partner", proposal);
+  rejected(s, "team", { ...proposal, explanation: " " });
+  rejected(s, "team", { ...proposal, coordination: -1 });
+  rejected(s, "team", { ...proposal, official: 0.001 });
+  const notPaid = {
+    ...s,
+    cases: s.cases.map((c) =>
+      c.id === "DEMO-001" ? { ...c, payment: "unpaid" } : c,
+    ),
+  };
+  rejected(notPaid, "team", proposal);
+  s = apply(s, "team", proposal);
+  assert.equal(settlementBalance(s.cases[0], s.cases[0].settlements[0]), -14);
+  rejected(s, "team", proposal);
+  assert.equal(s.cases[0].quote, 39);
+  assert.equal(s.cases[0].proposals[0].quote, 39);
+});
+test("A disputed balance retains its explanation and amounts and requires agreement on the revised version", () => {
+  let s = proposeBalance(closedPaid(), 25);
+  rejected(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: false,
+    reason: " ",
+  });
+  s = apply(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: false,
+    reason: "Corriger les frais",
+  });
+  const snapshot = s;
+  s = proposeBalance(s, 20);
+  assert.equal(snapshot.cases[0].settlements[0].status, "disputed");
+  assert.equal(s.cases[0].settlements[0].status, "superseded");
+  assert.equal(s.cases[0].settlements[0].coordination, 25);
+  assert.equal(s.cases[0].settlements[0].dispute, "Corriger les frais");
+  rejected(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  rejected(s, "team", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 2,
+    approve: true,
+    reason: "",
+  });
+  s = apply(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 2,
+    approve: true,
+    reason: "",
+  });
+  assert.equal(s.cases[0].settlements[1].status, "approved");
+  rejected(s, "team", {
+    type: "settlement-propose",
+    id: "DEMO-001",
+    coordination: 30,
+    official: 0,
+    thirdParty: 0,
+    explanation: "Changed",
+  });
+});
+test("Refund attempts require agreement, preserve failures and cannot confirm the same movement twice", () => {
+  let s = proposeBalance(closedPaid(), 25);
+  const action = {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "pending",
+  };
+  rejected(s, "team", action);
+  s = apply(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  rejected(s, "member", action);
+  rejected(s, "team", { ...action, result: "paid" });
+  s = apply(s, "team", action);
+  rejected(s, "team", action);
+  s = apply(s, "team", { ...action, result: "failed" });
+  s = apply(s, "team", action);
+  s = apply(s, "team", { ...action, result: "paid" });
+  assert.deepEqual(s.cases[0].settlements[0].attempts, [
+    "pending",
+    "failed",
+    "pending",
+    "paid",
+  ]);
+  assert.equal(s.cases[0].settlements[0].status, "settled");
+  rejected(s, "team", { ...action, result: "paid" });
+  rejected(s, "team", action);
+  assert.equal(
+    s.cases[0].payment,
+    "paid",
+    "Original provision is never rewritten",
+  );
+  assert.equal(
+    attentionItems(s, "team").some((a) => a.kind === "settlement-refund"),
+    false,
+  );
+});
+test("An additional balance is settled in the member view, while zero difference needs no payment", () => {
+  let s = proposeBalance(closedPaid(), 49.15);
+  assert.equal(settlementTotal(s.cases[0].settlements[0]), 49.15);
+  assert.equal(settlementBalance(s.cases[0], s.cases[0].settlements[0]), 10.15);
+  s = apply(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  rejected(s, "team", {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "pending",
+  });
+  s = apply(s, "member", {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "pending",
+  });
+  s = apply(s, "member", {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "paid",
+  });
+  assert.equal(s.cases[0].settlements[0].status, "settled");
+  let equal = proposeBalance(closedPaid(), 39);
+  equal = apply(equal, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  assert.equal(equal.cases[0].settlements[0].status, "settled");
+  assert.deepEqual(equal.cases[0].settlements[0].attempts, []);
+  rejected(equal, "member", {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "pending",
+  });
+});
+test("Reopening supersedes an unapproved balance, but preserves already approved financial records", () => {
+  let s = proposeBalance(closedPaid(), 25);
+  s = apply(s, "team", {
+    type: "reopen",
+    id: "DEMO-001",
+    reason: "Corriger le rapport",
+  });
+  assert.equal(s.cases[0].settlements[0].status, "superseded");
+  rejected(s, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  rejected(s, "team", {
+    type: "settlement-propose",
+    id: "DEMO-001",
+    coordination: 20,
+    official: 0,
+    thirdParty: 0,
+    explanation: "Trop tôt",
+  });
+  let approved = proposeBalance(closedPaid(), 25);
+  approved = apply(approved, "member", {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  });
+  rejected(approved, "team", {
+    type: "reopen",
+    id: "DEMO-001",
+    reason: "Modifier après accord financier",
+  });
+  assert.equal(approved.cases[0].settlements[0].coordination, 25);
+});
+test("A cancelled paid case creates a team follow-up and a fresh restart carries no financial history", () => {
+  let s = initialState();
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id: "DEMO-001",
+    reason: "Annuler",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id: "DEMO-001",
+    confirm: true,
+    reason: "",
+  });
+  assert.ok(
+    attentionItems(s, "team").some(
+      (a) => a.caseId === "DEMO-001" && a.kind === "settlement-prepare",
+    ),
+  );
+  s = proposeBalance(s, 0);
+  assert.equal(settlementBalance(s.cases[0], s.cases[0].settlements[0]), -39);
+  assert.ok(
+    attentionItems(s, "member").some((a) => a.kind === "settlement-review"),
+  );
+  s = apply(s, "member", { type: "restart", id: "DEMO-001" });
+  assert.deepEqual(s.cases.at(-1).settlements, []);
+  assert.equal(s.cases.at(-1).payment, "unpaid");
+  assert.equal(
+    attentionItems(s, "partner").some((a) => a.target === "settlements"),
+    false,
+  );
 });

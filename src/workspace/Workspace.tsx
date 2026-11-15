@@ -1,3 +1,4 @@
+import { Settlements, settlementLabels } from "./Settlements";
 import { DemoGuide, GuideProgress } from "./DemoGuide";
 import {
   demoScenarios,
@@ -393,6 +394,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               {view === "documents" && <Documents key={selected} />}
               {view === "messages" && <Messages />}
               {view === "billing" && <Billing />}
+              {view === "settlements" && <Settlements />}
               {view === "profile" && <Profile />}
               {view === "newsletter" && (
                 <Newsletter key={state.archives.length} />
@@ -1318,35 +1320,48 @@ function Billing() {
                 <strong>{serviceName(c.service, lang)}</strong>
               </div>
               <strong>{money(total(c))}</strong>
-              <Badge good={c.payment === "paid"}>
-                {t(
-                  c.stage === "review"
-                    ? "Proposition en révision"
-                    : c.stage === "quote"
-                      ? "Proposition non acceptée"
-                      : c.stage === "cancelled" && c.payment === "paid"
-                        ? "Annulée · bilan à préparer"
-                        : c.stage === "cancelled"
-                          ? "Annulée · aucune provision encaissée"
-                          : c.payment === "paid"
-                            ? "Provision simulée réglée"
-                            : "Provision à suivre",
-                  c.stage === "review"
-                    ? "Proposta em revisão"
-                    : c.stage === "quote"
-                      ? "Proposta não aprovada"
-                      : c.stage === "cancelled" && c.payment === "paid"
-                        ? "Cancelado · balanço por preparar"
-                        : c.stage === "cancelled"
-                          ? "Cancelado · sem provisão recebida"
-                          : c.payment === "paid"
-                            ? "Provisão simulada paga"
-                            : "Provisão a acompanhar",
-                )}
+              <Badge
+                good={
+                  c.settlements.length
+                    ? c.settlements.at(-1)?.status === "settled"
+                    : c.payment === "paid"
+                }
+              >
+                {c.settlements.at(-1)
+                  ? t(...settlementLabels[c.settlements.at(-1)!.status])
+                  : t(
+                      c.stage === "review"
+                        ? "Proposition en révision"
+                        : c.stage === "quote"
+                          ? "Proposition non acceptée"
+                          : c.stage === "cancelled" && c.payment === "paid"
+                            ? "Annulée · bilan à préparer"
+                            : c.stage === "cancelled"
+                              ? "Annulée · aucune provision encaissée"
+                              : c.payment === "paid"
+                                ? "Provision simulée réglée"
+                                : "Provision à suivre",
+                      c.stage === "review"
+                        ? "Proposta em revisão"
+                        : c.stage === "quote"
+                          ? "Proposta não aprovada"
+                          : c.stage === "cancelled" && c.payment === "paid"
+                            ? "Cancelado · balanço por preparar"
+                            : c.stage === "cancelled"
+                              ? "Cancelado · sem provisão recebida"
+                              : c.payment === "paid"
+                                ? "Provisão simulada paga"
+                                : "Provisão a acompanhar",
+                    )}
               </Badge>
               <Button secondary onClick={() => go("requests", c.id)}>
                 {t("Voir le détail", "Ver detalhe")}
               </Button>
+              {isClosed(c) && c.payment === "paid" && (
+                <Button secondary onClick={() => go("settlements", c.id)}>
+                  {t("Ouvrir le bilan", "Abrir balanço")}
+                </Button>
+              )}
               <details>
                 <summary>
                   {t(

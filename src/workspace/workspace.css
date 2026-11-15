@@ -1657,3 +1657,44 @@ body:has(.workspace) {
     width: 100%;
   }
 }
+
+.ws-settlement-layout {
+  margin-top: 24px;
+}
+.ws-settlement-heading {
+  margin: 24px 0 12px;
+}
+.ws-settlement-note {
+  white-space: pre-wrap;
+}
+.ws-settlement-layout .ws-check {
+  margin-block: 20px;
+}
+.ws-settlement-layout .ws-form {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-settlement-history {
+  margin-top: 22px;
+  border-top: 1px solid var(--ws-line);
+  padding-top: 16px;
+}
+.ws-settlement-history summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: #194baf;
+  font-weight: 650;
+}
+.ws-settlement-history ol {
+  padding-left: 24px;
+  font-size: 13px;
+}
+.ws-settlement-history li {
+  padding: 6px 0;
+}
+.ws-settlement-history article {
+  border-left: 2px solid var(--ws-line);
+  padding-left: 18px;
+  margin-top: 20px;
+}

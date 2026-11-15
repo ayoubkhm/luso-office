@@ -12,7 +12,8 @@ export type ScenarioId =
   | "documents"
   | "mission"
   | "family"
-  | "journal";
+  | "journal"
+  | "settlement";
 export interface DemoStep {
   title: Copy;
   instruction: Copy;
@@ -31,6 +32,59 @@ const case2 = (s: State) => s.cases.find((c) => c.id === "DEMO-002")!;
 const document2 = (s: State) =>
   s.documents.find((d) => d.requirement === "need-1");
 export const demoScenarios: DemoScenario[] = [
+  {
+    id: "settlement",
+    title: ["Le bilan d’une mission", "O balanço de uma missão"],
+    description: [
+      "Comparer la provision au bilan final et suivre un remboursement entièrement simulé.",
+      "Comparar a provisão com o balanço final e acompanhar um reembolso totalmente simulado.",
+    ],
+    steps: [
+      {
+        title: ["Proposer le bilan final", "Propor o balanço final"],
+        instruction: [
+          "DEMO-001 est clos avec une provision fictive de 39 €. Pour ce test, proposez 25 € de coordination, 0 € de frais et 0 € de tiers, avec une explication fictive.",
+          "DEMO-001 está concluído com provisão fictícia de 39 €. Para este teste, proponha 25 € de coordenação, 0 € de taxas e 0 € de terceiros, com explicação fictícia.",
+        ],
+        role: "team",
+        view: "settlements",
+        caseId: "DEMO-001",
+        done: (s) =>
+          Boolean(
+            s.cases[0].settlements.at(-1)?.status === "proposed" &&
+              s.cases[0].settlements.at(-1)!.coordination +
+                s.cases[0].settlements.at(-1)!.official +
+                s.cases[0].settlements.at(-1)!.thirdParty <
+                39,
+          ),
+      },
+      {
+        title: ["Examiner puis approuver", "Analisar e aprovar"],
+        instruction: [
+          "Relisez le bilan et la différence avec la provision. Cochez la relecture puis simulez l’accord sur cette version.",
+          "Reveja o balanço e a diferença face à provisão. Assinale a revisão e simule a aprovação desta versão.",
+        ],
+        role: "member",
+        view: "settlements",
+        caseId: "DEMO-001",
+        done: (s) =>
+          ["approved", "pending", "failed", "settled"].includes(
+            s.cases[0].settlements.at(-1)?.status || "",
+          ),
+      },
+      {
+        title: ["Simuler le remboursement", "Simular reembolso"],
+        instruction: [
+          "Préparez le remboursement démo puis simulez la confirmation du prestataire. Vous pouvez tester un échec puis réessayer. Aucun virement réel.",
+          "Prepare o reembolso demo e simule a confirmação do prestador. Pode testar uma falha e repetir. Sem transferência real.",
+        ],
+        role: "team",
+        view: "settlements",
+        caseId: "DEMO-001",
+        done: (s) => s.cases[0].settlements.at(-1)?.status === "settled",
+      },
+    ],
+  },
   {
     id: "proposal",
     title: ["Une proposition à ajuster", "Uma proposta a ajustar"],
@@ -315,6 +369,16 @@ export function scenarioState(id: ScenarioId): State {
     if (!r.ok) throw new Error(`Invalid demo setup: ${id}/${a.type}`);
     s = r.state;
   };
+  if (id === "settlement") {
+    apply("partner", {
+      type: "task-update",
+      id: "task-1",
+      status: "done",
+      note: "Compte rendu fictif terminé / Relatório fictício concluído",
+    });
+    apply("partner", { type: "stage", id: "DEMO-001", stage: "delivered" });
+    apply("team", { type: "stage", id: "DEMO-001", stage: "completed" });
+  }
   if (id === "mission")
     apply("team", { type: "share", id: "doc-1", shared: false });
   if (id === "family") {

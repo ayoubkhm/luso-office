@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 37 tests réussis (7 contrôles du site, 30 scénarios métier et parcours). Les cinq exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 43 tests réussis (7 contrôles du site, 36 scénarios métier et parcours). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -79,7 +79,7 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | Compte | Profil, pays, langue, préférence newsletter, invitations Family avec acceptation/expiration/retrait simulés, partages explicites et aperçu bénéficiaire | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, jetons et acceptation réelle, suppression/export |
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
 | Demandes et messages | Création, réception équipe, propositions versionnées avec périmètre et ajustements, accord sur une version précise, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
-| Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
+| Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance ; bilan versionné, correction, accord et simulation de solde/remboursement | Prestataire de paiement, devis contractuel, prorata, rapprochement bancaire, exécution des remboursements, émission fiscale et avoirs |
 | Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
 
@@ -145,10 +145,11 @@ Validation : quatre scénarios couvrent capacité/générations, minimisation de
 
 ### Parcours guidés dans l’interface
 
-Le bouton « Parcours guidés » du bandeau et la rubrique du même nom proposent cinq exemples prêts à explorer :
+Le bouton « Parcours guidés » du bandeau et la rubrique du même nom proposent six exemples prêts à explorer :
 
 | Exemple | Résultat à observer |
 | --- | --- |
+| Le bilan d’une mission | Bilan proposé et approuvé, puis remboursement simulé avec suivi des tentatives |
 | Une proposition à ajuster | Nouvelle version proposée, accord lié à cette version et provision simulée |
 | Une pièce à corriger | Dépôt, refus motivé, remplacement et validation de la nouvelle version |
 | Une mission avec un partenaire | Partage sélectif, tâche terminée, remise et clôture par l’équipe |
@@ -162,6 +163,20 @@ Un encart indique la consigne et ouvre le bon rôle, la bonne rubrique et le dos
 « Quitter le guide, garder la session » conserve les données et retire seulement les consignes. La réinitialisation remet le scénario initial et efface aussi la progression du guide. Un changement manuel de rôle conserve désormais la rubrique et le dossier quand ils sont accessibles ; sinon il revient à une vue autorisée. Les formulaires de chaque rôle sont remontés pour éviter de garder leurs états visuels d’une vue à l’autre. Les brouillons de messages enregistrés dans l’état de la démo restent conservés.
 
 Validation : isolation des exemples, absence d’étape déjà validée au chargement, exécution complète des cinq suites et vérification qu’un retrait Family sans partage ne valide pas l’étape manquante. Contrôle visuel des guides encore à réaliser.
+
+### Bilans des dossiers et rapprochement de la provision
+
+La rubrique « Bilans des dossiers » distingue la provision d’origine du total final proposé, pour les dossiers clos/annulés dont la provision est confirmée dans la démo. L’équipe explique les montants de coordination, frais officiels et tiers. Le calcul au centime donne soit un solde à payer, soit un remboursement, soit une différence nulle.
+
+- L’adhérent peut demander une correction motivée. L’équipe soumet alors une nouvelle version ; les montants, explications et motif de correction antérieurs sont conservés. Seule la dernière version proposée est acceptable.
+- Après accord simulé, les montants sont figés. Une différence nulle solde le bilan sans tentative de paiement. Un complément se simule dans la vue adhérent ; un remboursement se simule dans la vue équipe.
+- La simulation distingue préparation, résultat en attente, échec, nouvel essai et confirmation. Les tentatives restent visibles. Une confirmation ne peut pas être appliquée une seconde fois et la provision d’origine n’est jamais réécrite.
+- L’accueil signale les bilans à préparer, ceux à examiner et les opérations à suivre, selon le rôle. Les vues partenaire et bénéficiaire Family n’incluent pas ces bilans.
+- Rouvrir une mission avant accord financier rend son bilan précédent obsolète. Après accord financier, la démo garde le dossier clos et demande un nouveau dossier pour un nouveau besoin. Cette limitation de conception reste à valider avec Hélèna ; les avenants/rectifications après règlement ne sont pas couverts.
+
+Un sixième parcours guidé charge une mission close avec une provision fictive de 39 € et propose de tester un bilan fictif de 25 €, uniquement pour illustrer un remboursement de 14 €. Ce ne sont pas des tarifs ni des conditions d’annulation. Aucun prélèvement, virement, remboursement, facture ou avoir réel n’est exécuté ; TVA, justificatifs et règles commerciales restent à valider.
+
+Validation : six nouveaux tests couvrent éligibilité, montants, corrections/version obsolète, double confirmation, échecs/reprise, différence nulle, réouverture et dossier repris sans historique financier. Les six parcours guidés passent également jusqu’à leur dernière étape. Build et 43 tests réussis. La validation visuelle reste à compléter compte tenu de l’indisponibilité persistante du pilotage Chrome lors des dernières tentatives.
 
 ### Scénario de revue avec Hélèna
 
@@ -183,6 +198,8 @@ Validation : isolation des exemples, absence d’étape déjà validée au charg
 
 13. Adhérent → Adhésion : simuler le passage à Family. Mon compte : préparer une invitation fictive et simuler son acceptation. Ouvrir l’aperçu bénéficiaire (vide), puis partager un dossier et une seule pièce. Vérifier que l’aperçu ne montre que ces éléments.
 14. Retirer le dossier puis le repartager : la pièce reste masquée. Retirer le bénéficiaire et renouveler son invitation : aucun accès n’est rétabli automatiquement. Tester une tentative échouée de passage à Member (accès conservés), puis une confirmation (accès retirés).
+
+15. Parcours guidés → Le bilan d’une mission : charger l’exemple, proposer un bilan fictif inférieur à la provision, puis basculer en adhérent pour le relire et l’approuver. Équipe : préparer le remboursement, simuler un échec, réessayer et confirmer. Vérifier l’historique et le classement dans les bilans soldés.
 
 ### Modèle serveur proposé
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { canWork, type Case } from "./model";
+import { canWork, settlementLocked, type Case } from "./model";
 import { useWorkspace, Button, Field, Form, value, roleNames } from "./ui";
 
 const decisionLabels: Record<
@@ -59,8 +59,8 @@ export function CaseSituation({ c }: { c: Case }) {
       {role !== "partner" && c.payment === "paid" && (
         <p className="ws-hint">
           {t(
-            "Provision déjà réglée dans la démo : bilan financier à établir par l’équipe. Aucun remboursement ni avoir n’est créé automatiquement.",
-            "Provisão já paga na demo: balanço financeiro a preparar pela equipa. Nenhum reembolso ou nota de crédito é criado automaticamente.",
+            "Provision déjà réglée dans la démo. Après annulation, son bilan est suivi dans « Bilans des dossiers ». Aucun mouvement bancaire réel n’est effectué.",
+            "Provisão já paga na demo. Após cancelamento, o balanço é acompanhado em « Balanços dos pedidos ». Não é efetuado nenhum movimento bancário real.",
           )}
         </p>
       )}
@@ -94,6 +94,14 @@ export function CaseDecisions({ c }: { c: Case }) {
   if (role === "partner") return null;
   return (
     <section className="ws-decisions" id="case-decisions">
+      {c.stage === "completed" && role === "team" && settlementLocked(c) && (
+        <p className="ws-blocker">
+          {t(
+            "Le bilan financier a déjà été approuvé. Cette démo conserve ce dossier clos ; un nouveau besoin doit être cadré dans une nouvelle demande.",
+            "O balanço financeiro já foi aprovado. Esta demo mantém o pedido encerrado; uma nova necessidade deve ser analisada num novo pedido.",
+          )}
+        </p>
+      )}
       {c.cancellation ? (
         <>
           <h3>{t("Examiner l’annulation", "Analisar cancelamento")}</h3>
@@ -163,7 +171,9 @@ export function CaseDecisions({ c }: { c: Case }) {
       ) : (
         <>
           {(c.stage === "delivered" ||
-            (c.stage === "completed" && role === "team")) && (
+            (c.stage === "completed" &&
+              role === "team" &&
+              !settlementLocked(c))) && (
             <details className="ws-decision-action">
               <summary>
                 {t(

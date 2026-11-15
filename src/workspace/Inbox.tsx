@@ -17,6 +17,19 @@ import {
 } from "./ui";
 
 const actions: Record<AttentionKind, [string, string]> = {
+  "settlement-prepare": [
+    "Préparer le bilan du dossier",
+    "Preparar balanço do pedido",
+  ],
+  "settlement-review": [
+    "Examiner le bilan proposé",
+    "Analisar balanço proposto",
+  ],
+  "settlement-pay": ["Régler le solde dans la démo", "Pagar saldo na demo"],
+  "settlement-refund": [
+    "Suivre le remboursement démo",
+    "Acompanhar reembolso demo",
+  ],
   messages: ["Lire les nouveaux messages", "Ler novas mensagens"],
   cancellation: ["Examiner l’annulation", "Analisar cancelamento"],
   approve: ["Examiner la proposition", "Analisar proposta"],

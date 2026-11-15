@@ -15,6 +15,7 @@ import {
 } from "./model";
 export type View =
   | "guide"
+  | "settlements"
   | "overview"
   | "requests"
   | "properties"
@@ -38,6 +39,7 @@ export type Context = {
 export const WorkspaceContext = createContext<Context>(null!);
 export const useWorkspace = () => useContext(WorkspaceContext);
 export const labels: Record<View, [string, string]> = {
+  settlements: ["Bilans des dossiers", "Balanços dos pedidos"],
   guide: ["Parcours guidés", "Percursos guiados"],
   tasks: ["Tâches et échéances", "Tarefas e prazos"],
   overview: ["Vue d’ensemble", "Visão geral"],
@@ -57,6 +59,7 @@ export const roleNames: Record<Role, [string, string]> = {
 };
 export const icons: Record<View, string> = {
   guide: "◇",
+  settlements: "≋",
   tasks: "✓",
   overview: "◈",
   requests: "↗",
@@ -218,6 +221,7 @@ export function viewsForRole(role: Role): View[] {
         "documents",
         "messages",
         "billing",
+        "settlements",
         "newsletter",
         "profile",
       ]
@@ -230,6 +234,7 @@ export function viewsForRole(role: Role): View[] {
           "documents",
           "messages",
           "billing",
+          "settlements",
           "newsletter",
           "admin",
         ]
