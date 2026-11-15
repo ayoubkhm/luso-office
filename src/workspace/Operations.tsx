@@ -1,9 +1,15 @@
+import {
+  localDay,
+  matchingTasks,
+  taskSummary,
+  taskTiming,
+  type TaskTiming,
+} from "./taskBoard";
 import { useState } from "react";
 import { useWorkspace, Button, Panel, Field, Form, Badge, value } from "./ui";
 import {
   canWork,
   visibleCases,
-  visibleTasks,
   type Task,
   type TaskStatus,
   type Document,
@@ -15,22 +21,54 @@ const taskLabels: Record<TaskStatus, [string, string]> = {
   blocked: ["Bloquée", "Bloqueada"],
   done: ["Terminée", "Concluída"],
 };
+const timingLabels: Record<TaskTiming, [string, string]> = {
+  overdue: ["Date souhaitée dépassée", "Data pretendida ultrapassada"],
+  today: ["Prévue aujourd’hui", "Prevista para hoje"],
+  upcoming: ["Dans les 7 prochains jours", "Nos próximos 7 dias"],
+  later: ["Prévue plus tard", "Prevista para mais tarde"],
+  undated: ["Date à convenir", "Data a combinar"],
+  done: ["Terminée", "Concluída"],
+  paused: ["Dossier suspendu ou clos", "Pedido suspenso ou encerrado"],
+};
 export function Tasks({ caseId }: { caseId?: string }) {
-  const { state, role, t, selected } = useWorkspace();
+  const { state, role, lang, t, selected } = useWorkspace();
   const [filter, setFilter] = useState("open");
-  const all = visibleTasks(state, role).filter(
-    (task) => !caseId || task.caseId === caseId,
+  const [query, setQuery] = useState("");
+  const [dossier, setDossier] = useState("all");
+  const [assignee, setAssignee] = useState("all");
+  const [timing, setTiming] = useState("all");
+  const today = localDay();
+  const filters = { query, caseId: caseId || dossier, assignee };
+  const summary = taskSummary(
+    state,
+    matchingTasks(state, role, filters, today, lang),
+    today,
   );
-  const tasks = all
-    .filter(
-      (task) =>
-        filter === "all" ||
-        (filter === "open"
-          ? task.status !== "done" &&
-            canWork(state.cases.find((c) => c.id === task.caseId)!)
-          : task.status === filter),
-    )
-    .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
+  const tasks = matchingTasks(
+    state,
+    role,
+    { ...filters, status: filter, timing },
+    today,
+    lang,
+  );
+  const clear = () => {
+    setQuery("");
+    setDossier("all");
+    setAssignee("all");
+    setTiming("all");
+    setFilter("open");
+  };
+  const filtered = Boolean(
+    query ||
+      dossier !== "all" ||
+      assignee !== "all" ||
+      timing !== "all" ||
+      filter !== "open",
+  );
+  const dayLabel = new Intl.DateTimeFormat(lang, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${today}T00:00:00Z`));
   return (
     <>
       <div className="ws-task-heading">
@@ -38,22 +76,116 @@ export function Tasks({ caseId }: { caseId?: string }) {
           <h2>{t("Les actions à mener", "As ações a realizar")}</h2>
           <p>
             {t(
-              "Les dates sont des objectifs de scénario, sans engagement de délai.",
-              "As datas são objetivos do cenário, sem garantia de prazo.",
-            )}
+              "Les dates sont des objectifs de scénario, sans engagement de délai. Repère du jour :",
+              "As datas são objetivos do cenário, sem garantia de prazo. Data de referência:",
+            )}{" "}
+            {dayLabel}.
           </p>
         </div>
         <Badge>
-          {
-            all.filter(
-              (task) =>
-                task.status !== "done" &&
-                canWork(state.cases.find((c) => c.id === task.caseId)!),
-            ).length
-          }{" "}
-          {t("à terminer", "por concluir")}
+          {summary.open} {t("à terminer", "por concluir")}
         </Badge>
       </div>
+      <div
+        className="ws-task-priorities"
+        aria-label={t(
+          "Échéances des tâches recherchées",
+          "Prazos das tarefas pesquisadas",
+        )}
+      >
+        {(
+          [
+            [
+              "overdue",
+              t("Date dépassée", "Data ultrapassada"),
+              summary.overdue,
+            ],
+            ["today", t("Aujourd’hui", "Hoje"), summary.today],
+            ["undated", t("Sans date", "Sem data"), summary.undated],
+          ] as const
+        ).map(([key, label, count]) => (
+          <button
+            type="button"
+            key={key}
+            aria-pressed={filter === "open" && timing === key}
+            onClick={() => {
+              setFilter("open");
+              setTiming(timing === key && filter === "open" ? "all" : key);
+            }}
+          >
+            <strong>{count}</strong>
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="ws-toolbar ws-task-filters">
+        <Field label={t("Rechercher une tâche", "Pesquisar tarefa")}>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t(
+              "Tâche, dossier, service ou bien…",
+              "Tarefa, pedido, serviço ou imóvel…",
+            )}
+          />
+        </Field>
+        {!caseId && (
+          <Field label={t("Dossier", "Pedido")}>
+            <select
+              value={dossier}
+              onChange={(e) => setDossier(e.target.value)}
+            >
+              <option value="all">
+                {t("Tous les dossiers", "Todos os pedidos")}
+              </option>
+              {visibleCases(state, role).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.id}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        {role !== "partner" && (
+          <Field label={t("Responsable", "Responsável")}>
+            <select
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+            >
+              <option value="all">{t("Tous", "Todos")}</option>
+              <option value="team">{t("Équipe", "Equipa")}</option>
+              <option value="partner">{t("Partenaire", "Parceiro")}</option>
+            </select>
+          </Field>
+        )}
+        <Field label={t("Échéance", "Prazo")}>
+          <select
+            value={timing}
+            disabled={["done", "paused"].includes(filter)}
+            onChange={(e) => setTiming(e.target.value)}
+          >
+            <option value="all">
+              {t("Toutes les dates", "Todas as datas")}
+            </option>
+            <option value="overdue">
+              {t("Date dépassée", "Data ultrapassada")}
+            </option>
+            <option value="today">{t("Aujourd’hui", "Hoje")}</option>
+            <option value="upcoming">
+              {t("Les 7 prochains jours", "Os próximos 7 dias")}
+            </option>
+            <option value="later">{t("Plus tard", "Mais tarde")}</option>
+            <option value="undated">{t("Sans date", "Sem data")}</option>
+          </select>
+        </Field>
+      </div>
+      <p className="ws-hint">
+        {t(
+          "Les repères de dates excluent les tâches terminées et les dossiers suspendus ou clos.",
+          "Os indicadores de datas excluem as tarefas concluídas e os pedidos suspensos ou encerrados.",
+        )}
+      </p>
       <div
         className="ws-filter-tabs"
         aria-label={t("Filtrer les tâches", "Filtrar tarefas")}
@@ -61,22 +193,45 @@ export function Tasks({ caseId }: { caseId?: string }) {
         {[
           ["open", t("À traiter", "Por tratar")],
           ["blocked", t("Bloquées", "Bloqueadas")],
+          [
+            "paused",
+            t("Dossiers suspendus ou clos", "Pedidos suspensos ou encerrados"),
+          ],
           ["done", t("Terminées", "Concluídas")],
           ["all", t("Toutes", "Todas")],
         ].map(([f, label]) => (
           <button
+            type="button"
             key={f}
             aria-pressed={filter === f}
-            onClick={() => setFilter(f)}
+            onClick={() => {
+              setFilter(f);
+              setTiming("all");
+            }}
           >
             {label}
           </button>
         ))}
       </div>
+      <div className="ws-activity-count">
+        <p className="ws-hint" role="status">
+          {tasks.length}{" "}
+          {t(
+            "tâche(s) trouvée(s), par date croissante",
+            "tarefa(s) encontrada(s), por data crescente",
+          )}
+        </p>
+        {filtered && (
+          <Button secondary onClick={clear}>
+            {t("Effacer les filtres", "Limpar filtros")}
+          </Button>
+        )}
+      </div>
       <div className="ws-task-grid">
         {tasks.map((task) => (
           <TaskCard
             task={task}
+            today={today}
             key={`${task.id}-${task.status}-${task.assignee}-${task.due}`}
           />
         ))}
@@ -84,18 +239,39 @@ export function Tasks({ caseId }: { caseId?: string }) {
       {!tasks.length && (
         <p className="ws-empty">
           {t(
-            "Aucune tâche dans cette vue. Les tâches terminées restent consultables.",
-            "Sem tarefas nesta vista. As tarefas concluídas continuam disponíveis.",
+            "Aucune tâche dans cette vue. Modifiez les filtres ; les tâches terminées et celles des dossiers suspendus restent consultables.",
+            "Sem tarefas nesta vista. Altere os filtros; as tarefas concluídas e as dos pedidos suspensos continuam disponíveis.",
           )}
         </p>
       )}
-      {role === "team" && <TaskCreate caseId={caseId || selected} />}
+      {role === "team" && (
+        <TaskCreate
+          key={caseId || dossier}
+          caseId={caseId || (dossier !== "all" ? dossier : selected)}
+          lockedCase={Boolean(caseId) || dossier !== "all"}
+          onCreated={(id) => {
+            clear();
+            if (!caseId) setDossier(id);
+          }}
+        />
+      )}
     </>
   );
 }
-function TaskCreate({ caseId }: { caseId: string }) {
+
+function TaskCreate({
+  caseId,
+  lockedCase,
+  onCreated,
+}: {
+  caseId: string;
+  lockedCase: boolean;
+  onCreated: (id: string) => void;
+}) {
   const { state, role, t, act } = useWorkspace();
-  const cases = visibleCases(state, role).filter(canWork);
+  const cases = visibleCases(state, role).filter(
+    (c) => canWork(c) && (!lockedCase || c.id === caseId),
+  );
   const [id, setId] = useState(
     cases.find((c) => c.id === caseId)?.id || cases[0]?.id || "",
   );
@@ -108,18 +284,24 @@ function TaskCreate({ caseId }: { caseId: string }) {
       </summary>
       <Form
         key={id}
-        onSave={(d) =>
-          act({
+        onSave={(d) => {
+          const ok = act({
             type: "task-create",
             id,
             title: value(d, "title"),
             assignee: value(d, "assignee") as Task["assignee"],
             due: value(d, "due"),
-          })
-        }
+          });
+          if (ok) onCreated(id);
+          return ok;
+        }}
       >
         <Field label={t("Dossier", "Pedido")}>
-          <select value={id} onChange={(e) => setId(e.target.value)}>
+          <select
+            value={id}
+            disabled={lockedCase}
+            onChange={(e) => setId(e.target.value)}
+          >
             {cases.map((c) => (
               <option key={c.id}>{c.id}</option>
             ))}
@@ -156,10 +338,11 @@ function TaskCreate({ caseId }: { caseId: string }) {
     </details>
   );
 }
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({ task, today }: { task: Task; today: string }) {
   const { state, role, lang, t, act, go } = useWorkspace();
   const [status, setStatus] = useState(task.status);
   const c = state.cases.find((c) => c.id === task.caseId)!;
+  const timing = taskTiming(state, task, today);
   const date = task.due
     ? new Intl.DateTimeFormat(lang, {
         dateStyle: "medium",
@@ -180,6 +363,11 @@ function TaskCard({ task }: { task: Task }) {
         </Badge>
       </div>
       <h3>{task.title}</h3>
+      {!["done", "paused"].includes(timing) && (
+        <p className={`ws-task-timing ws-timing-${timing}`}>
+          {t(...timingLabels[timing])}
+        </p>
+      )}
       {!canWork(c) && (
         <p className="ws-task-warning">
           {t(
@@ -263,7 +451,7 @@ function TaskCard({ task }: { task: Task }) {
           </summary>
           <Form
             onSave={(d) => {
-              act({
+              return act({
                 type: "task-assign",
                 id: task.id,
                 assignee: value(d, "assignee") as Task["assignee"],

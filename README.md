@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 50 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 54 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -198,6 +198,18 @@ Les onglets ont des liens ARIA vers leurs panneaux, un seul point d’entrée au
 
 Validation : trois tests de rendu exercent les transitions proposition/paiement/mission/clôture, l’annulation avec paiement en attente, les panneaux autorisés par rôle et les associations ARIA dans les deux langues. Build et 50 tests réussis. Le comportement clavier interactif, la conservation des champs à l’écran et la mise en page mobile restent à vérifier dans un navigateur ; l’accès automatisé à Chrome est toujours indisponible.
 
+### Tâches et échéances
+
+La vue Tâches et la rubrique de suivi d’un dossier proposent une recherche sans distinction d’accents (intitulé, dossier, service localisé, bien), des filtres par responsable, état et échéance, et un filtre par dossier dans la vue globale. Les dates sont triées de la plus proche à la plus lointaine, puis viennent les tâches sans date.
+
+Les repères « Date dépassée », « Aujourd’hui » et « Sans date » concernent les tâches actives correspondant à la recherche, au responsable et au dossier sélectionnés. Un clic filtre la liste ; le filtre d’échéance propose aussi les sept prochains jours et les dates plus lointaines. Le jour de référence est celui du navigateur, affiché à l’écran ; il est recalculé à chaque rendu. Les dates restent des objectifs fictifs sans délai garanti, sans calendrier partagé ni notification réelle.
+
+Les tâches terminées et celles des dossiers suspendus/clos sont conservées dans des vues distinctes et exclues des compteurs d’échéance. La vue partenaire reste limitée aux tâches qui lui sont attribuées et aux dossiers auxquels il a accès. Les filtres n’élargissent pas ces droits de démonstration.
+
+Correction de parcours : lorsqu’un dossier précis est affiché ou filtré, la création de tâche lui est strictement rattachée. Le formulaire disparaît s’il est suspendu ou clos, au lieu de proposer silencieusement un autre dossier. Une création réussie retire les filtres de recherche/échéance pour rendre la nouvelle tâche visible. Les échecs de modification du responsable ou de la date remontent maintenant dans le formulaire.
+
+Validation : quatre tests supplémentaires couvrent les frontières calendaires (dont année, année bissextile et changement d’heure), les filtres combinés FR/PT, les compteurs après clôture d’une tâche ou suspension/reprise d’un dossier, l’isolation partenaire et le rendu du formulaire de création. Build et 54 tests réussis. La revue visuelle et interactive reste à compléter : l’accès automatisé à l’onglet Chrome local échoue encore.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -224,6 +236,8 @@ Validation : trois tests de rendu exercent les transitions proposition/paiement/
 16. Équipe → Administration : après quelques actions, filtrer l’activité par rôle, dossier et rubrique. Essayer une recherche sans résultat puis effacer les filtres. Ouvrir un événement et retrouver son dossier ou sa rubrique. Dans un dossier, ouvrir « Travail de l’équipe » puis déplier « Consulter l’activité du dossier ». Vérifier l’absence de cette section dans les vues adhérent et partenaire.
 
 17. Dans un dossier en cadrage, saisir une proposition sans la soumettre, passer au suivi puis revenir : les champs doivent être conservés. Parcourir les onglets au clavier (flèches, Début/Fin). Après l’accord, vérifier l’accès à la provision. Demander une annulation pendant un paiement en attente et vérifier les boutons d’accès à la décision et au paiement. Après clôture, ouvrir le bilan depuis « Décisions et suites ».
+
+18. Équipe → Tâches : créer trois tâches fictives avec une date passée, la date du jour et aucune date. Tester les repères et les filtres dossier/responsable/recherche, puis terminer la tâche en retard : elle quitte le compteur. Demander l’annulation du dossier et vérifier la vue « Dossiers suspendus ou clos ». Depuis ce dossier, vérifier qu’aucun formulaire ne propose une création pour un autre dossier ; retirer l’annulation et retrouver les tâches à traiter.
 
 ### Modèle serveur proposé
 

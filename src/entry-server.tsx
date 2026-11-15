@@ -21,3 +21,5 @@ export * from "./workspace/scenarios";
 export { matchingActivity } from "./workspace/activity";
 export { CaseDetail } from "./workspace/Workspace";
 export { WorkspaceContext } from "./workspace/ui";
+export { Tasks } from "./workspace/Operations";
+export { matchingTasks, taskTiming, taskSummary } from "./workspace/taskBoard";
