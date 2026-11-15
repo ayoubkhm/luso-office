@@ -1,3 +1,4 @@
+import { Proposals } from "./Proposals";
 import { ActionQueue, Messages } from "./Inbox";
 import { CaseSituation, CaseDecisions } from "./Lifecycle";
 import {
@@ -628,7 +629,6 @@ function Requests() {
 }
 function CaseDetail({ c }: { c: Case }) {
   const { state, role, lang, t, act, go } = useWorkspace();
-  const money = useMoney();
   const missing = missingRequirements(state, c.id).length;
   const remaining = openTasks(state, c.id).length;
   return (
@@ -661,58 +661,8 @@ function CaseDetail({ c }: { c: Case }) {
           </li>
         ))}
       </ol>
-      {role !== "partner" && c.quote > 0 && (
-        <div className="ws-breakdown">
-          <h3>
-            {t("Proposition de démonstration", "Proposta de demonstração")}
-          </h3>
-          <p>
-            {t(
-              "Montants de scénario à valider. TVA, déplacements et périmètre à préciser avant toute offre réelle.",
-              "Valores de cenário a validar. IVA, deslocações e âmbito por definir antes de uma proposta real.",
-            )}
-          </p>
-          <dl>
-            <div>
-              <dt>{t("Coordination LusoOffice", "Coordenação LusoOffice")}</dt>
-              <dd>{money(c.quote)}</dd>
-            </div>
-            <div>
-              <dt>
-                {t("Frais officiels (scénario)", "Taxas oficiais (cenário)")}
-              </dt>
-              <dd>{money(c.fees)}</dd>
-            </div>
-            <div>
-              <dt>
-                {t(
-                  "Prestations de tiers (scénario)",
-                  "Serviços de terceiros (cenário)",
-                )}
-              </dt>
-              <dd>{money(c.thirdParty)}</dd>
-            </div>
-            <div>
-              <dt>{t("Provision illustrée", "Provisão ilustrativa")}</dt>
-              <dd>{money(total(c))}</dd>
-            </div>
-          </dl>
-          <p className="ws-hint">
-            {t(
-              "L’adhésion n’inclut pas cette prestation. Un éventuel solde ou remboursement fera l’objet d’un rapprochement distinct.",
-              "A adesão não inclui este serviço. Um eventual saldo ou reembolso será objeto de reconciliação separada.",
-            )}
-          </p>
-        </div>
-      )}
+      <Proposals key={`${c.id}-${c.stage}-${c.proposals.length}`} c={c} />
       <div className="ws-actions">
-        {canWork(c) && role === "member" && c.stage === "quote" && (
-          <Button
-            onClick={() => act({ type: "stage", id: c.id, stage: "approved" })}
-          >
-            {t("Simuler mon accord", "Simular a minha aprovação")}
-          </Button>
-        )}
         {canWork(c) && role === "team" && c.stage === "submitted" && (
           <Button
             onClick={() => act({ type: "stage", id: c.id, stage: "review" })}
@@ -781,46 +731,6 @@ function CaseDetail({ c }: { c: Case }) {
             "A missão começa após confirmação da provisão na vista do aderente.",
           )}
         </p>
-      )}
-      {canWork(c) && role === "team" && c.stage === "review" && (
-        <Form
-          onSave={(d) => {
-            act({
-              type: "quote",
-              id: c.id,
-              quote: Number(value(d, "quote")),
-              fees: Number(value(d, "fees")),
-              thirdParty: Number(value(d, "thirdParty")),
-            });
-          }}
-        >
-          <h3>{t("Préparer la proposition", "Preparar proposta")}</h3>
-          <div className="ws-three">
-            {[
-              ["quote", t("Coordination (€)", "Coordenação (€)")],
-              ["fees", t("Frais officiels (€)", "Taxas oficiais (€)")],
-              ["thirdParty", t("Tiers (€)", "Terceiros (€)")],
-            ].map(([name, label]) => (
-              <Field key={name} label={label}>
-                <input
-                  name={name}
-                  type="number"
-                  min={name === "quote" ? "0.01" : "0"}
-                  max="100000"
-                  step="0.01"
-                  defaultValue={name === "quote" ? "" : "0"}
-                  required
-                />
-              </Field>
-            ))}
-          </div>
-          <Button type="submit">
-            {t(
-              "Soumettre à l’accord de l’adhérent",
-              "Submeter à aprovação do aderente",
-            )}
-          </Button>
-        </Form>
       )}
       {role === "team" && (
         <div className="ws-assignment">
@@ -1347,20 +1257,28 @@ function Billing() {
               <strong>{money(total(c))}</strong>
               <Badge good={c.payment === "paid"}>
                 {t(
-                  c.stage === "cancelled" && c.payment === "paid"
-                    ? "Annulée · bilan à préparer"
-                    : c.stage === "cancelled"
-                      ? "Annulée · aucune provision encaissée"
-                      : c.payment === "paid"
-                        ? "Provision simulée réglée"
-                        : "Provision à suivre",
-                  c.stage === "cancelled" && c.payment === "paid"
-                    ? "Cancelado · balanço por preparar"
-                    : c.stage === "cancelled"
-                      ? "Cancelado · sem provisão recebida"
-                      : c.payment === "paid"
-                        ? "Provisão simulada paga"
-                        : "Provisão a acompanhar",
+                  c.stage === "review"
+                    ? "Proposition en révision"
+                    : c.stage === "quote"
+                      ? "Proposition non acceptée"
+                      : c.stage === "cancelled" && c.payment === "paid"
+                        ? "Annulée · bilan à préparer"
+                        : c.stage === "cancelled"
+                          ? "Annulée · aucune provision encaissée"
+                          : c.payment === "paid"
+                            ? "Provision simulée réglée"
+                            : "Provision à suivre",
+                  c.stage === "review"
+                    ? "Proposta em revisão"
+                    : c.stage === "quote"
+                      ? "Proposta não aprovada"
+                      : c.stage === "cancelled" && c.payment === "paid"
+                        ? "Cancelado · balanço por preparar"
+                        : c.stage === "cancelled"
+                          ? "Cancelado · sem provisão recebida"
+                          : c.payment === "paid"
+                            ? "Provisão simulada paga"
+                            : "Provisão a acompanhar",
                 )}
               </Badge>
               <Button secondary onClick={() => go("requests", c.id)}>

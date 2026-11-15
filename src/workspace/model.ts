@@ -11,6 +11,17 @@ export type Stage =
   | "completed"
   | "cancelled";
 export type PaymentState = "unpaid" | "pending" | "failed" | "paid";
+export interface Proposal {
+  version: number;
+  quote: number;
+  fees: number;
+  thirdParty: number;
+  scope: string;
+  exclusions: string;
+  status: "proposed" | "revision-requested" | "superseded" | "accepted";
+  revisionReason?: string;
+  revisionBy?: "member" | "team";
+}
 export interface Case {
   id: string;
   owner: string;
@@ -25,6 +36,7 @@ export interface Case {
   payment: PaymentState;
   history: string[];
   notes: string[];
+  proposals: Proposal[];
   cancellation?: { reason: string; by: "member" | "team" };
   sourceCase?: string;
   decisions: {
@@ -176,6 +188,19 @@ export const initialState = (): State => ({
       payment: "paid",
       history: ["submitted", "review", "quote", "approved", "inprogress"],
       notes: [],
+      proposals: [
+        {
+          version: 1,
+          quote: 39,
+          fees: 0,
+          thirdParty: 0,
+          scope:
+            "Scénario : visite et compte rendu / Cenário: visita e relatório.",
+          exclusions:
+            "TVA, déplacements et conditions : TBD / IVA, deslocações e condições: TBD.",
+          status: "accepted",
+        },
+      ],
       decisions: [],
     },
     {
@@ -193,6 +218,19 @@ export const initialState = (): State => ({
       payment: "unpaid",
       history: ["submitted", "review", "quote"],
       notes: [],
+      proposals: [
+        {
+          version: 1,
+          quote: 125,
+          fees: 0,
+          thirdParty: 0,
+          scope:
+            "Scénario : organiser les pièces disponibles / Cenário: organizar os documentos disponíveis.",
+          exclusions:
+            "Frais externes, TVA et conditions : TBD / Custos externos, IVA e condições: TBD.",
+          status: "proposed",
+        },
+      ],
       decisions: [],
     },
   ],
@@ -335,6 +373,8 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | { type: "accept-quote"; id: string; version: number }
+  | { type: "revise-quote"; id: string; version: number; reason: string }
   | { type: "message-read"; id: string; through: string }
   | { type: "message-draft"; id: string; body: string }
   | { type: "cancel-request"; id: string; reason: string }
@@ -367,6 +407,8 @@ export type Action =
   | { type: "stage"; id: string; stage: Stage }
   | {
       type: "quote";
+      scope: string;
+      exclusions: string;
       id: string;
       quote: number;
       fees: number;
@@ -549,6 +591,7 @@ export function transition(
             payment: "unpaid",
             history: ["submitted"],
             notes: [],
+            proposals: [],
             sourceCase: c.id,
             decisions: [{ kind: "restart", role, reason: c.id }],
           },
@@ -776,6 +819,7 @@ export function transition(
             payment: "unpaid",
             history: ["submitted"],
             notes: [],
+            proposals: [],
             decisions: [],
           },
         ],
@@ -785,7 +829,7 @@ export function transition(
       if (!c) return reject;
       const allowed =
         role === "member"
-          ? c.stage === "quote" && a.stage === "approved"
+          ? false // Agreement requires the exact proposal version via accept-quote.
           : role === "partner"
             ? c.stage === "inprogress" && a.stage === "delivered"
             : (c.stage === "submitted" && a.stage === "review") ||
@@ -808,16 +852,85 @@ export function transition(
       next = update({ stage: a.stage, history: [...c.history, a.stage] });
       break;
     }
+    case "accept-quote": {
+      const proposal = c?.proposals.at(-1);
+      if (
+        !c ||
+        !canWork(c) ||
+        role !== "member" ||
+        c.stage !== "quote" ||
+        c.payment !== "unpaid" ||
+        !proposal ||
+        proposal.status !== "proposed" ||
+        a.version !== proposal.version
+      )
+        return reject;
+      next = update({
+        stage: "approved",
+        history: [...c.history, "approved"],
+        proposals: c.proposals.map((p) =>
+          p.version === a.version ? { ...p, status: "accepted" } : p,
+        ),
+      });
+      break;
+    }
+    case "revise-quote": {
+      const proposal = c?.proposals.at(-1);
+      if (
+        !c ||
+        !canWork(c) ||
+        role === "partner" ||
+        c.stage !== "quote" ||
+        !proposal ||
+        proposal.status !== "proposed" ||
+        a.version !== proposal.version ||
+        !a.reason.trim() ||
+        a.reason.length > 1000
+      )
+        return reject;
+      next = update({
+        stage: "review",
+        history: [...c.history, "review"],
+        proposals: c.proposals.map((p) =>
+          p.version === a.version
+            ? {
+                ...p,
+                status: "revision-requested",
+                revisionReason: a.reason.trim(),
+                revisionBy: role,
+              }
+            : p,
+        ),
+      });
+      break;
+    }
     case "quote":
       if (
         role !== "team" ||
         !c ||
         c.stage !== "review" ||
+        c.payment !== "unpaid" ||
+        c.proposals.some((p) => p.status === "accepted") ||
         ![a.quote, a.fees, a.thirdParty].every(money) ||
-        a.quote <= 0
+        a.quote <= 0 ||
+        !a.scope.trim() ||
+        a.scope.length > 4000 ||
+        a.exclusions.length > 2000
       )
         return reject;
       next = update({
+        proposals: [
+          ...c.proposals.map((p) => ({ ...p, status: "superseded" as const })),
+          {
+            version: c.proposals.length + 1,
+            quote: a.quote,
+            fees: a.fees,
+            thirdParty: a.thirdParty,
+            scope: a.scope.trim(),
+            exclusions: a.exclusions.trim(),
+            status: "proposed",
+          },
+        ],
         quote: a.quote,
         fees: a.fees,
         thirdParty: a.thirdParty,
@@ -835,6 +948,7 @@ export function transition(
         role !== "member" ||
         !c ||
         c.stage !== "approved" ||
+        c.proposals.at(-1)?.status !== "accepted" ||
         c.payment === "paid" ||
         !(["pending", "failed", "paid"] as string[]).includes(a.result)
       )

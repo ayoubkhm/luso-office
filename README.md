@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 26 tests réussis (7 contrôles du site, 19 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
+Validation de l’atelier : build et 30 tests réussis (7 contrôles du site, 23 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -78,7 +78,7 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | --- | --- | --- |
 | Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
-| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
+| Demandes et messages | Création, réception équipe, propositions versionnées avec périmètre et ajustements, accord sur une version précise, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
 | Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
@@ -119,6 +119,18 @@ La messagerie dispose d’une recherche par dossier/service et de filtres « non
 
 Validation : quatre nouveaux tests couvrent les lectures indépendantes et leur borne, les brouillons et échecs d’envoi, la répartition des actions entre adhérent/équipe et la révocation/restitution d’originaux. Build et 26 tests réussis. La connexion Chrome a de nouveau empêché l’ouverture de l’aperçu automatisé : revue visuelle de la nouvelle messagerie et contrôle mobile encore à réaliser.
 
+### Cinquième itération : propositions et accords versionnés
+
+La proposition de démonstration conserve désormais son périmètre, ses exclusions/points à confirmer, les trois montants et son numéro de version. L’adhérent relit le détail avant de simuler son accord ; l’action porte sur le numéro affiché. L’ancienne transition générique vers « accord » ne suffit plus.
+
+- Avant accord, l’adhérent peut demander un ajustement motivé ; l’équipe peut également retirer sa version pour la réviser. Le dossier revient au cadrage et cette version n’est plus acceptable.
+- L’équipe prépare la version suivante à partir du contenu précédent. Le périmètre est obligatoire ; les montants restent contrôlés. Les anciennes versions gardent leurs montants, leur contenu et le motif de révision. L’écart de provision est affiché.
+- Seule la dernière version proposée peut être acceptée, dans la vue adhérent. L’accord fige cette version ; un paiement simulé n’est disponible qu’après cet accord. Un paiement refusé ne change pas la proposition acceptée.
+- Une annulation en examen bloque aussi l’accord et la révision. La reprise dans un nouveau dossier ne transfère aucune proposition ni aucun accord.
+- Le partenaire ne voit pas ces propositions commerciales. Après accord, un changement de périmètre nécessitera un parcours d’avenant séparé, non implémenté ici.
+
+Ces propositions restent sans valeur contractuelle. TVA, conditions, frais réels et règles commerciales doivent être validés avant tout branchement réel ; aucun document contractuel n’est émis. Quatre nouveaux scénarios testent les versions obsolètes, l’immutabilité, les rôles, le gel et la reprise. Build et 30 tests réussis. La revue visuelle de cette étape reste à faire : le contrôle natif de Chrome n’a pas maintenu la fenêtre de démo sélectionnée.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -134,6 +146,8 @@ Validation : quatre nouveaux tests couvrent les lectures indépendantes et leur 
 
 10. Adhérent → Messages : saisir un brouillon, changer de rubrique puis revenir. Vérifier sa conservation. Basculer en équipe : le brouillon n’apparaît pas dans cette vue. Ajouter un message équipe, revenir en adhérent et vérifier le compteur non lu, puis marquer la conversation comme lue.
 11. Depuis l’accueil, ouvrir l’action « Fournir les pièces attendues » de DEMO-002. Déposer une pièce : cette action disparaît pour l’adhérent et devient « Vérifier les pièces déposées » pour l’équipe.
+
+12. Adhérent → DEMO-002 : ouvrir « Demander un ajustement » et préciser un changement fictif. Équipe : préparer la version 2 avec un périmètre modifié et de nouveaux montants. Adhérent : comparer les versions, consulter le détail puis simuler l’accord sur la version 2. Vérifier que seule cette version accompagne le paiement.
 
 ### Modèle serveur proposé
 

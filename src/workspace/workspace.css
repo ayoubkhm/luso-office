@@ -1383,3 +1383,61 @@ body:has(.workspace) {
     margin-right: 0;
   }
 }
+
+.ws-proposal {
+  margin: 26px 0;
+  padding-block: 24px;
+  border-block: 1px solid var(--ws-line);
+}
+.ws-proposal > h3 {
+  margin-top: 0;
+}
+.ws-proposal h4 {
+  font-size: 13px;
+  margin: 20px 0 6px;
+}
+.ws-proposal .ws-breakdown {
+  margin-top: 18px;
+}
+.ws-proposal-copy,
+.ws-proposal-reason p {
+  white-space: pre-wrap;
+}
+.ws-proposal-reason {
+  padding: 14px 18px;
+  border-left: 3px solid #996b14;
+  background: #fff7e3;
+  margin-top: 18px;
+}
+.ws-proposal-accept {
+  padding-top: 18px;
+}
+.ws-proposal .ws-check {
+  margin-block: 18px;
+}
+.ws-proposal > .ws-form {
+  border-top: 1px solid var(--ws-line);
+  margin-top: 20px;
+  padding-top: 20px;
+}
+.ws-proposal-history {
+  border-top: 1px solid var(--ws-line);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.ws-proposal-history summary {
+  color: #194baf;
+  cursor: pointer;
+  font-weight: 650;
+  padding: 4px 0;
+}
+.ws-proposal-history .ws-breakdown {
+  padding: 18px;
+  border: 1px solid var(--ws-line);
+  background: #f2f6fc;
+}
+@media (max-width: 760px) {
+  .ws-proposal .ws-actions .ws-button {
+    width: 100%;
+  }
+}

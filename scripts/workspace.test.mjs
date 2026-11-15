@@ -44,6 +44,8 @@ test("A request passes from member to team to partner only after agreement and c
   s = apply(s, "team", { type: "stage", id, stage: "review" });
   rejected(s, "team", {
     type: "quote",
+    scope: "Périmètre fictif à revoir",
+    exclusions: "Conditions TBD",
     id,
     quote: -10,
     fees: 0,
@@ -51,6 +53,8 @@ test("A request passes from member to team to partner only after agreement and c
   });
   rejected(s, "team", {
     type: "quote",
+    scope: "Périmètre fictif à revoir",
+    exclusions: "Conditions TBD",
     id,
     quote: 1.001,
     fees: 0,
@@ -58,14 +62,16 @@ test("A request passes from member to team to partner only after agreement and c
   });
   s = apply(s, "team", {
     type: "quote",
+    scope: "Périmètre fictif à revoir",
+    exclusions: "Conditions TBD",
     id,
     quote: 39,
     fees: 10,
     thirdParty: 20,
   });
   assert.equal(total(s.cases.at(-1)), 69);
-  rejected(s, "team", { type: "stage", id, stage: "approved" });
-  s = apply(s, "member", { type: "stage", id, stage: "approved" });
+  rejected(s, "team", { type: "accept-quote", id, version: 1 });
+  s = apply(s, "member", { type: "accept-quote", id, version: 1 });
   rejected(s, "team", { type: "stage", id, stage: "inprogress" });
   rejected(s, "member", { type: "pay", id, result: "paid" });
   s = apply(s, "member", { type: "pay", id, result: "pending" });
@@ -200,7 +206,7 @@ test("Demo mutations reject blank inputs and do not mutate their starting snapsh
 test("Document correction retains its prior version and blocks execution until the requested piece is verified", () => {
   let s = initialState();
   const id = "DEMO-002";
-  s = apply(s, "member", { type: "stage", id, stage: "approved" });
+  s = apply(s, "member", { type: "accept-quote", id, version: 1 });
   s = apply(s, "member", { type: "pay", id, result: "pending" });
   s = apply(s, "member", { type: "pay", id, result: "paid" });
   rejected(s, "team", { type: "stage", id, stage: "inprogress" });
@@ -465,7 +471,7 @@ test("Cancellation pauses execution, preserves history and can be withdrawn or d
 test("A pending payment must settle before cancellation, and no new attempt starts while cancellation is examined", () => {
   let s = initialState();
   const id = "DEMO-002";
-  s = apply(s, "member", { type: "stage", id, stage: "approved" });
+  s = apply(s, "member", { type: "accept-quote", id, version: 1 });
   s = apply(s, "member", { type: "pay", id, result: "pending" });
   s = apply(s, "member", {
     type: "cancel-request",
@@ -733,7 +739,7 @@ test("Attention distinguishes pieces to provide from pieces awaiting team review
   });
   assert.ok(has("member", "correct-documents"));
   assert.equal(has("team", "review-documents"), false);
-  s = apply(s, "member", { type: "stage", id: "DEMO-002", stage: "approved" });
+  s = apply(s, "member", { type: "accept-quote", id: "DEMO-002", version: 1 });
   assert.ok(has("member", "pay"));
   assert.equal(has("member", "approve"), false);
   s = apply(s, "member", { type: "pay", id: "DEMO-002", result: "pending" });
@@ -778,4 +784,181 @@ test("Attention never exposes other partner dossiers and keeps original returns 
   );
   s = apply(s, "team", { type: "partner-access", enabled: false });
   assert.deepEqual(attentionItems(s, "partner"), []);
+});
+
+test("A revised proposal retains its original scope and amounts, and only the current version can be accepted", () => {
+  let s = initialState();
+  const id = "DEMO-002";
+  const original = structuredClone(s.cases[1].proposals[0]);
+  rejected(s, "member", { type: "stage", id, stage: "approved" });
+  rejected(s, "member", { type: "accept-quote", id, version: 2 });
+  rejected(s, "partner", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Revoir",
+  });
+  s = apply(s, "member", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Ajouter le classement des copies",
+  });
+  const pendingSnapshot = s;
+  assert.equal(s.cases[1].stage, "review");
+  assert.equal(
+    attentionItems(s, "member").some(
+      (a) => a.caseId === id && a.kind === "approve",
+    ),
+    false,
+  );
+  assert.ok(
+    attentionItems(s, "team").some(
+      (a) => a.caseId === id && a.kind === "scope",
+    ),
+  );
+  rejected(s, "member", { type: "accept-quote", id, version: 1 });
+  rejected(s, "member", { type: "pay", id, result: "pending" });
+  s = apply(s, "team", {
+    type: "quote",
+    id,
+    scope: "Organisation et classement des copies — démo",
+    exclusions: "Conditions à confirmer",
+    quote: 140,
+    fees: 10,
+    thirdParty: 5,
+  });
+  const c = s.cases[1];
+  assert.equal(c.proposals.length, 2);
+  assert.equal(c.proposals[0].status, "superseded");
+  assert.equal(c.proposals[0].scope, original.scope);
+  assert.equal(c.proposals[0].quote, original.quote);
+  assert.equal(
+    c.proposals[0].revisionReason,
+    "Ajouter le classement des copies",
+  );
+  assert.equal(
+    pendingSnapshot.cases[1].proposals[0].status,
+    "revision-requested",
+    "Earlier state is immutable",
+  );
+  rejected(s, "member", { type: "accept-quote", id, version: 1 });
+  rejected(s, "team", { type: "accept-quote", id, version: 2 });
+  s = apply(s, "member", { type: "accept-quote", id, version: 2 });
+  assert.equal(s.cases[1].proposals[1].status, "accepted");
+  assert.equal(total(s.cases[1]), 155);
+  s = apply(s, "member", { type: "pay", id, result: "pending" });
+  s = apply(s, "member", { type: "pay", id, result: "paid" });
+  assert.equal(s.cases[1].proposals[1].scope, c.proposals[1].scope);
+});
+
+test("Proposal revision requires a reason, pauses with cancellation, and cannot rewrite an accepted agreement", () => {
+  let s = initialState();
+  const id = "DEMO-002";
+  rejected(s, "member", { type: "revise-quote", id, version: 1, reason: " " });
+  rejected(s, "team", {
+    type: "revise-quote",
+    id,
+    version: 7,
+    reason: "Obsolète",
+  });
+  s = apply(s, "member", { type: "cancel-request", id, reason: "Pause" });
+  rejected(s, "member", { type: "accept-quote", id, version: 1 });
+  rejected(s, "team", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Revoir",
+  });
+  s = apply(s, "member", { type: "cancel-withdraw", id });
+  s = apply(s, "member", { type: "accept-quote", id, version: 1 });
+  const accepted = structuredClone(s.cases[1].proposals);
+  rejected(s, "member", { type: "accept-quote", id, version: 1 });
+  rejected(s, "team", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Hausse",
+  });
+  rejected(s, "team", {
+    type: "quote",
+    id,
+    scope: "Autre",
+    exclusions: "",
+    quote: 999,
+    fees: 0,
+    thirdParty: 0,
+  });
+  s = apply(s, "member", { type: "pay", id, result: "pending" });
+  rejected(s, "member", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Changer",
+  });
+  s = apply(s, "member", { type: "pay", id, result: "failed" });
+  assert.deepEqual(s.cases[1].proposals, accepted);
+});
+
+test("The team can withdraw an unaccepted version, but publishing requires a valid scope and amounts", () => {
+  let s = initialState();
+  const id = "DEMO-002";
+  s = apply(s, "team", {
+    type: "revise-quote",
+    id,
+    version: 1,
+    reason: "Préciser le périmètre",
+  });
+  const proposal = {
+    type: "quote",
+    id,
+    scope: "Périmètre démo",
+    exclusions: "",
+    quote: 125,
+    fees: 0,
+    thirdParty: 0,
+  };
+  rejected(s, "member", proposal);
+  rejected(s, "team", { ...proposal, scope: " " });
+  rejected(s, "team", { ...proposal, scope: "a".repeat(4001) });
+  rejected(s, "team", { ...proposal, exclusions: "a".repeat(2001) });
+  rejected(s, "team", { ...proposal, fees: -1 });
+  s = apply(s, "team", proposal);
+  assert.equal(s.cases[1].proposals[0].revisionBy, "team");
+  assert.equal(s.cases[1].proposals[1].version, 2);
+  assert.ok(
+    attentionItems(s, "member").some(
+      (a) => a.caseId === id && a.kind === "approve",
+    ),
+  );
+});
+
+test("Restarting a cancelled need never carries a proposal or its agreement into the new case", () => {
+  let s = initialState();
+  const id = "DEMO-001";
+  const accepted = structuredClone(s.cases[0].proposals);
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id,
+    reason: "Arrêt du besoin",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "",
+  });
+  s = apply(s, "member", { type: "restart", id });
+  assert.deepEqual(s.cases.at(-1).proposals, []);
+  assert.deepEqual(s.cases[0].proposals, accepted);
+  rejected(s, "member", {
+    type: "accept-quote",
+    id: s.cases.at(-1).id,
+    version: 1,
+  });
+  rejected(s, "member", {
+    type: "pay",
+    id: s.cases.at(-1).id,
+    result: "pending",
+  });
 });
