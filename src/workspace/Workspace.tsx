@@ -1,3 +1,4 @@
+import { Family } from "./Family";
 import { Proposals } from "./Proposals";
 import { ActionQueue, Messages } from "./Inbox";
 import { CaseSituation, CaseDecisions } from "./Lifecycle";
@@ -1186,6 +1187,14 @@ function Billing() {
                   "Valor indicativo do briefing, IVA e condições por validar. Premium permanece em estudo. Proporção e data de efeito não são calculadas neste protótipo.",
                 )}
               </p>
+              {sub.plan === "Family" && plan === "Member" && (
+                <p className="ws-blocker">
+                  {t(
+                    "Dans la démo, un passage confirmé à Member retirera les invitations et accès Family. Une tentative échouée conserve les droits actuels. Aucun partage ne sera rétabli automatiquement lors d’un retour à Family.",
+                    "Na demo, uma mudança confirmada para Member retirará os convites e acessos Family. Uma tentativa falhada mantém os direitos atuais. Nenhuma partilha será restabelecida automaticamente ao regressar a Family.",
+                  )}
+                </p>
+              )}
               <Button
                 disabled={sub.payment === "pending"}
                 onClick={() => act({ type: "subscription", plan, period })}
@@ -1425,54 +1434,7 @@ function Profile() {
             )}
           </p>
         </Panel>
-        <Panel title={t("Bénéficiaires Family", "Beneficiários Family")}>
-          <p>
-            {t(
-              "Jusqu’à quatre utilisateurs prévus, titulaire inclus. L’accès aux dossiers et biens de chacun devra être accordé séparément.",
-              "Até quatro utilizadores previstos, incluindo o titular. O acesso aos pedidos e imóveis de cada um deverá ser atribuído separadamente.",
-            )}
-          </p>
-          {state.subscription.plan === "Family" &&
-          state.subscription.payment === "paid" ? (
-            <>
-              <Form
-                onSave={(d) =>
-                  act({ type: "invite", email: value(d, "email") })
-                }
-              >
-                <Field
-                  label={t(
-                    "E-mail fictif du bénéficiaire",
-                    "E-mail fictício do beneficiário",
-                  )}
-                >
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="exemple@example.test"
-                  />
-                </Field>
-                <Button type="submit" disabled={state.invitations.length >= 3}>
-                  {t("Préparer l’invitation démo", "Preparar convite demo")}
-                </Button>
-              </Form>
-              {state.invitations.map((email) => (
-                <p key={email}>
-                  {email} —{" "}
-                  {t("préparée, non envoyée", "preparado, não enviado")}
-                </p>
-              ))}
-            </>
-          ) : (
-            <p>
-              {t(
-                "Explorez ce parcours après avoir simulé le passage à Family.",
-                "Explore este percurso após simular a passagem a Family.",
-              )}
-            </p>
-          )}
-        </Panel>
+        <Family />
       </div>
     </div>
   );

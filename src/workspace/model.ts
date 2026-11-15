@@ -90,6 +90,22 @@ export interface Edition {
   excerpt: string;
   status: "draft" | "review" | "published";
 }
+export interface FamilyInvitation {
+  id: string;
+  email: string;
+  status: "pending" | "active" | "expired" | "revoked";
+  generation: number;
+  cases: string[];
+  documents: string[];
+  history: (
+    | "prepared"
+    | "accepted"
+    | "expired"
+    | "revoked"
+    | "renewed"
+    | "plan-change"
+  )[];
+}
 export interface State {
   tasks: Task[];
   requirements: Requirement[];
@@ -126,7 +142,7 @@ export interface State {
     recipients: string[];
     delivered: string[];
   };
-  invitations: string[];
+  invitations: FamilyInvitation[];
   audit: string[];
 }
 export const stages: Stage[] = [
@@ -373,6 +389,20 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | {
+      type: "invite-state";
+      id: string;
+      status: "active" | "expired" | "revoked";
+      generation: number;
+    }
+  | { type: "invite-renew"; id: string }
+  | { type: "family-case"; id: string; caseId: string; granted: boolean }
+  | {
+      type: "family-document";
+      id: string;
+      documentId: string;
+      granted: boolean;
+    }
   | { type: "accept-quote"; id: string; version: number }
   | { type: "revise-quote"; id: string; version: number; reason: string }
   | { type: "message-read"; id: string; through: string }
@@ -716,6 +746,10 @@ export function transition(
         if (!a.name.trim() || d.review !== "rejected") return reject;
         next = {
           ...s,
+          invitations: s.invitations.map((i) => ({
+            ...i,
+            documents: i.documents.filter((id) => id !== d.id),
+          })),
           documents: s.documents.map((x) =>
             x.id === d.id
               ? {
@@ -1114,6 +1148,20 @@ export function transition(
         return reject;
       next = {
         ...s,
+        invitations:
+          a.result === "paid" && s.subscription.pending?.plan === "Member"
+            ? s.invitations.map((i) =>
+                ["pending", "active"].includes(i.status)
+                  ? {
+                      ...i,
+                      status: "revoked",
+                      cases: [],
+                      documents: [],
+                      history: [...i.history, "plan-change"],
+                    }
+                  : i,
+              )
+            : s.invitations,
         subscription: {
           ...s.subscription,
           ...(a.result === "paid" ? s.subscription.pending : {}),
@@ -1135,18 +1183,121 @@ export function transition(
       if (role !== "member" || !a.profile.name.trim()) return reject;
       next = { ...s, profile: { ...a.profile, name: a.profile.name.trim() } };
       break;
-    case "invite":
+    case "invite": {
+      const email = a.email.trim().toLowerCase();
       if (
         role !== "member" ||
-        s.subscription.plan !== "Family" ||
-        s.subscription.payment !== "paid" ||
-        s.invitations.length >= 3 ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email) ||
-        s.invitations.includes(a.email.toLowerCase())
+        !familyActive(s) ||
+        familySlots(s) >= 3 ||
+        email.length > 254 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        s.invitations.some((i) => i.email === email)
       )
         return reject;
-      next = { ...s, invitations: [...s.invitations, a.email.toLowerCase()] };
+      next = {
+        ...s,
+        invitations: [
+          ...s.invitations,
+          {
+            id: `family-${s.invitations.length + 1}`,
+            email,
+            status: "pending",
+            generation: 1,
+            cases: [],
+            documents: [],
+            history: ["prepared"],
+          },
+        ],
+      };
       break;
+    }
+    case "invite-state":
+    case "invite-renew":
+    case "family-case":
+    case "family-document": {
+      const i = s.invitations.find((i) => i.id === a.id);
+      if (role !== "member" || !i) return reject;
+      let patch: Partial<FamilyInvitation>;
+      if (a.type === "invite-state") {
+        if (
+          a.generation !== i.generation ||
+          !["active", "expired", "revoked"].includes(a.status)
+        )
+          return reject;
+        if (
+          a.status === "revoked"
+            ? !["pending", "active"].includes(i.status)
+            : i.status !== "pending"
+        )
+          return reject;
+        if (a.status === "active" && !familyActive(s)) return reject;
+        patch = {
+          status: a.status,
+          cases: [],
+          documents: [],
+          history: [
+            ...i.history,
+            a.status === "active" ? "accepted" : a.status,
+          ],
+        };
+      } else if (a.type === "invite-renew") {
+        if (
+          !familyActive(s) ||
+          familySlots(s) >= 3 ||
+          !["expired", "revoked"].includes(i.status)
+        )
+          return reject;
+        patch = {
+          status: "pending",
+          generation: i.generation + 1,
+          cases: [],
+          documents: [],
+          history: [...i.history, "renewed"],
+        };
+      } else {
+        if (!familyActive(s) || i.status !== "active") return reject;
+        if (a.type === "family-case") {
+          if (
+            !visibleCases(s, "member").some((c) => c.id === a.caseId) ||
+            i.cases.includes(a.caseId) === a.granted
+          )
+            return reject;
+          patch = {
+            cases: a.granted
+              ? [...i.cases, a.caseId]
+              : i.cases.filter((id) => id !== a.caseId),
+            documents: a.granted
+              ? i.documents
+              : i.documents.filter(
+                  (id) =>
+                    s.documents.find((d) => d.id === id)?.caseId !== a.caseId,
+                ),
+          };
+        } else {
+          const d = visibleDocuments(s, "member").find(
+            (d) => d.id === a.documentId,
+          );
+          if (
+            !d ||
+            !i.cases.includes(d.caseId) ||
+            i.documents.includes(d.id) === a.granted
+          )
+            return reject;
+          patch = {
+            documents: a.granted
+              ? [...i.documents, d.id]
+              : i.documents.filter((id) => id !== d.id),
+          };
+        }
+      }
+      next = {
+        ...s,
+        invitations: s.invitations.map((x) =>
+          x.id === i.id ? { ...x, ...patch } : x,
+        ),
+      };
+      break;
+    }
     case "edition":
       if (
         role !== "team" ||
@@ -1318,4 +1469,40 @@ export function attentionItems(s: State, role: Role): AttentionItem[] {
     }
   }
   return result;
+}
+
+export const familyActive = (s: State) =>
+  s.subscription.active && s.subscription.plan === "Family";
+export const familySlots = (s: State) =>
+  s.invitations.filter((i) => ["pending", "active"].includes(i.status)).length;
+// Deliberately project a small read-only view: no prices, internal notes, threads or other household data.
+export function familyPreview(s: State, id: string) {
+  const i = s.invitations.find((i) => i.id === id);
+  const cases =
+    familyActive(s) && i?.status === "active"
+      ? visibleCases(s, "member").filter((c) => i.cases.includes(c.id))
+      : [];
+  return {
+    cases: cases.map((c) => {
+      const p = s.properties.find((p) => p.id === c.property);
+      return {
+        id: c.id,
+        service: c.service,
+        stage: c.stage,
+        property: p ? { name: p.name, town: p.town } : undefined,
+      };
+    }),
+    documents: s.documents
+      .filter(
+        (d) =>
+          cases.some((c) => c.id === d.caseId) && i!.documents.includes(d.id),
+      )
+      .map((d) => ({
+        id: d.id,
+        caseId: d.caseId,
+        name: d.name,
+        version: d.version,
+        review: d.review,
+      })),
+  };
 }

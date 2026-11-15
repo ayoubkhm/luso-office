@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   initialState,
+  familyActive,
+  familySlots,
+  familyPreview,
   unreadMessages,
   attentionItems,
   transition,
@@ -960,5 +963,274 @@ test("Restarting a cancelled need never carries a proposal or its agreement into
     type: "pay",
     id: s.cases.at(-1).id,
     result: "pending",
+  });
+});
+
+const familyState = () => {
+  let s = apply(initialState(), "member", {
+    type: "subscription",
+    plan: "Family",
+    period: "annual",
+  });
+  return apply(s, "member", { type: "subscription-payment", result: "paid" });
+};
+test("Family invitation lifecycle reserves slots, normalizes duplicates and rejects stale acceptance", () => {
+  let s = familyState();
+  s = apply(s, "member", { type: "invite", email: " A@Example.test " });
+  assert.equal(s.invitations[0].email, "a@example.test");
+  rejected(s, "member", { type: "invite", email: "a@example.test" });
+  for (const email of ["b@example.test", "c@example.test"])
+    s = apply(s, "member", { type: "invite", email });
+  assert.equal(familySlots(s), 3);
+  rejected(s, "member", { type: "invite", email: "d@example.test" });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "expired",
+  });
+  assert.equal(familySlots(s), 2);
+  rejected(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  s = apply(s, "member", { type: "invite-renew", id: "family-1" });
+  rejected(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  rejected(s, "team", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 2,
+    status: "active",
+  });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 2,
+    status: "active",
+  });
+  assert.deepEqual(familyPreview(s, "family-1"), { cases: [], documents: [] });
+  rejected(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 2,
+    status: "expired",
+  });
+  assert.deepEqual(s.invitations[0].history, [
+    "prepared",
+    "expired",
+    "renewed",
+    "accepted",
+  ]);
+});
+
+test("Family case and document access are explicit, minimal, independent and removed together", () => {
+  let s = familyState();
+  for (const email of ["a@example.test", "b@example.test"])
+    s = apply(s, "member", { type: "invite", email });
+  rejected(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  rejected(s, "member", {
+    type: "family-document",
+    id: "family-1",
+    documentId: "doc-1",
+    granted: true,
+  });
+  rejected(s, "partner", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  rejected(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "unknown",
+    granted: true,
+  });
+  s = apply(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  assert.equal(familyPreview(s, "family-1").cases.length, 1);
+  assert.equal(familyPreview(s, "family-1").documents.length, 0);
+  s = apply(s, "team", {
+    type: "note",
+    id: "DEMO-001",
+    body: "Internal-only test",
+  });
+  s = apply(s, "member", {
+    type: "family-document",
+    id: "family-1",
+    documentId: "doc-2",
+    granted: true,
+  });
+  const preview = familyPreview(s, "family-1");
+  assert.deepEqual(Object.keys(preview.cases[0]).sort(), [
+    "id",
+    "property",
+    "service",
+    "stage",
+  ]);
+  assert.equal(JSON.stringify(preview).includes("Internal-only test"), false);
+  assert.equal(preview.documents[0].id, "doc-2");
+  assert.equal(
+    visibleDocuments(s, "partner").some((d) => d.id === "doc-2"),
+    false,
+    "Family grants do not change partner sharing",
+  );
+  assert.deepEqual(familyPreview(s, "family-2"), { cases: [], documents: [] });
+  s = apply(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: false,
+  });
+  assert.deepEqual(s.invitations[0].documents, []);
+  s = apply(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  assert.equal(familyPreview(s, "family-1").documents.length, 0);
+});
+
+test("Family rights survive failed plan changes, while a confirmed downgrade revokes grants without automatic restoration", () => {
+  let s = familyState();
+  s = apply(s, "member", { type: "invite", email: "a@example.test" });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  s = apply(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  s = apply(s, "member", {
+    type: "subscription",
+    plan: "Member",
+    period: "monthly",
+  });
+  assert.equal(familyActive(s), true);
+  s = apply(s, "member", { type: "invite", email: "b@example.test" });
+  s = apply(s, "member", { type: "subscription-payment", result: "failed" });
+  assert.equal(familyPreview(s, "family-1").cases.length, 1);
+  s = apply(s, "member", { type: "cancel", cancel: true });
+  assert.equal(familyPreview(s, "family-1").cases.length, 1);
+  s = apply(s, "member", {
+    type: "subscription",
+    plan: "Member",
+    period: "monthly",
+  });
+  s = apply(s, "member", { type: "subscription-payment", result: "paid" });
+  assert.equal(familyActive(s), false);
+  assert.equal(familySlots(s), 0);
+  assert.ok(
+    s.invitations.every(
+      (i) => i.status === "revoked" && i.history.at(-1) === "plan-change",
+    ),
+  );
+  assert.deepEqual(familyPreview(s, "family-1"), { cases: [], documents: [] });
+  s = apply(s, "member", {
+    type: "subscription",
+    plan: "Family",
+    period: "annual",
+  });
+  s = apply(s, "member", { type: "subscription-payment", result: "paid" });
+  assert.deepEqual(familyPreview(s, "family-1"), { cases: [], documents: [] });
+  s = apply(s, "member", { type: "invite-renew", id: "family-1" });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 2,
+    status: "active",
+  });
+  assert.deepEqual(familyPreview(s, "family-1"), { cases: [], documents: [] });
+});
+
+test("Replacing a document clears Family sharing, and revocation clears all grants", () => {
+  let s = familyState();
+  s = apply(s, "member", { type: "invite", email: "a@example.test" });
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  s = apply(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
+  });
+  s = apply(s, "member", {
+    type: "document",
+    id: "DEMO-001",
+    name: "Exemple v1",
+  });
+  const doc = s.documents.at(-1).id;
+  s = apply(s, "member", {
+    type: "family-document",
+    id: "family-1",
+    documentId: doc,
+    granted: true,
+  });
+  s = apply(s, "team", {
+    type: "document-review",
+    id: doc,
+    review: "rejected",
+    reason: "Corriger",
+  });
+  s = apply(s, "member", {
+    type: "document-replace",
+    id: doc,
+    name: "Exemple v2",
+  });
+  assert.equal(familyPreview(s, "family-1").documents.length, 0);
+  s = apply(s, "member", {
+    type: "family-document",
+    id: "family-1",
+    documentId: doc,
+    granted: true,
+  });
+  assert.equal(familyPreview(s, "family-1").documents[0].version, 2);
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "revoked",
+  });
+  assert.equal(familySlots(s), 0);
+  assert.deepEqual(s.invitations[0].cases, []);
+  assert.deepEqual(s.invitations[0].documents, []);
+  assert.deepEqual(familyPreview(s, "family-1"), { cases: [], documents: [] });
+  rejected(s, "member", {
+    type: "family-case",
+    id: "family-1",
+    caseId: "DEMO-001",
+    granted: true,
   });
 });

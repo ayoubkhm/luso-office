@@ -1441,3 +1441,87 @@ body:has(.workspace) {
     width: 100%;
   }
 }
+
+.ws-family-list {
+  margin-top: 24px;
+}
+.ws-family-member {
+  padding: 24px 0;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-family-member h3 {
+  overflow-wrap: anywhere;
+  margin: 0 0 12px;
+}
+.ws-family-member .ws-actions {
+  margin: 16px 0;
+}
+.ws-family-sharing,
+.ws-family-history {
+  margin-top: 18px;
+}
+.ws-family-sharing summary,
+.ws-family-history summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: #194baf;
+  font-weight: 650;
+}
+.ws-family-grant {
+  min-width: 0;
+  border: 1px solid var(--ws-line);
+  padding: 16px;
+  margin: 18px 0;
+}
+.ws-family-grant legend {
+  font-size: 12px;
+  color: #4b6078;
+  padding: 0 6px;
+}
+.ws-family-documents {
+  margin: 16px 0 0 12px;
+  padding-left: 14px;
+  border-left: 2px solid var(--ws-line);
+}
+.ws-family-documents .ws-check + .ws-check {
+  margin-top: 14px;
+}
+.ws-family-history ol {
+  font-size: 12px;
+  color: #4b6078;
+  padding-left: 22px;
+}
+.ws-family-history li {
+  margin: 8px 0;
+}
+.ws-family-preview {
+  border: 2px solid #194baf;
+  padding: 20px;
+  margin-top: 24px;
+  background: #f2f6fc;
+}
+.ws-family-preview h3 {
+  margin: 0;
+}
+.ws-family-preview article {
+  padding-block: 18px;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-family-preview h4 {
+  margin: 6px 0 12px;
+  font-size: 15px;
+}
+.ws-family-preview ul {
+  padding-left: 18px;
+}
+@media (max-width: 760px) {
+  .ws-family-member .ws-actions .ws-button {
+    width: 100%;
+  }
+  .ws-family-preview {
+    padding: 14px;
+  }
+  .ws-family-grant {
+    padding: 12px;
+  }
+}

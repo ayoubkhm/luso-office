@@ -70,13 +70,13 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 30 tests réussis (7 contrôles du site, 23 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
+Validation de l’atelier : build et 34 tests réussis (7 contrôles du site, 27 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
 | Besoin | Parcours démontrable | Reste à connecter / concevoir en détail |
 | --- | --- | --- |
-| Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
+| Compte | Profil, pays, langue, préférence newsletter, invitations Family avec acceptation/expiration/retrait simulés, partages explicites et aperçu bénéficiaire | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, jetons et acceptation réelle, suppression/export |
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
 | Demandes et messages | Création, réception équipe, propositions versionnées avec périmètre et ajustements, accord sur une version précise, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
@@ -131,6 +131,18 @@ La proposition de démonstration conserve désormais son périmètre, ses exclus
 
 Ces propositions restent sans valeur contractuelle. TVA, conditions, frais réels et règles commerciales doivent être validés avant tout branchement réel ; aucun document contractuel n’est émis. Quatre nouveaux scénarios testent les versions obsolètes, l’immutabilité, les rôles, le gel et la reprise. Build et 30 tests réussis. La revue visuelle de cette étape reste à faire : le contrôle natif de Chrome n’a pas maintenu la fenêtre de démo sélectionnée.
 
+### Sixième itération : Family et accès des bénéficiaires
+
+Le titulaire peut désormais préparer jusqu’à trois invitations réservant des places, simuler leur acceptation/expiration et retirer une invitation ou un accès. Les adresses sont normalisées et les doublons empêchés. Une invitation renouvelée reçoit une nouvelle génération ; une ancienne acceptation n’est plus valide. La durée de validité réelle et les règles commerciales restent à définir.
+
+- Accepter une invitation ne partage rien. Le titulaire autorise séparément chaque résumé de dossier puis chaque document. Retirer un dossier enlève également ses partages documentaires ; le repartager ne rétablit pas les pièces automatiquement.
+- L’aperçu bénéficiaire est une projection en lecture seule : identifiant, service, étape, nom/commune du bien associé et intitulés/versions des pièces accordées. Il ne contient ni montants, ni propositions, ni notes internes, ni conversations. Ce n’est pas encore un espace connecté permettant au bénéficiaire de travailler sur ses propres dossiers.
+- Remplacer une pièce retire son partage Family jusqu’à une nouvelle décision du titulaire. Ces partages sont distincts des autorisations partenaire.
+- Les droits Family dépendent de la formule active, pas du résultat de la dernière tentative de changement. Une tentative échouée et une résiliation à échéance conservent donc les droits actuels dans la démo.
+- Un changement confirmé vers Member retire les invitations en attente et accès actifs, en conservant leur historique. Le parcours de paiement l’explique avant simulation. Revenir à Family ne réactive rien automatiquement : nouvelle invitation, acceptation et partages explicites nécessaires. Il s’agit de la règle proposée pour cette démo ; les dates d’effet commerciales ne sont pas calculées.
+
+Validation : quatre scénarios couvrent capacité/générations, minimisation de l’aperçu, changements de formule et retrait des partages après remplacement/révocation. Build et 34 tests réussis. La revue visuelle des nouveaux écrans reste à réaliser, le pilotage navigateur étant resté instable lors des dernières tentatives.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -148,6 +160,9 @@ Ces propositions restent sans valeur contractuelle. TVA, conditions, frais réel
 11. Depuis l’accueil, ouvrir l’action « Fournir les pièces attendues » de DEMO-002. Déposer une pièce : cette action disparaît pour l’adhérent et devient « Vérifier les pièces déposées » pour l’équipe.
 
 12. Adhérent → DEMO-002 : ouvrir « Demander un ajustement » et préciser un changement fictif. Équipe : préparer la version 2 avec un périmètre modifié et de nouveaux montants. Adhérent : comparer les versions, consulter le détail puis simuler l’accord sur la version 2. Vérifier que seule cette version accompagne le paiement.
+
+13. Adhérent → Adhésion : simuler le passage à Family. Mon compte : préparer une invitation fictive et simuler son acceptation. Ouvrir l’aperçu bénéficiaire (vide), puis partager un dossier et une seule pièce. Vérifier que l’aperçu ne montre que ces éléments.
+14. Retirer le dossier puis le repartager : la pièce reste masquée. Retirer le bénéficiaire et renouveler son invitation : aucun accès n’est rétabli automatiquement. Tester une tentative échouée de passage à Member (accès conservés), puis une confirmation (accès retirés).
 
 ### Modèle serveur proposé
 
