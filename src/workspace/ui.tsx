@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { services, type Lang } from "../catalogue";
+import type { CaseDestination, CaseIntent } from "./caseRouting";
 import {
   canWork,
   visibleCases,
@@ -31,7 +32,8 @@ export type Context = {
   role: Role;
   lang: Lang;
   act: (a: Action) => boolean;
-  go: (v: View, id?: string) => void;
+  go: (v: View, id?: string, destination?: CaseDestination) => void;
+  caseIntent?: CaseIntent;
   selected: string;
   select: (id: string) => void;
   t: (fr: string, pt: string) => string;

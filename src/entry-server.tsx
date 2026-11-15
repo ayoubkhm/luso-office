@@ -28,3 +28,8 @@ export { matchingDocuments } from "./workspace/documentBoard";
 export { Billing } from "./workspace/Workspace";
 export { subscriptionSummary } from "./workspace/SubscriptionHistory";
 export { Newsletter } from "./workspace/Newsletter";
+export {
+  attentionDestination,
+  applicableCaseIntent,
+  caseNavigationContext,
+} from "./workspace/caseRouting";

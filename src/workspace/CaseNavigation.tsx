@@ -1,8 +1,13 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Case, Role } from "./model";
 import { useWorkspace } from "./ui";
+import {
+  applicableCaseIntent,
+  caseNavigationContext,
+  type CaseSectionName,
+} from "./caseRouting";
 
-export type CaseSectionName = "progress" | "proposal" | "decisions" | "team";
+export type { CaseSectionName } from "./caseRouting";
 const sectionLabels: Record<CaseSectionName, [string, string]> = {
   progress: ["Suivi de la mission", "Acompanhamento"],
   proposal: ["Proposition et provision", "Proposta e provisão"],
@@ -32,9 +37,12 @@ export function initialCaseSection(c: Case, role: Role): CaseSectionName {
 }
 
 export function useCaseNavigation(c: Case, role: Role) {
+  const { caseIntent } = useWorkspace();
+  const intent = applicableCaseIntent(caseIntent, c, role);
   const id = useId();
   const root = useRef<HTMLElement>(null);
-  const context = `${c.id}:${role}:${c.stage}:${Boolean(c.cancellation)}:${Boolean(c.cancellation && c.payment === "pending")}`;
+  const tasksRef = useRef<HTMLDetailsElement>(null);
+  const context = `${c.id}:${role}:${caseNavigationContext(c)}:${intent?.token ?? ""}`;
   const [selection, setSelection] = useState<{
     context: string;
     section: CaseSectionName;
@@ -43,7 +51,7 @@ export function useCaseNavigation(c: Case, role: Role) {
   const active =
     selection?.context === context && sections.includes(selection.section)
       ? selection.section
-      : initialCaseSection(c, role);
+      : (intent?.destination.section ?? initialCaseSection(c, role));
   const tabId = (section: CaseSectionName) => `${id}-${section}-tab`;
   const panelId = (section: CaseSectionName) => `${id}-${section}-panel`;
   const focus = (section: CaseSectionName) =>
@@ -57,7 +65,28 @@ export function useCaseNavigation(c: Case, role: Role) {
   useEffect(() => {
     if (root.current?.contains(document.activeElement)) focus(active);
   }, [context]);
-  return { root, sections, active, open, tabId, panelId };
+  useEffect(() => {
+    if (!intent) return;
+    if (intent.destination.tasks && tasksRef.current)
+      tasksRef.current.open = true;
+    const frame = requestAnimationFrame(() => {
+      if (intent.destination.tasks)
+        tasksRef.current?.querySelector("summary")?.focus();
+      else focus(active);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [intent?.token]);
+  return {
+    root,
+    sections,
+    active,
+    open,
+    tabId,
+    panelId,
+    tasksRef,
+    taskFilter: intent?.destination.tasks,
+    intentToken: intent?.token,
+  };
 }
 type Navigation = ReturnType<typeof useCaseNavigation>;
 

@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 66 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion, 4 contrôles de relecture du journal). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 70 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 7 contrôles de navigation et rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion, 4 contrôles de relecture du journal). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -198,6 +198,14 @@ Les onglets ont des liens ARIA vers leurs panneaux, un seul point d’entrée au
 
 Validation : trois tests de rendu exercent les transitions proposition/paiement/mission/clôture, l’annulation avec paiement en attente, les panneaux autorisés par rôle et les associations ARIA dans les deux langues. Build et 50 tests réussis. Le comportement clavier interactif, la conservation des champs à l’écran et la mise en page mobile restent à vérifier dans un navigateur ; l’accès automatisé à Chrome est toujours indisponible.
 
+### Raccourcis vers la bonne rubrique
+
+Les actions de l’accueil ouvrent directement la proposition, les décisions ou le suivi selon le besoin. Une tâche à traiter ouvre le suivi avec les tâches dépliées et le filtre des tâches ouvertes. Depuis le journal d’activité ou une carte de tâche, le dossier s’ouvre avec toutes ses tâches, y compris celles déjà terminées. Les liens de facturation ouvrent la proposition ; les événements de notes et d’attribution ouvrent le travail de l’équipe.
+
+Un raccourci explicite efface les filtres de dossiers pour rendre sa destination visible. Les liens internes d’un même dossier ne remontent pas la fiche et ses formulaires. La destination est limitée au rôle et au dossier courants ; elle expire lorsque l’étape ou la situation d’annulation change. Le partenaire reste limité au suivi et l’adhérent n’accède pas au panneau interne.
+
+Validation : quatre tests supplémentaires utilisent les transitions réelles pour vérifier les destinations, le rendu FR/PT d’une tâche terminée, les restrictions de rôle et l’expiration du contexte. Build et 70 tests réussis. Les deux pages locales répondent en HTTP 200. L’ouverture automatique, le déplacement du focus, la conservation des champs et les filtres lors de clics successifs restent à confirmer dans Chrome : le contrôle du navigateur échoue avant d’accéder à la page.
+
 ### Tâches et échéances
 
 La vue Tâches et la rubrique de suivi d’un dossier proposent une recherche sans distinction d’accents (intitulé, dossier, service localisé, bien), des filtres par responsable, état et échéance, et un filtre par dossier dans la vue globale. Les dates sont triées de la plus proche à la plus lointaine, puis viennent les tâches sans date.
@@ -274,6 +282,9 @@ Le parcours guidé du journal et ses tests incluent la relecture explicite. Les 
 20. Adhérent → Adhésion : préparer Family annuel, vérifier que les sélecteurs restent figés pendant la tentative, puis simuler un refus. Préparer Family mensuel et confirmer. Dans l’historique, retrouver les deux essais, leurs tarifs indicatifs et leurs résultats distincts. Ouvrir le récapitulatif refusé, puis télécharger le texte du changement confirmé et vérifier la mention DEMO. Revenir à la formule déjà active : aucun nouvel essai identique ne doit être proposé.
 
 21. Équipe → Le journal : modifier un extrait sans enregistrer, ouvrir Tâches puis revenir et vérifier la conservation du texte. Comparer les deux aperçus, soumettre à relecture et confirmer la version. Modifier une rubrique : la publication doit redevenir indisponible. Tester la reprise de la version enregistrée (annuler puis confirmer), refaire la relecture et publier. Vérifier que la vue adhérent ne reçoit que l’édition publiée.
+
+22. Équipe → Tâches : créer puis terminer une tâche fictive de DEMO-002. Depuis Administration → Activité de la session, ouvrir son événement : le suivi doit être actif, les tâches dépliées et la tâche terminée visible. Depuis l’accueil, ouvrir une tâche restante : seules les tâches ouvertes sont sélectionnées. Tester ensuite un lien de paiement, une note interne, un autre dossier et un changement de rôle. Dans un même dossier, saisir une note sans l’envoyer, changer de rubrique via un événement et revenir : le texte doit être conservé. Répéter en portugais et au clavier.
+
 
 ### Modèle serveur proposé
 

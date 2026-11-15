@@ -1,3 +1,8 @@
+import {
+  caseNavigationContext,
+  type CaseDestination,
+  type CaseIntent,
+} from "./caseRouting";
 import { Newsletter } from "./Newsletter";
 import { SubscriptionHistory } from "./SubscriptionHistory";
 import { Documents } from "./Documents";
@@ -132,12 +137,18 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     [state, setState] = useState(initialState),
     [role, setRole] = useState<Role>("member"),
     [view, setView] = useState<View>("overview"),
-    [selected, select] = useState("DEMO-001"),
+    [selected, setSelected] = useState("DEMO-001"),
     [notice, setNotice] = useState(""),
     [reset, setReset] = useState(false),
     [scenarioId, setScenarioId] = useState<ScenarioId | null>(null),
     [completed, setCompleted] = useState(0),
     [epoch, setEpoch] = useState(0);
+  const [caseIntent, setCaseIntent] = useState<CaseIntent>();
+  const navigationCounter = useRef(0);
+  const select = (id: string) => {
+    setSelected(id);
+    setCaseIntent(undefined);
+  };
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
   const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -146,11 +157,25 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       "O meu Portugal — " + t("Maquette LusoOffice", "Protótipo LusoOffice");
     document.documentElement.lang = lang;
   }, [lang]);
-  const go = (v: View, id?: string) => {
+  const go = (v: View, id?: string, destination?: CaseDestination) => {
     setView(v);
-    if (id) select(id);
+    if (id) setSelected(id);
+    const c = id
+      ? visibleCases(state, role).find((c) => c.id === id)
+      : undefined;
+    setCaseIntent(
+      v === "requests" && c && destination
+        ? {
+            caseId: c.id,
+            role,
+            token: ++navigationCounter.current,
+            context: caseNavigationContext(c),
+            destination,
+          }
+        : undefined,
+    );
     setNotice("");
-    requestAnimationFrame(() => heading.current?.focus());
+    if (!destination) requestAnimationFrame(() => heading.current?.focus());
   };
   const act = (a: Action) => {
     const result = transition(state, role, a);
@@ -203,7 +228,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   };
   return (
     <WorkspaceContext.Provider
-      value={{ state, role, lang, act, go, selected, select, t }}
+      value={{ state, role, lang, act, go, selected, select, t, caseIntent }}
     >
       <div className="workspace">
         <a className="skip-link" href="#workspace-main">
@@ -545,7 +570,8 @@ function Overview() {
   );
 }
 function Requests() {
-  const { state, role, lang, t, act, selected, select } = useWorkspace();
+  const { state, role, lang, t, act, selected, select, caseIntent } =
+    useWorkspace();
   const cases = visibleCases(state, role);
   const [filter, setFilter] = useState("all"),
     [create, setCreate] = useState(false),
@@ -553,7 +579,7 @@ function Requests() {
   useEffect(() => {
     setFilter("all");
     setQuery("");
-  }, [state.cases.length]);
+  }, [state.cases.length, caseIntent?.token]);
   const shown = matchingCases(state, role, query, filter, lang);
   const current = shown.find((c) => c.id === selected) || shown[0];
   return (
@@ -806,11 +832,20 @@ export function CaseDetail({ c }: { c: Case }) {
           </p>
         )}
         <CaseRequirements caseId={c.id} />
-        <details className="ws-case-tasks">
+        <details
+          className="ws-case-tasks"
+          ref={navigation.tasksRef}
+          open={navigation.taskFilter ? true : undefined}
+        >
           <summary>
             {t("Tâches du dossier", "Tarefas do pedido")} ({remaining})
           </summary>
-          <Tasks key={c.id} caseId={c.id} />
+          <Tasks
+            key={c.id}
+            caseId={c.id}
+            initialFilter={navigation.taskFilter}
+            navigationToken={navigation.intentToken}
+          />
         </details>
         {canWork(c) && role === "team" && c.stage === "approved" && (
           <p>
@@ -905,10 +940,7 @@ export function CaseDetail({ c }: { c: Case }) {
                 "Consultar atividade do pedido",
               )}
             </summary>
-            <Activity
-              caseId={c.id}
-              onOpenCase={() => navigation.open("progress")}
-            />
+            <Activity caseId={c.id} />
           </details>
         )}
       </CaseSection>
@@ -1256,7 +1288,10 @@ export function Billing() {
                                 : "Provisão a acompanhar",
                     )}
               </Badge>
-              <Button secondary onClick={() => go("requests", c.id)}>
+              <Button
+                secondary
+                onClick={() => go("requests", c.id, { section: "proposal" })}
+              >
                 {t("Voir le détail", "Ver detalhe")}
               </Button>
               {isClosed(c) && c.payment === "paid" && (

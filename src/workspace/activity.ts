@@ -1,4 +1,5 @@
 import type { Action, Role, State } from "./model";
+import { activityDestination, type CaseDestination } from "./caseRouting";
 
 type Text = [string, string];
 export const activityCategories = {
@@ -20,6 +21,7 @@ export interface ActivityEvent {
   category: ActivityCategory;
   title: Text;
   caseId?: string;
+  caseDestination?: CaseDestination;
 }
 
 // Deliberately omit action payloads: no message, note, address or email is copied
@@ -377,6 +379,9 @@ export function createActivity(
     category,
     title,
     ...(caseId ? { caseId } : {}),
+    ...(caseId && activityDestination(action.type)
+      ? { caseDestination: activityDestination(action.type) }
+      : {}),
   };
 }
 

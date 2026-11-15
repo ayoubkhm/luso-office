@@ -6,7 +6,7 @@ import {
   taskTiming,
   type TaskTiming,
 } from "./taskBoard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWorkspace, Button, Panel, Field, Form, Badge, value } from "./ui";
 import {
   canWork,
@@ -31,9 +31,17 @@ const timingLabels: Record<TaskTiming, [string, string]> = {
   done: ["Terminée", "Concluída"],
   paused: ["Dossier suspendu ou clos", "Pedido suspenso ou encerrado"],
 };
-export function Tasks({ caseId }: { caseId?: string }) {
+export function Tasks({
+  caseId,
+  initialFilter = "open",
+  navigationToken,
+}: {
+  caseId?: string;
+  initialFilter?: "open" | "all";
+  navigationToken?: number;
+}) {
   const { state, role, lang, t, selected } = useWorkspace();
-  const [filter, setFilter] = useState("open");
+  const [filter, setFilter] = useState<string>(initialFilter);
   const [query, setQuery] = useState("");
   const [dossier, setDossier] = useState("all");
   const [assignee, setAssignee] = useState("all");
@@ -59,6 +67,11 @@ export function Tasks({ caseId }: { caseId?: string }) {
     setTiming("all");
     setFilter("open");
   };
+  useEffect(() => {
+    if (navigationToken === undefined) return;
+    clear();
+    setFilter(initialFilter);
+  }, [navigationToken]);
   const filtered = Boolean(
     query ||
       dossier !== "all" ||
@@ -355,7 +368,9 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
       <div className="ws-detail-heading">
         <button
           className="ws-inline-link"
-          onClick={() => go("requests", task.caseId)}
+          onClick={() =>
+            go("requests", task.caseId, { section: "progress", tasks: "all" })
+          }
         >
           {task.caseId}
         </button>

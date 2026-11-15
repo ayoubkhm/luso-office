@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { attentionDestination } from "./caseRouting";
 import {
   attentionItems,
   unreadMessages,
@@ -105,7 +106,11 @@ export function ActionQueue() {
             const c = state.cases.find((c) => c.id === item.caseId)!;
             return (
               <li key={`${item.caseId}-${item.kind}`}>
-                <button onClick={() => go(item.target, item.caseId)}>
+                <button
+                  onClick={() =>
+                    go(item.target, item.caseId, attentionDestination(item, c))
+                  }
+                >
                   <span>
                     <small>
                       {item.caseId} · {serviceName(c.service, lang)}
