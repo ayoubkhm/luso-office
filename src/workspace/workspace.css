@@ -584,6 +584,19 @@ body:has(.workspace) {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   gap: 12px;
 }
+.ws-subscription-attempt {
+  padding: 22px 0;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-subscription-attempt summary {
+  cursor: pointer;
+  padding: 12px 0;
+  color: #164bcb;
+  font-size: 13px;
+}
+.ws-attempt-summary {
+  white-space: pre-wrap;
+}
 .ws-document-controls {
   margin-top: 8px;
 }

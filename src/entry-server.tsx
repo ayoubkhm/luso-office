@@ -25,3 +25,5 @@ export { Tasks } from "./workspace/Operations";
 export { matchingTasks, taskTiming, taskSummary } from "./workspace/taskBoard";
 export { Documents } from "./workspace/Documents";
 export { matchingDocuments } from "./workspace/documentBoard";
+export { Billing } from "./workspace/Workspace";
+export { subscriptionSummary } from "./workspace/SubscriptionHistory";

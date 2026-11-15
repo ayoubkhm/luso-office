@@ -1,5 +1,5 @@
 // In-memory design prototype. These checks demonstrate rules, not server authorization.
-import { services } from "../catalogue";
+import { services, plans } from "../catalogue";
 import { createActivity, type ActivityEvent } from "./activity";
 export type Role = "member" | "team" | "partner";
 export type Stage =
@@ -125,6 +125,15 @@ export interface FamilyInvitation {
     | "plan-change"
   )[];
 }
+export interface SubscriptionAttempt {
+  id: number;
+  plan: "Member" | "Family";
+  period: "annual" | "monthly";
+  previousPlan: "Member" | "Family" | "Premium";
+  previousPeriod: "annual" | "monthly";
+  amount: number;
+  status: "pending" | "failed" | "paid";
+}
 export interface State {
   tasks: Task[];
   requirements: Requirement[];
@@ -142,6 +151,7 @@ export interface State {
   }[];
   drafts: Record<Role, Record<string, string>>;
   subscription: {
+    attempts: SubscriptionAttempt[];
     plan: "Member" | "Family" | "Premium";
     period: "annual" | "monthly";
     cancelAtEnd: boolean;
@@ -312,6 +322,7 @@ export const initialState = (): State => ({
     },
   ],
   subscription: {
+    attempts: [],
     plan: "Member",
     period: "annual",
     cancelAtEnd: false,
@@ -1267,13 +1278,18 @@ export function transition(
       };
       break;
     }
-    case "subscription":
+    case "subscription": {
       if (
         role !== "member" ||
-        a.plan === "Premium" ||
-        s.subscription.payment === "pending"
+        (a.plan !== "Member" && a.plan !== "Family") ||
+        !["monthly", "annual"].includes(a.period) ||
+        s.subscription.payment === "pending" ||
+        (s.subscription.active &&
+          s.subscription.plan === a.plan &&
+          s.subscription.period === a.period)
       )
         return reject;
+      const plan = plans.find((p) => p.id === a.plan)!;
       // Existing entitlement stays active until the simulated payment succeeds.
       next = {
         ...s,
@@ -1281,13 +1297,28 @@ export function transition(
           ...s.subscription,
           pending: { plan: a.plan, period: a.period },
           payment: "pending",
+          attempts: [
+            ...s.subscription.attempts,
+            {
+              id: s.subscription.attempts.length + 1,
+              plan: a.plan,
+              period: a.period,
+              previousPlan: s.subscription.plan,
+              previousPeriod: s.subscription.period,
+              amount: a.period === "annual" ? plan.annual : plan.monthly,
+              status: "pending",
+            },
+          ],
         },
       };
       break;
+    }
     case "subscription-payment":
       if (
         role !== "member" ||
         s.subscription.payment !== "pending" ||
+        !s.subscription.pending ||
+        s.subscription.attempts.at(-1)?.status !== "pending" ||
         !["paid", "failed"].includes(a.result)
       )
         return reject;
@@ -1313,6 +1344,11 @@ export function transition(
           pending: undefined,
           payment: a.result,
           active: s.subscription.active || a.result === "paid",
+          attempts: s.subscription.attempts.map((attempt, i) =>
+            i === s.subscription.attempts.length - 1
+              ? { ...attempt, status: a.result as "paid" | "failed" }
+              : attempt,
+          ),
         },
       };
       break;

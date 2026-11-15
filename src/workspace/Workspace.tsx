@@ -1,3 +1,4 @@
+import { SubscriptionHistory } from "./SubscriptionHistory";
 import { Documents } from "./Documents";
 import {
   CaseNavigation,
@@ -976,14 +977,20 @@ function Properties() {
   );
 }
 
-function Billing() {
+export function Billing() {
   const { state, role, t, lang, act, go } = useWorkspace();
   const money = useMoney();
   const sub = state.subscription;
-  const [plan, setPlan] = useState(sub.plan),
-    [period, setPeriod] = useState(sub.period),
+  const [plan, setPlan] = useState(sub.pending?.plan ?? sub.plan),
+    [period, setPeriod] = useState(sub.pending?.period ?? sub.period),
     [confirm, setConfirm] = useState(false);
-  const proposal = plans.find((p) => p.id === plan)!;
+  const displayedPlan = sub.pending?.plan ?? plan;
+  const displayedPeriod = sub.pending?.period ?? period;
+  const proposal = plans.find((p) => p.id === displayedPlan)!;
+  const currentChoice =
+    sub.active && plan === sub.plan && period === sub.period;
+  const pendingAttempt = sub.pending ? sub.attempts.at(-1) : undefined;
+  if (role === "partner") return null;
   return (
     <>
       <p className="ws-intro">
@@ -1078,7 +1085,8 @@ function Billing() {
               <div className="ws-form">
                 <Field label={t("Formule proposée", "Plano proposto")}>
                   <select
-                    value={plan}
+                    value={displayedPlan}
+                    disabled={sub.payment === "pending"}
                     onChange={(e) => setPlan(e.target.value as typeof plan)}
                   >
                     <option>Member</option>
@@ -1088,7 +1096,8 @@ function Billing() {
                 </Field>
                 <Field label={t("Modalité", "Modalidade")}>
                   <select
-                    value={period}
+                    value={displayedPeriod}
+                    disabled={sub.payment === "pending"}
                     onChange={(e) => setPeriod(e.target.value as typeof period)}
                   >
                     <option value="annual">{t("Annuelle", "Anual")}</option>
@@ -1098,14 +1107,17 @@ function Billing() {
               </div>
               <p className="ws-plan-price">
                 {money(
-                  period === "annual" ? proposal.annual : proposal.monthly,
+                  pendingAttempt?.amount ??
+                    (displayedPeriod === "annual"
+                      ? proposal.annual
+                      : proposal.monthly),
                 )}
                 <small>
                   {" "}
                   /{" "}
                   {t(
-                    period === "annual" ? "an" : "mois",
-                    period === "annual" ? "ano" : "mês",
+                    displayedPeriod === "annual" ? "an" : "mois",
+                    displayedPeriod === "annual" ? "ano" : "mês",
                   )}
                 </small>
               </p>
@@ -1115,7 +1127,7 @@ function Billing() {
                   "Valor indicativo do briefing, IVA e condições por validar. Premium permanece em estudo. Proporção e data de efeito não são calculadas neste protótipo.",
                 )}
               </p>
-              {sub.plan === "Family" && plan === "Member" && (
+              {sub.plan === "Family" && displayedPlan === "Member" && (
                 <p className="ws-blocker">
                   {t(
                     "Dans la démo, un passage confirmé à Member retirera les invitations et accès Family. Une tentative échouée conserve les droits actuels. Aucun partage ne sera rétabli automatiquement lors d’un retour à Family.",
@@ -1124,18 +1136,34 @@ function Billing() {
                 </p>
               )}
               <Button
-                disabled={sub.payment === "pending"}
+                disabled={sub.payment === "pending" || currentChoice}
                 onClick={() => act({ type: "subscription", plan, period })}
               >
                 {t("Préparer le paiement démo", "Preparar pagamento demo")}
               </Button>
+              {currentChoice && !sub.pending && (
+                <p className="ws-hint">
+                  {t(
+                    "Cette formule et cette modalité sont déjà actives. Choisissez un changement pour préparer un essai.",
+                    "Este plano e esta modalidade já estão ativos. Escolha uma alteração para preparar uma tentativa.",
+                  )}
+                </p>
+              )}
               {sub.pending && (
                 <p>
-                  {t("Changement en attente", "Alteração pendente")} :{" "}
-                  {sub.pending.plan} /{" "}
+                  {t("Changement en attente", "Alteração pendente")} #
+                  {pendingAttempt?.id} : {sub.pending.plan} /{" "}
                   {sub.pending.period === "annual"
                     ? t("annuel", "anual")
                     : t("mensuel", "mensal")}
+                </p>
+              )}
+              {sub.payment === "pending" && (
+                <p className="ws-hint">
+                  {t(
+                    "Le choix est figé pour cette tentative. Simulez son résultat avant de préparer un autre changement ; les droits actuels restent inchangés en attendant.",
+                    "A escolha fica fixada para esta tentativa. Simule o resultado antes de preparar outra alteração; os direitos atuais mantêm-se entretanto.",
+                  )}
                 </p>
               )}
               {sub.payment === "pending" && (
@@ -1171,6 +1199,7 @@ function Billing() {
           )}
         </Panel>
       </div>
+      <SubscriptionHistory />
       <Panel
         title={t(
           "Prestations, provisions et pièces de facturation",

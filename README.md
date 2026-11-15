@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 58 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 62 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -220,6 +220,16 @@ Le formulaire est rattaché au dossier filtré et indisponible si celui-ci est s
 
 Validation : quatre tests supplémentaires couvrent les filtres FR/PT et les droits partenaire, le parcours besoin/dépôt/correction/version, la restitution après annulation et le rendu du dépôt limité au bon dossier. Build et 58 tests réussis. Aucun fichier réel n’est lu ou envoyé. Revue visuelle et interactive à compléter : l’accès à l’onglet Chrome local échoue toujours.
 
+### Changements d’adhésion et récapitulatifs
+
+Chaque essai d’adhésion conserve la formule et la périodicité demandées, la formule précédente, le tarif indicatif de référence du brief et son résultat simulé. Un échec reste dans l’historique après une nouvelle tentative. Les états précédents ne sont pas réécrits ; seule la tentative en attente reçoit son résultat. L’état initial n’invente pas de paiement historique.
+
+Pendant une tentative, les sélecteurs sont verrouillés et le prix affiché correspond à son récapitulatif. Il faut simuler son résultat avant de préparer un autre changement. Une formule et une périodicité déjà actives ne créent plus un paiement supplémentaire ; la réactivation du renouvellement reste une action séparée. Premium et les modalités non prévues sont refusés dans le modèle.
+
+L’adhérent et l’équipe peuvent filtrer l’historique et consulter ou télécharger un récapitulatif texte FR/PT par essai. Le document est marqué DEMO, sans valeur fiscale, contractuelle ou bancaire, et n’est pas une facture ni une preuve de paiement. Il n’affirme pas qu’une ancienne formule est encore active après un changement ultérieur. Les montants restent indicatifs : TVA, prorata, date d’effet et débit effectif ne sont pas calculés. L’équipe consulte les résultats sans confirmer les paiements ; la vue partenaire n’affiche pas cet historique.
+
+Validation : quatre tests supplémentaires couvrent les instantanés et les échecs/reprises, les changements identiques/invalides et rôles non autorisés, les contrôles verrouillés et les textes exportés FR/PT. Build et 62 tests réussis. Le clic de téléchargement, les filtres interactifs et la présentation restent à vérifier dans un navigateur ; le pilotage de Chrome demeure indisponible.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -250,6 +260,8 @@ Validation : quatre tests supplémentaires couvrent les filtres FR/PT et les dro
 18. Équipe → Tâches : créer trois tâches fictives avec une date passée, la date du jour et aucune date. Tester les repères et les filtres dossier/responsable/recherche, puis terminer la tâche en retard : elle quitte le compteur. Demander l’annulation du dossier et vérifier la vue « Dossiers suspendus ou clos ». Depuis ce dossier, vérifier qu’aucun formulaire ne propose une création pour un autre dossier ; retirer l’annulation et retrouver les tâches à traiter.
 
 19. Adhérent → Accueil → Fournir les pièces attendues : vérifier l’ouverture de Documents sur DEMO-002 et la liste des besoins. Déposer un intitulé fictif en le rattachant au besoin, puis passer en équipe, filtrer « Vérification attendue » et déplier la pièce pour demander une correction. Déposer la nouvelle version en adhérent. Sur DEMO-001, filtrer les originaux « À restituer », puis simuler leur restitution côté équipe.
+
+20. Adhérent → Adhésion : préparer Family annuel, vérifier que les sélecteurs restent figés pendant la tentative, puis simuler un refus. Préparer Family mensuel et confirmer. Dans l’historique, retrouver les deux essais, leurs tarifs indicatifs et leurs résultats distincts. Ouvrir le récapitulatif refusé, puis télécharger le texte du changement confirmé et vérifier la mention DEMO. Revenir à la formule déjà active : aucun nouvel essai identique ne doit être proposé.
 
 ### Modèle serveur proposé
 
