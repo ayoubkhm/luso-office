@@ -16,8 +16,8 @@ const translations = {
     resultTitle:'Votre demande est prête.', resultIntro:'Téléchargez ce récapitulatif pour votre premier échange. Aucune information n’a été envoyée.', download:'Télécharger ma demande', edit:'Modifier ma demande',
     clientTitle:'Votre dossier, au même endroit.', clientIntro:'Un aperçu du suivi de votre accompagnement.', example:'Exemple de dossier', clientFile:'Documents administratifs', fileReceived:'Demande reçue', fileReceivedText:'Votre besoin est identifié.', fileProgress:'Préparation du dossier', fileProgressText:'Les pièces utiles sont rassemblées.', fileNext:'Prochaine étape', fileNextText:'Un point avec votre interlocuteur.', clientNote:'L’accès personnel aux dossiers sera disponible au lancement du service.',
     privacyText:'Le formulaire prépare un récapitulatif sur votre appareil. Il ne transmet pas vos informations et ne les conserve pas après la fermeture de la page. Ce site n’utilise pas de cookies publicitaires ni d’outil de suivi.',
-    close:'Fermer', openMenu:'Ouvrir le menu', closeMenu:'Fermer le menu', imageAlt:'Azulejos portugais bleus et blancs, un carreau jaune, des documents et un vase en céramique.', home:'Perto de Casa, accueil', title:'Perto de Casa — Vos démarches au Portugal', metaDescription:'Vos démarches au Portugal, même depuis la France. Découvrez un accompagnement humain, avec une présence sur place et un suivi clair.',
-    pricingPageTitle:'Tarifs — Perto de Casa', pricingMeta:'Trois abonnements indicatifs pour garder un interlocuteur au Portugal : Essentiel à 19 €, Accompagnement à 49 € et Sérénité à 99 € par mois.',
+    close:'Fermer', openMenu:'Ouvrir le menu', closeMenu:'Fermer le menu', imageAlt:'Azulejos portugais bleus et blancs, un carreau jaune, des documents et un vase en céramique.', home:'Luso Office, accueil', title:'Luso Office — Vos démarches au Portugal', metaDescription:'Vos démarches au Portugal, même depuis la France. Découvrez un accompagnement humain, avec une présence sur place et un suivi clair.',
+    pricingPageTitle:'Tarifs — Luso Office', pricingMeta:'Trois abonnements indicatifs pour garder un interlocuteur au Portugal : Essentiel à 19 €, Accompagnement à 49 € et Sérénité à 99 € par mois.',
     pricingTitle:'Un abonnement.\nQuelqu’un sur place, toute l’année.', pricingIntro:'Gardez un interlocuteur de confiance au Portugal. Choisissez le niveau d’aide qui vous convient pour vos questions, vos documents et vos démarches à distance.', subscriptionTerms:'Abonnements mensuels, sans engagement de durée.', indicative:'Prix et prestations indicatifs, à valider avec Hélèna avant le lancement du service.', perMonth:'par mois',
     essentialTitle:'Essentiel', essentialDescription:'Pour garder un contact au Portugal et savoir par où commencer.', essentialAllowance:'20 min d’aide incluses / mois', essentialOne:'Un interlocuteur dédié au Portugal', essentialTwo:'Réponses à vos questions et orientation', essentialThree:'Rappels des échéances identifiées', essentialFour:'Suivi de vos dossiers dans l’espace client',
     supportTitle:'Accompagnement', supportDescription:'Pour déléguer des démarches simples et suivre leur avancement.', supportAllowance:'1 h d’aide incluse / mois', supportOne:'Interlocuteur dédié, rappels et espace client', supportTwo:'Aide à la préparation de vos documents', supportThree:'Appels et prise de rendez-vous à distance', supportFour:'Suivi des démarches simples confiées',
@@ -43,8 +43,8 @@ const translations = {
     resultTitle:'O seu pedido está preparado.', resultIntro:'Descarregue este resumo para a sua primeira conversa. Nenhuma informação foi enviada.', download:'Descarregar o meu pedido', edit:'Alterar o meu pedido',
     clientTitle:'O seu processo, num só lugar.', clientIntro:'Uma apresentação do acompanhamento do seu processo.', example:'Exemplo de processo', clientFile:'Documentos administrativos', fileReceived:'Pedido recebido', fileReceivedText:'A sua necessidade foi identificada.', fileProgress:'Preparação do processo', fileProgressText:'Os documentos necessários estão a ser reunidos.', fileNext:'Próximo passo', fileNextText:'Uma conversa com o seu interlocutor.', clientNote:'O acesso pessoal aos processos estará disponível no lançamento do serviço.',
     privacyText:'O formulário prepara um resumo no seu dispositivo. Não transmite as suas informações e não as conserva depois de fechar a página. Este site não utiliza cookies publicitários nem ferramentas de monitorização.',
-    close:'Fechar', openMenu:'Abrir menu', closeMenu:'Fechar menu', imageAlt:'Azulejos portugueses azuis e brancos, um azulejo amarelo, documentos e uma jarra de cerâmica.', home:'Perto de Casa, início', title:'Perto de Casa — Os seus assuntos em Portugal', metaDescription:'Os seus assuntos em Portugal, mesmo a viver em França. Um acompanhamento próximo, com presença local e um seguimento claro.',
-    pricingPageTitle:'Preços — Perto de Casa', pricingMeta:'Três subscrições indicativas para ter um interlocutor em Portugal: Essencial a 19 €, Acompanhamento a 49 € e Serenidade a 99 € por mês.',
+    close:'Fechar', openMenu:'Abrir menu', closeMenu:'Fechar menu', imageAlt:'Azulejos portugueses azuis e brancos, um azulejo amarelo, documentos e uma jarra de cerâmica.', home:'Luso Office, início', title:'Luso Office — Os seus assuntos em Portugal', metaDescription:'Os seus assuntos em Portugal, mesmo a viver em França. Um acompanhamento próximo, com presença local e um seguimento claro.',
+    pricingPageTitle:'Preços — Luso Office', pricingMeta:'Três subscrições indicativas para ter um interlocutor em Portugal: Essencial a 19 €, Acompanhamento a 49 € e Serenidade a 99 € por mês.',
     pricingTitle:'Uma subscrição.\nAlguém em Portugal, todo o ano.', pricingIntro:'Tenha um interlocutor de confiança em Portugal. Escolha o nível de apoio para as suas perguntas, os seus documentos e os assuntos a tratar à distância.', subscriptionTerms:'Subscrições mensais, sem período mínimo de permanência.', indicative:'Preços e serviços indicativos, a validar com Hélèna antes do lançamento do serviço.', perMonth:'por mês',
     essentialTitle:'Essencial', essentialDescription:'Para manter um contacto em Portugal e saber por onde começar.', essentialAllowance:'20 min de apoio incluídos / mês', essentialOne:'Um interlocutor dedicado em Portugal', essentialTwo:'Respostas às suas perguntas e orientação', essentialThree:'Lembretes dos prazos identificados', essentialFour:'Acompanhamento dos processos na área de cliente',
     supportTitle:'Acompanhamento', supportDescription:'Para delegar assuntos simples e acompanhar o seu progresso.', supportAllowance:'1 h de apoio incluída / mês', supportOne:'Interlocutor dedicado, lembretes e área de cliente', supportTwo:'Apoio na preparação dos seus documentos', supportThree:'Chamadas e marcações à distância', supportFour:'Acompanhamento dos assuntos simples confiados',
@@ -74,6 +74,17 @@ function setLanguage(next) {
   document.documentElement.lang = next;
   document.title = isPricing ? t.pricingPageTitle : t.title;
   document.querySelector('meta[name="description"]').content = isPricing ? t.pricingMeta : t.metaDescription;
+  const description = isPricing ? t.pricingMeta : t.metaDescription;
+  const canonical = new URL(isPricing ? 'https://lusooffice.com/tarifs.html' : 'https://lusooffice.com/');
+  if (next === 'pt') canonical.searchParams.set('lang', 'pt');
+  document.querySelector('link[rel="canonical"]').href = canonical.href;
+  document.querySelector('meta[property="og:title"]').content = document.title;
+  document.querySelector('meta[property="og:description"]').content = description;
+  document.querySelector('meta[property="og:url"]').content = canonical.href;
+  document.querySelector('meta[property="og:locale"]').content = next === 'pt' ? 'pt_PT' : 'fr_FR';
+  document.querySelector('meta[property="og:locale:alternate"]').content = next === 'pt' ? 'fr_FR' : 'pt_PT';
+  document.querySelector('meta[name="twitter:title"]').content = document.title;
+  document.querySelector('meta[name="twitter:description"]').content = description;
   document.querySelectorAll('[data-i18n]').forEach(element => {
     const text = t[element.dataset.i18n];
     if (text !== undefined) {
@@ -93,7 +104,7 @@ function setLanguage(next) {
   document.querySelectorAll('[data-close]').forEach(button => button.setAttribute('aria-label', t.close));
   const heroImage = document.querySelector('.hero-art img');
   if (heroImage) heroImage.alt = t.imageAlt;
-  document.querySelector('.site-header .wordmark').setAttribute('aria-label', t.home);
+  document.querySelectorAll('.wordmark').forEach(link => link.setAttribute('aria-label', t.home));
   document.querySelector('.desktop-nav').setAttribute('aria-label', next === 'fr' ? 'Navigation principale' : 'Navegação principal');
   document.querySelector('.language-switch').setAttribute('aria-label', next === 'fr' ? 'Langue du site' : 'Idioma do site');
   menuButton.setAttribute('aria-label', menuButton.getAttribute('aria-expanded') === 'true' ? t.closeMenu : t.openMenu);
@@ -219,12 +230,12 @@ document.querySelector('#download-request').addEventListener('click', () => {
   if (!draft) return;
   const t = translations[language];
   const countryLabel = form.elements.country.selectedOptions[0].textContent;
-  const content = ['Perto de Casa', t.requestTitle, '', t.name + ': ' + draft.name, t.email + ': ' + draft.email, t.country + ': ' + countryLabel, t.subject + ': ' + serviceLabel(draft.service), t.plan + ': ' + planLabel(draft.plan), '', t.message + ':', draft.message, '', t.resultIntro].join('\n');
+  const content = ['Luso Office', t.requestTitle, '', t.name + ': ' + draft.name, t.email + ': ' + draft.email, t.country + ': ' + countryLabel, t.subject + ': ' + serviceLabel(draft.service), t.plan + ': ' + planLabel(draft.plan), '', t.message + ':', draft.message, '', t.resultIntro].join('\n');
   const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = language === 'fr' ? 'perto-de-casa-ma-demande.txt' : 'perto-de-casa-o-meu-pedido.txt';
+  link.download = language === 'fr' ? 'luso-office-ma-demande.txt' : 'luso-office-o-meu-pedido.txt';
   document.body.appendChild(link);
   link.click();
   link.remove();
