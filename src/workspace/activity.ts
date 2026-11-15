@@ -173,6 +173,12 @@ const definitions: Record<Action["type"], [ActivityCategory, string, string]> =
       "Acesso do parceiro reativado",
     ],
     edition: ["newsletter", "Édition enregistrée", "Edição guardada"],
+    "edition-draft": ["newsletter", "Saisie conservée", "Texto conservado"],
+    "edition-review": [
+      "newsletter",
+      "Relecture confirmée",
+      "Revisão confirmada",
+    ],
     publish: [
       "newsletter",
       "Publication de l’édition simulée",
@@ -345,6 +351,13 @@ export function createActivity(
     case "partner-access":
       if (!action.enabled)
         title = ["Accès partenaire suspendu", "Acesso do parceiro suspenso"];
+      break;
+    case "edition-review":
+      if (!action.confirmed)
+        title = [
+          "Validation de relecture retirée",
+          "Validação da revisão retirada",
+        ];
       break;
     case "edition":
       if (action.edition.status === "review")

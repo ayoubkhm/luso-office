@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 62 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 66 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion, 4 contrôles de relecture du journal). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -230,13 +230,23 @@ L’adhérent et l’équipe peuvent filtrer l’historique et consulter ou tél
 
 Validation : quatre tests supplémentaires couvrent les instantanés et les échecs/reprises, les changements identiques/invalides et rôles non autorisés, les contrôles verrouillés et les textes exportés FR/PT. Build et 62 tests réussis. Le clic de téléchargement, les filtres interactifs et la présentation restent à vérifier dans un navigateur ; le pilotage de Chrome demeure indisponible.
 
+### Saisie et relecture du journal
+
+La saisie éditoriale est conservée dans l’état de la session : quitter Le journal ou changer de vue ne la perd plus. Elle est distincte de la version enregistrée et ne produit pas un événement d’activité par frappe. Le rechargement réinitialise toujours la démo ; aucune sauvegarde serveur ou sur disque n’est ajoutée.
+
+Deux aperçus permettent de consulter la saisie en cours et la version enregistrée. Une saisie différente bloque la publication ; elle doit être enregistrée/soumise, ou remplacée explicitement par la dernière version enregistrée après confirmation dans l’interface. La restauration retire aussi toute validation antérieure.
+
+La publication nécessite maintenant une confirmation de relecture portant sur la révision enregistrée exacte. L’interface présente la case après ouverture de son aperçu. Toute modification retire cet accord ; une révision obsolète ne peut pas valider une nouvelle version. Les contrôles sont aussi appliqués dans les transitions du modèle, avec les limites de taille de l’éditeur. Les tableaux de rubriques sont copiés pour ne pas modifier un ancien état par référence. Les versions publiées et archivées restent figées.
+
+Le parcours guidé du journal et ses tests incluent la relecture explicite. Les règles de distribution et de revérification du consentement restent couvertes par les tests existants. Quatre tests supplémentaires vérifient la conservation lors d’un remontage de l’écran, l’isolation des vues, l’invalidation de relecture, la restauration, les tailles et les archives. Build et 66 tests réussis. Le pilotage Chrome reste indisponible : aperçus, case de relecture et confirmation de restauration sont encore à contrôler visuellement et au clavier.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
 2. Adhérent : simuler l’accord puis le paiement. Un refus laisse la mission bloquée ; une nouvelle tentative confirmée autorise son démarrage par l’équipe.
 3. Équipe → Demandes → Travail de l’équipe : attribuer au partenaire. Dans Documents, autoriser uniquement les pièces nécessaires. Partenaire : consulter la mission, échanger, ajouter un livrable fictif et le remettre pour vérification. Partenaire → Tâches : terminer les actions attribuées. Équipe : vérifier les pièces demandées, puis clôturer après contrôle.
 4. Adhérent → Adhésion : simuler le passage à Family. Un échec conserve Member ; une confirmation applique Family. Mon compte : préparer trois invitations au maximum. Résilier à échéance conserve les droits de la période courante.
-5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, relire la version enregistrée et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé. Préparer l’édition suivante et retrouver le contenu publié dans les archives.
+5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, ouvrir l’aperçu enregistré, cocher la validation de relecture et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé. Préparer l’édition suivante et retrouver le contenu publié dans les archives.
 6. Adhérent → DEMO-002 : fournir la pièce attendue. Équipe → Documents : demander une correction avec un motif. Adhérent : déposer une nouvelle version. Équipe : vérifier la version corrigée ; la précédente reste consultable.
 7. Équipe → Tâches : créer une action avec une date, l’attribuer au partenaire du dossier. Partenaire : la bloquer avec un motif. Équipe → Administration : suspendre son accès, puis reprendre la tâche pour la terminer. Vérifier la disparition des dossiers dans la vue partenaire.
 
@@ -262,6 +272,8 @@ Validation : quatre tests supplémentaires couvrent les instantanés et les éch
 19. Adhérent → Accueil → Fournir les pièces attendues : vérifier l’ouverture de Documents sur DEMO-002 et la liste des besoins. Déposer un intitulé fictif en le rattachant au besoin, puis passer en équipe, filtrer « Vérification attendue » et déplier la pièce pour demander une correction. Déposer la nouvelle version en adhérent. Sur DEMO-001, filtrer les originaux « À restituer », puis simuler leur restitution côté équipe.
 
 20. Adhérent → Adhésion : préparer Family annuel, vérifier que les sélecteurs restent figés pendant la tentative, puis simuler un refus. Préparer Family mensuel et confirmer. Dans l’historique, retrouver les deux essais, leurs tarifs indicatifs et leurs résultats distincts. Ouvrir le récapitulatif refusé, puis télécharger le texte du changement confirmé et vérifier la mention DEMO. Revenir à la formule déjà active : aucun nouvel essai identique ne doit être proposé.
+
+21. Équipe → Le journal : modifier un extrait sans enregistrer, ouvrir Tâches puis revenir et vérifier la conservation du texte. Comparer les deux aperçus, soumettre à relecture et confirmer la version. Modifier une rubrique : la publication doit redevenir indisponible. Tester la reprise de la version enregistrée (annuler puis confirmer), refaire la relecture et publier. Vérifier que la vue adhérent ne reçoit que l’édition publiée.
 
 ### Modèle serveur proposé
 

@@ -109,6 +109,26 @@ export interface Edition {
   excerpt: string;
   status: "draft" | "review" | "published";
 }
+export type EditionContent = Pick<Edition, "title" | "excerpt" | "sections">;
+const emptyEdition = (): EditionContent => ({
+  title: "Portugal — Tão longe e tão perto",
+  sections: ["", "", "", ""],
+  excerpt: "",
+});
+const copyEdition = (e: EditionContent): EditionContent => ({
+  title: e.title,
+  excerpt: e.excerpt,
+  sections: [...e.sections],
+});
+const validEditionSize = (e: EditionContent) =>
+  e.title.length <= 150 &&
+  e.excerpt.length <= 600 &&
+  e.sections.length === 4 &&
+  e.sections.every((s) => s.length <= 5000);
+export const editionDirty = (s: State) =>
+  s.edition.title !== s.editionDraft.title ||
+  s.edition.excerpt !== s.editionDraft.excerpt ||
+  s.edition.sections.some((text, i) => text !== s.editionDraft.sections[i]);
 export interface FamilyInvitation {
   id: string;
   email: string;
@@ -166,6 +186,9 @@ export interface State {
     consent: boolean;
   };
   edition: Edition;
+  editionDraft: EditionContent;
+  editionRevision: number;
+  reviewedEditionRevision?: number;
   campaign: {
     status: "idle" | "queued" | "sent";
     recipients: string[];
@@ -335,12 +358,9 @@ export const initialState = (): State => ({
     language: "fr",
     consent: true,
   },
-  edition: {
-    title: "Portugal — Tão longe e tão perto",
-    sections: ["", "", "", ""],
-    excerpt: "",
-    status: "draft",
-  },
+  edition: { ...emptyEdition(), status: "draft" },
+  editionDraft: emptyEdition(),
+  editionRevision: 0,
   campaign: { status: "idle", recipients: [], delivered: [] },
   invitations: [],
   audit: [],
@@ -515,6 +535,8 @@ export type Action =
   | { type: "profile"; profile: State["profile"] }
   | { type: "invite"; email: string }
   | { type: "edition"; edition: Edition }
+  | { type: "edition-draft"; content: EditionContent }
+  | { type: "edition-review"; revision: number; confirmed: boolean }
   | { type: "publish" }
   | { type: "queue" }
   | { type: "dispatch" };
@@ -973,12 +995,10 @@ export function transition(
             delivered: s.campaign.delivered.length,
           },
         ],
-        edition: {
-          title: "Portugal — Tão longe e tão perto",
-          sections: ["", "", "", ""],
-          excerpt: "",
-          status: "draft",
-        },
+        edition: { ...emptyEdition(), status: "draft" },
+        editionDraft: emptyEdition(),
+        editionRevision: s.editionRevision + 1,
+        reviewedEditionRevision: undefined,
         campaign: { status: "idle", recipients: [], delivered: [] },
       };
       break;
@@ -1479,20 +1499,57 @@ export function transition(
       };
       break;
     }
+    case "edition-draft":
+      if (
+        role !== "team" ||
+        s.edition.status === "published" ||
+        !validEditionSize(a.content)
+      )
+        return reject;
+      return {
+        ok: true,
+        state: {
+          ...s,
+          editionDraft: copyEdition(a.content),
+          reviewedEditionRevision: undefined,
+        },
+      };
+    case "edition-review":
+      if (
+        role !== "team" ||
+        s.edition.status !== "review" ||
+        a.revision !== s.editionRevision ||
+        editionDirty(s)
+      )
+        return reject;
+      next = {
+        ...s,
+        reviewedEditionRevision: a.confirmed ? a.revision : undefined,
+      };
+      break;
     case "edition":
       if (
         role !== "team" ||
         s.edition.status === "published" ||
-        a.edition.status === "published" ||
+        !["draft", "review"].includes(a.edition.status) ||
+        !validEditionSize(a.edition) ||
         (a.edition.status === "review" && !validEdition(a.edition))
       )
         return reject;
-      next = { ...s, edition: a.edition };
+      next = {
+        ...s,
+        edition: { ...copyEdition(a.edition), status: a.edition.status },
+        editionDraft: copyEdition(a.edition),
+        editionRevision: s.editionRevision + 1,
+        reviewedEditionRevision: undefined,
+      };
       break;
     case "publish":
       if (
         role !== "team" ||
         s.edition.status !== "review" ||
+        s.reviewedEditionRevision !== s.editionRevision ||
+        editionDirty(s) ||
         !validEdition(s.edition)
       )
         return reject;

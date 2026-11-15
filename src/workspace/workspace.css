@@ -597,6 +597,14 @@ body:has(.workspace) {
 .ws-attempt-summary {
   white-space: pre-wrap;
 }
+.ws-editor-preview {
+  margin-block: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ws-line);
+}
+.ws-editor-preview .ws-edition {
+  margin-top: 12px;
+}
 .ws-document-controls {
   margin-top: 8px;
 }

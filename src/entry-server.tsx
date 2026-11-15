@@ -27,3 +27,4 @@ export { Documents } from "./workspace/Documents";
 export { matchingDocuments } from "./workspace/documentBoard";
 export { Billing } from "./workspace/Workspace";
 export { subscriptionSummary } from "./workspace/SubscriptionHistory";
+export { Newsletter } from "./workspace/Newsletter";

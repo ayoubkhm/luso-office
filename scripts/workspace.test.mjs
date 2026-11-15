@@ -338,6 +338,11 @@ test("Newsletter is reviewed before publication and consent is rechecked after q
     },
   });
   rejected(s, "member", { type: "publish" });
+  s = apply(s, "team", {
+    type: "edition-review",
+    revision: s.editionRevision,
+    confirmed: true,
+  });
   s = apply(s, "team", { type: "publish" });
   rejected(s, "team", {
     type: "edition",
@@ -531,6 +536,11 @@ test("A new edition archives an immutable published snapshot and cannot discard 
       sections: ["A", "B", "C", "D"],
       status: "review",
     },
+  });
+  s = apply(s, "team", {
+    type: "edition-review",
+    revision: s.editionRevision,
+    confirmed: true,
   });
   s = apply(s, "team", { type: "publish" });
   s = apply(s, "team", { type: "queue" });
@@ -1584,6 +1594,14 @@ test("All guided walkthroughs complete using the real demo transition rules", ()
         (s) => ({
           type: "edition",
           edition: { ...s.edition, status: "review" },
+        }),
+      ],
+      [
+        "team",
+        (s) => ({
+          type: "edition-review",
+          revision: s.editionRevision,
+          confirmed: true,
         }),
       ],
       ["team", { type: "publish" }],

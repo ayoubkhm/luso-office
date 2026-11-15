@@ -318,8 +318,8 @@ export const demoScenarios: DemoScenario[] = [
       {
         title: ["Publier dans la démo", "Publicar na demo"],
         instruction: [
-          "Relisez l’édition enregistrée puis simulez sa publication.",
-          "Reveja a edição guardada e simule a publicação.",
+          "Ouvrez l’aperçu de la version enregistrée, confirmez sa relecture avec la case prévue, puis simulez sa publication.",
+          "Abra a pré-visualização da versão guardada, confirme a revisão na caixa prevista e simule a publicação.",
         ],
         role: "team",
         view: "newsletter",
