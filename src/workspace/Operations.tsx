@@ -1,14 +1,7 @@
 import { useState } from "react";
+import { useWorkspace, Button, Panel, Field, Form, Badge, value } from "./ui";
 import {
-  useWorkspace,
-  Button,
-  Panel,
-  Field,
-  Form,
-  Badge,
-  value,
-} from "./ui";
-import {
+  canWork,
   visibleCases,
   visibleTasks,
   type Task,
@@ -32,7 +25,10 @@ export function Tasks({ caseId }: { caseId?: string }) {
     .filter(
       (task) =>
         filter === "all" ||
-        (filter === "open" ? task.status !== "done" : task.status === filter),
+        (filter === "open"
+          ? task.status !== "done" &&
+            canWork(state.cases.find((c) => c.id === task.caseId)!)
+          : task.status === filter),
     )
     .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
   return (
@@ -48,7 +44,13 @@ export function Tasks({ caseId }: { caseId?: string }) {
           </p>
         </div>
         <Badge>
-          {all.filter((task) => task.status !== "done").length}{" "}
+          {
+            all.filter(
+              (task) =>
+                task.status !== "done" &&
+                canWork(state.cases.find((c) => c.id === task.caseId)!),
+            ).length
+          }{" "}
           {t("à terminer", "por concluir")}
         </Badge>
       </div>
@@ -93,9 +95,7 @@ export function Tasks({ caseId }: { caseId?: string }) {
 }
 function TaskCreate({ caseId }: { caseId: string }) {
   const { state, role, t, act } = useWorkspace();
-  const cases = visibleCases(state, role).filter(
-    (c) => c.stage !== "completed",
-  );
+  const cases = visibleCases(state, role).filter(canWork);
   const [id, setId] = useState(
     cases.find((c) => c.id === caseId)?.id || cases[0]?.id || "",
   );
@@ -180,6 +180,14 @@ function TaskCard({ task }: { task: Task }) {
         </Badge>
       </div>
       <h3>{task.title}</h3>
+      {!canWork(c) && (
+        <p className="ws-task-warning">
+          {t(
+            "Dossier suspendu ou clos : tâche conservée en lecture seule.",
+            "Pedido suspenso ou encerrado: tarefa conservada só para leitura.",
+          )}
+        </p>
+      )}
       <p className="ws-hint">
         {t(
           task.assignee === "team" ? "Équipe" : "Partenaire",
@@ -196,7 +204,7 @@ function TaskCard({ task }: { task: Task }) {
         </p>
       )}
       {task.note && <p className="ws-task-note">{task.note}</p>}
-      {role !== "member" && c.stage !== "completed" && (
+      {role !== "member" && canWork(c) && (
         <details>
           <summary>{t("Mettre à jour la tâche", "Atualizar tarefa")}</summary>
           <Form
@@ -245,7 +253,7 @@ function TaskCard({ task }: { task: Task }) {
           </Form>
         </details>
       )}
-      {role === "team" && c.stage !== "completed" && (
+      {role === "team" && canWork(c) && (
         <details>
           <summary>
             {t(
@@ -289,6 +297,7 @@ function TaskCard({ task }: { task: Task }) {
 export function CaseRequirements({ caseId }: { caseId: string }) {
   const { state, role, t, act, go } = useWorkspace();
   if (role === "partner") return null;
+  const c = state.cases.find((c) => c.id === caseId)!;
   const needs = state.requirements.filter((r) => r.caseId === caseId);
   return (
     <section className="ws-required">
@@ -328,7 +337,7 @@ export function CaseRequirements({ caseId }: { caseId: string }) {
               )}
             </Badge>
             {doc?.reason && <p>{doc.reason}</p>}
-            {!doc && role === "member" && (
+            {!doc && role === "member" && canWork(c) && (
               <Button
                 secondary
                 onClick={() =>
@@ -359,45 +368,43 @@ export function CaseRequirements({ caseId }: { caseId: string }) {
           )}
         </p>
       )}
-      {role === "team" &&
-        state.cases.find((c) => c.id === caseId)?.stage !== "completed" && (
-          <Form
-            onSave={(d) =>
-              act({ type: "requirement", id: caseId, label: value(d, "label") })
-            }
+      {role === "team" && canWork(c) && (
+        <Form
+          onSave={(d) =>
+            act({ type: "requirement", id: caseId, label: value(d, "label") })
+          }
+        >
+          <Field
+            label={t(
+              "Demander une pièce à l’adhérent",
+              "Pedir documento ao aderente",
+            )}
           >
-            <Field
-              label={t(
-                "Demander une pièce à l’adhérent",
-                "Pedir documento ao aderente",
+            <input
+              name="label"
+              required
+              maxLength={160}
+              placeholder={t(
+                "Ex. autorisation d’intervention",
+                "Ex. autorização de intervenção",
               )}
-            >
-              <input
-                name="label"
-                required
-                maxLength={160}
-                placeholder={t(
-                  "Ex. autorisation d’intervention",
-                  "Ex. autorização de intervenção",
-                )}
-              />
-            </Field>
-            <Button secondary type="submit">
-              {t(
-                "Ajouter à la liste des pièces",
-                "Adicionar à lista de documentos",
-              )}
-            </Button>
-          </Form>
-        )}
+            />
+          </Field>
+          <Button secondary type="submit">
+            {t(
+              "Ajouter à la liste des pièces",
+              "Adicionar à lista de documentos",
+            )}
+          </Button>
+        </Form>
+      )}
     </section>
   );
 }
 export function DocumentReview({ doc }: { doc: Document }) {
   const { state, role, t, act } = useWorkspace();
   const [decision, setDecision] = useState<"accepted" | "rejected">("accepted");
-  const closed =
-    state.cases.find((c) => c.id === doc.caseId)?.stage === "completed";
+  const closed = !canWork(state.cases.find((c) => c.id === doc.caseId)!);
   return (
     <div className="ws-doc-review">
       <Badge good={doc.review === "accepted"}>

@@ -6,7 +6,13 @@ import {
   type ReactNode,
 } from "react";
 import { services, type Lang } from "../catalogue";
-import { visibleCases, type State, type Role, type Action } from "./model";
+import {
+  canWork,
+  visibleCases,
+  type State,
+  type Role,
+  type Action,
+} from "./model";
 export type View =
   | "overview"
   | "requests"
@@ -178,18 +184,22 @@ export const value = (d: FormData, k: string) => String(d.get(k) || "").trim();
 export function CaseSelect({
   name = "case",
   current,
+  activeOnly = false,
 }: {
   name?: string;
   current?: string;
+  activeOnly?: boolean;
 }) {
   const { state, role, lang } = useWorkspace();
   return (
     <select name={name} defaultValue={current} required>
-      {visibleCases(state, role).map((c) => (
-        <option key={c.id} value={c.id}>
-          {c.id} — {serviceName(c.service, lang)}
-        </option>
-      ))}
+      {visibleCases(state, role)
+        .filter((c) => !activeOnly || canWork(c))
+        .map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.id} — {serviceName(c.service, lang)}
+          </option>
+        ))}
     </select>
   );
 }

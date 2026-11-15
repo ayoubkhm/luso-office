@@ -8,7 +8,8 @@ export type Stage =
   | "approved"
   | "inprogress"
   | "delivered"
-  | "completed";
+  | "completed"
+  | "cancelled";
 export type PaymentState = "unpaid" | "pending" | "failed" | "paid";
 export interface Case {
   id: string;
@@ -24,6 +25,20 @@ export interface Case {
   payment: PaymentState;
   history: string[];
   notes: string[];
+  cancellation?: { reason: string; by: "member" | "team" };
+  sourceCase?: string;
+  decisions: {
+    kind:
+      | "cancel-request"
+      | "cancel-withdraw"
+      | "cancel-confirm"
+      | "cancel-decline"
+      | "correction"
+      | "reopen"
+      | "restart";
+    role: Role;
+    reason: string;
+  }[];
 }
 export interface Document {
   id: string;
@@ -103,6 +118,7 @@ export const stages: Stage[] = [
   "inprogress",
   "delivered",
   "completed",
+  "cancelled",
 ];
 export const stageLabels: Record<Stage, [string, string]> = {
   submitted: ["Reçue", "Recebido"],
@@ -112,6 +128,7 @@ export const stageLabels: Record<Stage, [string, string]> = {
   inprogress: ["En cours", "Em curso"],
   delivered: ["Livrable à vérifier", "Entrega a verificar"],
   completed: ["Terminée", "Concluído"],
+  cancelled: ["Annulée", "Cancelado"],
 };
 export const initialState = (): State => ({
   partnerEnabled: true,
@@ -151,6 +168,7 @@ export const initialState = (): State => ({
       payment: "paid",
       history: ["submitted", "review", "quote", "approved", "inprogress"],
       notes: [],
+      decisions: [],
     },
     {
       id: "DEMO-002",
@@ -167,6 +185,7 @@ export const initialState = (): State => ({
       payment: "unpaid",
       history: ["submitted", "review", "quote"],
       notes: [],
+      decisions: [],
     },
   ],
   properties: [
@@ -231,6 +250,9 @@ export const initialState = (): State => ({
   invitations: [],
   audit: [],
 });
+export const isClosed = (c: Case) =>
+  ["completed", "cancelled"].includes(c.stage);
+export const canWork = (c: Case) => !isClosed(c) && !c.cancellation;
 export function visibleCases(s: State, role: Role) {
   return s.cases.filter(
     (c) =>
@@ -282,7 +304,10 @@ export function matchingCases(
       .toLowerCase();
   return visibleCases(s, role).filter(
     (c) =>
-      (stage === "all" || c.stage === stage) &&
+      (stage === "all" ||
+        (stage === "cancellation"
+          ? Boolean(c.cancellation)
+          : c.stage === stage)) &&
       norm(
         [
           c.id,
@@ -301,6 +326,11 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | { type: "cancel-request"; id: string; reason: string }
+  | { type: "cancel-withdraw"; id: string }
+  | { type: "cancel-decision"; id: string; confirm: boolean; reason: string }
+  | { type: "correction" | "reopen"; id: string; reason: string }
+  | { type: "restart"; id: string }
   | {
       type: "task-create";
       id: string;
@@ -375,7 +405,147 @@ export function transition(
     (/^\d{4}-\d{2}-\d{2}$/.test(d) &&
       !Number.isNaN(Date.parse(d)) &&
       new Date(d).toISOString().slice(0, 10) === d);
+  // A pending cancellation pauses execution, but allows messages, access withdrawal,
+  // original returns and the settlement of an already pending payment.
+  const linkedCase =
+    c ||
+    ("id" in a
+      ? s.cases.find(
+          (x) =>
+            x.id ===
+            (s.tasks.find((t) => t.id === a.id)?.caseId ||
+              s.documents.find((d) => d.id === a.id)?.caseId),
+        )
+      : undefined);
+  if (linkedCase && !canWork(linkedCase)) {
+    if (
+      [
+        "task-create",
+        "task-update",
+        "task-assign",
+        "requirement",
+        "document-review",
+        "document-replace",
+        "document",
+        "stage",
+        "quote",
+      ].includes(a.type)
+    )
+      return reject;
+    if (a.type === "assign" && a.assigned) return reject;
+    if (a.type === "share" && a.shared) return reject;
+    if (a.type === "custody" && a.custody !== "returned") return reject;
+    if (
+      a.type === "pay" &&
+      (linkedCase.payment !== "pending" || a.result === "pending")
+    )
+      return reject;
+  }
+  const decision = (
+    kind: Case["decisions"][number]["kind"],
+    reason: string,
+  ) => [...c!.decisions, { kind, role, reason: reason.trim() }];
   switch (a.type) {
+    case "cancel-request":
+      if (!c || role === "partner" || !canWork(c) || !a.reason.trim())
+        return reject;
+      next = update({
+        cancellation: { reason: a.reason.trim(), by: role },
+        decisions: decision("cancel-request", a.reason),
+      });
+      break;
+    case "cancel-withdraw":
+      if (!c?.cancellation || c.cancellation.by !== role) return reject;
+      next = update({
+        cancellation: undefined,
+        decisions: decision("cancel-withdraw", ""),
+      });
+      break;
+    case "cancel-decision":
+      if (
+        !c?.cancellation ||
+        role !== "team" ||
+        (!a.confirm && !a.reason.trim()) ||
+        (a.confirm && c.payment === "pending")
+      )
+        return reject;
+      next = update({
+        cancellation: undefined,
+        ...(a.confirm
+          ? {
+              stage: "cancelled",
+              partner: false,
+              history: [...c.history, "cancelled"],
+            }
+          : {}),
+        decisions: decision(
+          a.confirm ? "cancel-confirm" : "cancel-decline",
+          a.reason || c.cancellation.reason,
+        ),
+      });
+      break;
+    case "correction":
+    case "reopen":
+      if (
+        !c ||
+        role === "partner" ||
+        c.cancellation ||
+        !a.reason.trim() ||
+        (a.type === "correction"
+          ? c.stage !== "delivered"
+          : role !== "team" || c.stage !== "completed")
+      )
+        return reject;
+      next = {
+        ...update({
+          stage: "inprogress",
+          history: [...c.history, "inprogress"],
+          decisions: decision(a.type, a.reason),
+        }),
+        tasks: [
+          ...s.tasks,
+          {
+            id: `task-${s.tasks.length + 1}`,
+            caseId: c.id,
+            title: a.reason.trim(),
+            assignee: "team",
+            due: "",
+            status: "todo",
+            note: "",
+          },
+        ],
+      };
+      break;
+    case "restart": {
+      if (!c || c.stage !== "cancelled" || role !== "member") return reject;
+      // A new scope gets a new proposal. Neither payment nor private documents are copied.
+      const id = `DEMO-${String(s.cases.length + 1).padStart(3, "0")}`;
+      next = {
+        ...s,
+        cases: [
+          ...s.cases,
+          {
+            id,
+            owner: c.owner,
+            service: c.service,
+            property: c.property,
+            description: c.description,
+            stage: "submitted",
+            partner: false,
+            quote: 0,
+            fees: 0,
+            thirdParty: 0,
+            payment: "unpaid",
+            history: ["submitted"],
+            notes: [],
+            sourceCase: c.id,
+            decisions: [{ kind: "restart", role, reason: c.id }],
+          },
+        ],
+      };
+      break;
+    }
+
     case "task-create":
       if (
         role !== "team" ||
@@ -595,6 +765,7 @@ export function transition(
             payment: "unpaid",
             history: ["submitted"],
             notes: [],
+            decisions: [],
           },
         ],
       };
@@ -644,12 +815,7 @@ export function transition(
       });
       break;
     case "assign":
-      if (
-        role !== "team" ||
-        !c ||
-        c.stage === "completed" ||
-        (a.assigned && !s.partnerEnabled)
-      )
+      if (role !== "team" || !c || (a.assigned && !s.partnerEnabled))
         return reject;
       next = update({ partner: a.assigned });
       break;

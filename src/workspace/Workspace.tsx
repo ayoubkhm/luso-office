@@ -1,3 +1,4 @@
+import { CaseSituation, CaseDecisions } from "./Lifecycle";
 import {
   WorkspaceContext,
   useWorkspace,
@@ -28,6 +29,8 @@ import { services, plans, type Lang } from "../catalogue";
 import { href } from "../routes";
 import {
   initialState,
+  canWork,
+  isClosed,
   transition,
   visibleCases,
   visibleDocuments,
@@ -350,11 +353,13 @@ function Overview() {
   const { state, role, lang, t, go } = useWorkspace();
   const cases = visibleCases(state, role);
   const pending = cases.filter((c) =>
-    role === "member"
-      ? ["quote", "approved"].includes(c.stage)
-      : role === "partner"
-        ? c.stage === "inprogress"
-        : ["submitted", "review", "delivered"].includes(c.stage),
+    c.cancellation
+      ? role === "team"
+      : role === "member"
+        ? ["quote", "approved"].includes(c.stage)
+        : role === "partner"
+          ? c.stage === "inprogress"
+          : ["submitted", "review", "delivered"].includes(c.stage),
   );
   if (role === "partner" && !state.partnerEnabled)
     return (
@@ -409,7 +414,7 @@ function Overview() {
       </div>
       <div className="ws-summary">
         <div>
-          <strong>{cases.filter((c) => c.stage !== "completed").length}</strong>
+          <strong>{cases.filter((c) => !isClosed(c)).length}</strong>
           <span>{t("dossiers ouverts", "pedidos abertos")}</span>
         </div>
         <div>
@@ -424,7 +429,9 @@ function Overview() {
       {role !== "partner" && (
         <Panel title={t("Les pièces à compléter", "Os documentos a completar")}>
           {cases
-            .filter((c) => missingRequirements(state, c.id).length > 0)
+            .filter(
+              (c) => canWork(c) && missingRequirements(state, c.id).length > 0,
+            )
             .map((c) => (
               <button
                 className="ws-case-row"
@@ -441,11 +448,13 @@ function Overview() {
                 </Badge>
               </button>
             ))}
-          {!cases.some((c) => missingRequirements(state, c.id).length) && (
+          {!cases.some(
+            (c) => canWork(c) && missingRequirements(state, c.id).length,
+          ) && (
             <p>
               {t(
-                "Toutes les pièces demandées sont vérifiées.",
-                "Todos os documentos pedidos estão verificados.",
+                "Aucune pièce en attente sur les dossiers en cours de traitement.",
+                "Nenhum documento pendente nos pedidos em tratamento.",
               )}
             </p>
           )}
@@ -463,7 +472,11 @@ function Overview() {
                 <small>{c.id}</small>
                 <strong>{serviceName(c.service, lang)}</strong>
               </span>
-              <Badge>{t(...stageLabels[c.stage])}</Badge>
+              <Badge>
+                {c.cancellation
+                  ? t("Annulation à examiner", "Cancelamento em análise")
+                  : t(...stageLabels[c.stage])}
+              </Badge>
               <span aria-hidden="true">↗</span>
             </button>
           ))
@@ -524,6 +537,10 @@ function Requests() {
   const [filter, setFilter] = useState("all"),
     [create, setCreate] = useState(false),
     [query, setQuery] = useState("");
+  useEffect(() => {
+    setFilter("all");
+    setQuery("");
+  }, [state.cases.length]);
   const shown = matchingCases(state, role, query, filter, lang);
   const current = shown.find((c) => c.id === selected) || shown[0];
   return (
@@ -543,6 +560,9 @@ function Requests() {
         <Field label={t("État du dossier", "Estado do pedido")}>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">{t("Tous", "Todos")}</option>
+            <option value="cancellation">
+              {t("Annulation à examiner", "Cancelamento em análise")}
+            </option>
             {stages.map((s) => (
               <option key={s} value={s}>
                 {t(...stageLabels[s])}
@@ -638,7 +658,11 @@ function Requests() {
               >
                 <small>{c.id}</small>
                 <strong>{serviceName(c.service, lang)}</strong>
-                <Badge>{t(...stageLabels[c.stage])}</Badge>
+                <Badge>
+                  {c.cancellation
+                    ? t("Annulation à examiner", "Cancelamento em análise")
+                    : t(...stageLabels[c.stage])}
+                </Badge>
               </button>
             ))
           ) : (
@@ -672,6 +696,13 @@ function CaseDetail({ c }: { c: Case }) {
         {state.properties.find((p) => p.id === c.property)?.name ||
           t("Non associé", "Não associado")}
       </p>
+      <CaseSituation c={c} />
+      {c.sourceCase && (
+        <p className="ws-hint">
+          {t("Besoin repris depuis", "Necessidade retomada de")} {c.sourceCase}.{" "}
+          {t("Proposition indépendante.", "Proposta independente.")}
+        </p>
+      )}
       <ol className="ws-timeline">
         {c.history.map((s, i) => (
           <li key={i}>
@@ -725,21 +756,21 @@ function CaseDetail({ c }: { c: Case }) {
         </div>
       )}
       <div className="ws-actions">
-        {role === "member" && c.stage === "quote" && (
+        {canWork(c) && role === "member" && c.stage === "quote" && (
           <Button
             onClick={() => act({ type: "stage", id: c.id, stage: "approved" })}
           >
             {t("Simuler mon accord", "Simular a minha aprovação")}
           </Button>
         )}
-        {role === "team" && c.stage === "submitted" && (
+        {canWork(c) && role === "team" && c.stage === "submitted" && (
           <Button
             onClick={() => act({ type: "stage", id: c.id, stage: "review" })}
           >
             {t("Commencer le cadrage", "Iniciar análise")}
           </Button>
         )}
-        {role === "team" && c.stage === "approved" && (
+        {canWork(c) && role === "team" && c.stage === "approved" && (
           <Button
             disabled={c.payment !== "paid" || missing > 0}
             onClick={() =>
@@ -749,7 +780,7 @@ function CaseDetail({ c }: { c: Case }) {
             {t("Démarrer la mission", "Iniciar missão")}
           </Button>
         )}
-        {role !== "member" && c.stage === "inprogress" && (
+        {canWork(c) && role !== "member" && c.stage === "inprogress" && (
           <Button
             disabled={missing > 0 || remaining > 0}
             onClick={() => act({ type: "stage", id: c.id, stage: "delivered" })}
@@ -757,7 +788,7 @@ function CaseDetail({ c }: { c: Case }) {
             {t("Remettre pour vérification", "Entregar para verificação")}
           </Button>
         )}
-        {role === "team" && c.stage === "delivered" && (
+        {canWork(c) && role === "team" && c.stage === "delivered" && (
           <Button
             disabled={missing > 0 || remaining > 0}
             onClick={() => act({ type: "stage", id: c.id, stage: "completed" })}
@@ -766,7 +797,7 @@ function CaseDetail({ c }: { c: Case }) {
           </Button>
         )}
       </div>
-      {(missing > 0 || remaining > 0) && (
+      {canWork(c) && (missing > 0 || remaining > 0) && (
         <p className="ws-blocker">
           {t("Avant la remise du dossier :", "Antes da entrega do pedido:")}{" "}
           {missing > 0 &&
@@ -785,13 +816,15 @@ function CaseDetail({ c }: { c: Case }) {
         </summary>
         <Tasks key={c.id} caseId={c.id} />
       </details>
-      {role === "member" && c.stage === "approved" && (
-        <PaymentControls
-          status={c.payment}
-          onChange={(result) => act({ type: "pay", id: c.id, result })}
-        />
-      )}
-      {role === "team" && c.stage === "approved" && (
+      {role === "member" &&
+        c.stage === "approved" &&
+        (canWork(c) || c.payment === "pending") && (
+          <PaymentControls
+            status={c.payment}
+            onChange={(result) => act({ type: "pay", id: c.id, result })}
+          />
+        )}
+      {canWork(c) && role === "team" && c.stage === "approved" && (
         <p>
           {t(
             "La mission démarre après confirmation de la provision dans la vue adhérent.",
@@ -799,7 +832,7 @@ function CaseDetail({ c }: { c: Case }) {
           )}
         </p>
       )}
-      {role === "team" && c.stage === "review" && (
+      {canWork(c) && role === "team" && c.stage === "review" && (
         <Form
           onSave={(d) => {
             act({
@@ -854,7 +887,7 @@ function CaseDetail({ c }: { c: Case }) {
           </p>
           <Button
             secondary
-            disabled={c.stage === "completed"}
+            disabled={!c.partner && (!canWork(c) || !state.partnerEnabled)}
             onClick={() =>
               act({ type: "assign", id: c.id, assigned: !c.partner })
             }
@@ -878,6 +911,10 @@ function CaseDetail({ c }: { c: Case }) {
           {t("Voir les documents", "Ver documentos")}
         </Button>
       </div>
+      <CaseDecisions
+        key={`${c.id}-${c.stage}-${Boolean(c.cancellation)}`}
+        c={c}
+      />
       {role === "team" && (
         <details className="ws-internal">
           <summary>
@@ -1049,45 +1086,50 @@ function Documents() {
                   </p>
                 </details>
                 <div className="ws-actions">
-                  {role !== "partner" && (
-                    <Button
-                      secondary
-                      onClick={() =>
-                        act({ type: "share", id: d.id, shared: !d.shared })
-                      }
-                    >
-                      {t(
-                        d.shared
-                          ? "Retirer le partage"
-                          : "Autoriser le partage partenaire",
-                        d.shared
-                          ? "Retirar partilha"
-                          : "Autorizar partilha com parceiro",
-                      )}
-                    </Button>
-                  )}
-                  {role === "team" && d.custody !== "returned" && (
-                    <Button
-                      secondary
-                      onClick={() =>
-                        act({
-                          type: "custody",
-                          id: d.id,
-                          custody:
-                            d.custody === "digital" ? "received" : "returned",
-                        })
-                      }
-                    >
-                      {t(
-                        d.custody === "digital"
-                          ? "Simuler la réception de l’original"
-                          : "Simuler la restitution de l’original",
-                        d.custody === "digital"
-                          ? "Simular receção do original"
-                          : "Simular devolução do original",
-                      )}
-                    </Button>
-                  )}
+                  {role !== "partner" &&
+                    (d.shared ||
+                      cases.some((c) => c.id === d.caseId && canWork(c))) && (
+                      <Button
+                        secondary
+                        onClick={() =>
+                          act({ type: "share", id: d.id, shared: !d.shared })
+                        }
+                      >
+                        {t(
+                          d.shared
+                            ? "Retirer le partage"
+                            : "Autoriser le partage partenaire",
+                          d.shared
+                            ? "Retirar partilha"
+                            : "Autorizar partilha com parceiro",
+                        )}
+                      </Button>
+                    )}
+                  {role === "team" &&
+                    d.custody !== "returned" &&
+                    (d.custody === "received" ||
+                      cases.some((c) => c.id === d.caseId && canWork(c))) && (
+                      <Button
+                        secondary
+                        onClick={() =>
+                          act({
+                            type: "custody",
+                            id: d.id,
+                            custody:
+                              d.custody === "digital" ? "received" : "returned",
+                          })
+                        }
+                      >
+                        {t(
+                          d.custody === "digital"
+                            ? "Simuler la réception de l’original"
+                            : "Simuler la restitution de l’original",
+                          d.custody === "digital"
+                            ? "Simular receção do original"
+                            : "Simular devolução do original",
+                        )}
+                      </Button>
+                    )}
                 </div>
               </article>
             ))}
@@ -1107,7 +1149,7 @@ function Documents() {
               "Adicione apenas um título fictício. Nenhum ficheiro é lido ou enviado.",
             )}
           </p>
-          {cases.length > 0 && (
+          {cases.some(canWork) ? (
             <Form
               onSave={(d) =>
                 act({
@@ -1118,7 +1160,7 @@ function Documents() {
               }
             >
               <Field label={t("Dossier", "Pedido")}>
-                <CaseSelect current={selected} />
+                <CaseSelect current={selected} activeOnly />
               </Field>
               <Field
                 label={t("Nom du document démo", "Nome do documento demo")}
@@ -1132,6 +1174,13 @@ function Documents() {
                 )}
               </Button>
             </Form>
+          ) : (
+            <p className="ws-empty">
+              {t(
+                "Aucun dossier ouvert pour un dépôt. Les documents existants restent consultables.",
+                "Nenhum pedido aberto para entrega. Os documentos existentes continuam disponíveis.",
+              )}
+            </p>
           )}
         </Panel>
       </div>
@@ -1422,12 +1471,20 @@ function Billing() {
               <strong>{money(total(c))}</strong>
               <Badge good={c.payment === "paid"}>
                 {t(
-                  c.payment === "paid"
-                    ? "Provision simulée réglée"
-                    : "Provision à suivre",
-                  c.payment === "paid"
-                    ? "Provisão simulada paga"
-                    : "Provisão a acompanhar",
+                  c.stage === "cancelled" && c.payment === "paid"
+                    ? "Annulée · bilan à préparer"
+                    : c.stage === "cancelled"
+                      ? "Annulée · aucune provision encaissée"
+                      : c.payment === "paid"
+                        ? "Provision simulée réglée"
+                        : "Provision à suivre",
+                  c.stage === "cancelled" && c.payment === "paid"
+                    ? "Cancelado · balanço por preparar"
+                    : c.stage === "cancelled"
+                      ? "Cancelado · sem provisão recebida"
+                      : c.payment === "paid"
+                        ? "Provisão simulada paga"
+                        : "Provisão a acompanhar",
                 )}
               </Badge>
               <Button secondary onClick={() => go("requests", c.id)}>

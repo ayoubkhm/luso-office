@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 18 tests réussis (7 contrôles du site, 11 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter.
+Validation de l’atelier : build et 22 tests réussis (7 contrôles du site, 15 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -78,7 +78,7 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | --- | --- | --- |
 | Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
-| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges et notes internes | API, notifications et rappels, annulation, litige et réouverture |
+| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
 | Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
@@ -93,6 +93,19 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 
 Les cinq nouveaux scénarios automatisés couvrent les corrections documentaires, les restrictions et échéances des tâches, la suspension/reprise partenaire, les archives éditoriales et la recherche liée aux biens.
 
+### Troisième itération : exceptions et reprise des dossiers
+
+L’annulation est une proposition de fonctionnement à valider avec Hélèna, sans valeur contractuelle :
+
+- Adhérent ou équipe demande l’annulation avec un motif. L’exécution, les nouveaux paiements, les dépôts et les nouveaux partages sont suspendus. Les échanges, le retrait des accès et la restitution d’originaux restent possibles.
+- L’auteur peut retirer sa demande. L’équipe peut refuser avec un motif ou confirmer. Une tentative de paiement déjà en attente doit d’abord aboutir à une confirmation ou un échec simulé. Le refus et le retrait reprennent le dossier à son étape précédente.
+- La confirmation conserve le dossier, ses tâches et ses pièces ; elle ne marque pas artificiellement les tâches abandonnées comme terminées. Elle retire l’attribution partenaire. Une provision réglée reste inscrite, avec un bilan à préparer : aucun remboursement/avoir ni règle de frais n’est inventé.
+- Après annulation, l’adhérent peut reprendre le besoin dans un nouveau dossier relié au précédent. Seuls service, bien et description sont repris. Le nouveau dossier attend un cadrage et une proposition ; paiement, documents, notes et accès ne sont pas transférés.
+- Un livrable remis peut être renvoyé pour correction par l’adhérent ou l’équipe. Après clôture, seule l’équipe peut rouvrir avec un motif. Les deux actions créent une tâche obligatoire à traiter et conservent la provision et les accès existants sans rétablir ceux qui ont été retirés.
+- Un historique de décisions conserve motifs et rôles dans la session. La liste des demandes permet de filtrer les annulations à examiner. Les tâches des dossiers suspendus/clos restent dans « Toutes », en lecture seule.
+
+Validation automatisée : quatre nouveaux scénarios couvrent le gel/retrait/refus, le paiement en attente, l’annulation avec révocation et reprise indépendante, puis les corrections/réouvertures avec tâche obligatoire. La connexion navigateur n’a pas permis la revue visuelle de cette itération.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -102,6 +115,9 @@ Les cinq nouveaux scénarios automatisés couvrent les corrections documentaires
 5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, relire la version enregistrée et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé. Préparer l’édition suivante et retrouver le contenu publié dans les archives.
 6. Adhérent → DEMO-002 : fournir la pièce attendue. Équipe → Documents : demander une correction avec un motif. Adhérent : déposer une nouvelle version. Équipe : vérifier la version corrigée ; la précédente reste consultable.
 7. Équipe → Tâches : créer une action avec une date, l’attribuer au partenaire du dossier. Partenaire : la bloquer avec un motif. Équipe → Administration : suspendre son accès, puis reprendre la tâche pour la terminer. Vérifier la disparition des dossiers dans la vue partenaire.
+
+8. Adhérent → DEMO-001 : demander l’annulation avec un motif. Équipe : retrouver la demande via « Annulation à examiner », la refuser avec un motif puis examiner une nouvelle demande. Confirmer : le dossier est conservé, son partenaire perd l’accès et la provision reste à rapprocher.
+9. Adhérent : reprendre le besoin annulé ; vérifier le nouvel identifiant, le lien au dossier source et l’absence de paiement/pièces transférés. Sur un autre dossier remis, demander une correction puis terminer la tâche créée avant une nouvelle remise.
 
 ### Modèle serveur proposé
 

@@ -401,3 +401,207 @@ test("Property edits retain case links, and search combines accents, role isolat
     description: "X",
   });
 });
+
+test("Cancellation pauses execution, preserves history and can be withdrawn or declined without changing payment", () => {
+  let s = initialState();
+  const id = "DEMO-001";
+  rejected(s, "partner", { type: "cancel-request", id, reason: "Pause" });
+  rejected(s, "member", { type: "cancel-request", id, reason: " " });
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id,
+    reason: "Arrivée reportée",
+  });
+  assert.equal(matchingCases(s, "team", "", "cancellation", "fr").length, 1);
+  rejected(s, "member", { type: "cancel-request", id, reason: "Doublon" });
+  for (const action of [
+    { type: "task-update", id: "task-1", status: "done", note: "" },
+    { type: "document", id, name: "Pièce" },
+    { type: "requirement", id, label: "Pièce" },
+    { type: "stage", id, stage: "delivered" },
+    { type: "share", id: "doc-2", shared: true },
+    { type: "assign", id, assigned: true },
+  ])
+    rejected(s, "team", action);
+  s = apply(s, "partner", { type: "message", id, body: "Bien reçu" });
+  rejected(s, "team", { type: "cancel-withdraw", id });
+  s = apply(s, "member", { type: "cancel-withdraw", id });
+  assert.equal(s.cases[0].stage, "inprogress");
+  assert.equal(s.cases[0].payment, "paid");
+  assert.equal(s.cases[0].cancellation, undefined);
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id,
+    reason: "Nouvelle demande",
+  });
+  rejected(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: false,
+    reason: " ",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: false,
+    reason: "Périmètre à revoir ensemble",
+  });
+  assert.equal(s.cases[0].decisions.length, 4);
+  assert.equal(
+    s.cases[0].decisions.at(-1).reason,
+    "Périmètre à revoir ensemble",
+  );
+  assert.equal(s.cases[0].cancellation, undefined);
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "Fait",
+  });
+});
+
+test("A pending payment must settle before cancellation, and no new attempt starts while cancellation is examined", () => {
+  let s = initialState();
+  const id = "DEMO-002";
+  s = apply(s, "member", { type: "stage", id, stage: "approved" });
+  s = apply(s, "member", { type: "pay", id, result: "pending" });
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id,
+    reason: "Changement de projet",
+  });
+  rejected(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "",
+  });
+  rejected(s, "member", { type: "pay", id, result: "pending" });
+  s = apply(s, "member", { type: "pay", id, result: "paid" });
+  rejected(s, "member", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "Accord de l’équipe",
+  });
+  assert.equal(s.cases[1].stage, "cancelled");
+  assert.equal(s.cases[1].payment, "paid");
+  assert.equal(s.cases[1].quote, 125);
+  rejected(s, "member", { type: "pay", id, result: "pending" });
+  rejected(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "",
+  });
+});
+
+test("Cancelled cases lose partner access and restart as independent requests without copying money or private content", () => {
+  let s = initialState();
+  const id = "DEMO-001";
+  s = apply(s, "team", {
+    type: "cancel-request",
+    id,
+    reason: "Mission abandonnée",
+  });
+  s = apply(s, "team", {
+    type: "cancel-decision",
+    id,
+    confirm: true,
+    reason: "",
+  });
+  assert.equal(visibleCases(s, "partner").length, 0);
+  assert.equal(visibleDocuments(s, "partner").length, 0);
+  assert.equal(visibleTasks(s, "partner").length, 0);
+  assert.equal(
+    s.tasks[0].status,
+    "doing",
+    "An abandoned task is never falsely marked completed",
+  );
+  rejected(s, "team", {
+    type: "document-review",
+    id: "doc-1",
+    review: "accepted",
+    reason: "",
+  });
+  rejected(s, "team", { type: "custody", id: "doc-1", custody: "received" });
+  s = apply(s, "team", { type: "custody", id: "doc-2", custody: "returned" });
+  s = apply(s, "member", { type: "share", id: "doc-1", shared: false });
+  s = apply(s, "member", {
+    type: "message",
+    id,
+    body: "Merci de restituer l’original",
+  });
+  rejected(s, "team", { type: "reopen", id, reason: "Rouvrir" });
+  rejected(s, "team", { type: "restart", id });
+  s = apply(s, "member", { type: "restart", id });
+  const fresh = s.cases.at(-1);
+  assert.equal(fresh.sourceCase, id);
+  assert.equal(fresh.stage, "submitted");
+  assert.equal(fresh.payment, "unpaid");
+  assert.equal(total(fresh), 0);
+  assert.equal(fresh.partner, false);
+  assert.equal(fresh.description, s.cases[0].description);
+  assert.equal(s.documents.filter((d) => d.caseId === fresh.id).length, 0);
+  assert.deepEqual(fresh.notes, []);
+  assert.equal(s.cases[0].stage, "cancelled");
+});
+
+test("Delivery corrections and justified reopening create mandatory tasks without charging again", () => {
+  let s = initialState();
+  const id = "DEMO-001";
+  rejected(s, "member", { type: "correction", id, reason: "Trop tôt" });
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "",
+  });
+  s = apply(s, "team", { type: "stage", id, stage: "delivered" });
+  rejected(s, "partner", { type: "correction", id, reason: "Correction" });
+  rejected(s, "member", { type: "correction", id, reason: " " });
+  s = apply(s, "member", {
+    type: "correction",
+    id,
+    reason: "Compléter le compte rendu",
+  });
+  assert.equal(s.cases[0].stage, "inprogress");
+  assert.equal(s.tasks.at(-1).assignee, "team");
+  assert.equal(openTasks(s, id).length, 1);
+  rejected(s, "team", { type: "stage", id, stage: "delivered" });
+  s = apply(s, "team", {
+    type: "task-update",
+    id: s.tasks.at(-1).id,
+    status: "done",
+    note: "Ajout effectué",
+  });
+  s = apply(s, "team", { type: "stage", id, stage: "delivered" });
+  s = apply(s, "team", { type: "stage", id, stage: "completed" });
+  rejected(s, "member", { type: "reopen", id, reason: "Correction" });
+  rejected(s, "team", { type: "reopen", id, reason: " " });
+  s = apply(s, "team", { type: "assign", id, assigned: false });
+  s = apply(s, "team", {
+    type: "reopen",
+    id,
+    reason: "Vérification complémentaire convenue",
+  });
+  assert.equal(
+    s.cases[0].partner,
+    false,
+    "Reopening never restores a revoked assignment",
+  );
+  assert.equal(s.cases[0].payment, "paid");
+  assert.equal(total(s.cases[0]), 39);
+  assert.equal(openTasks(s, id).length, 1);
+  assert.deepEqual(
+    s.cases[0].decisions.map((e) => e.kind),
+    ["correction", "reopen"],
+  );
+  assert.equal(s.cases[0].history.filter((x) => x === "inprogress").length, 3);
+});

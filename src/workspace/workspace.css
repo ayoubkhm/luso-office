@@ -1182,3 +1182,78 @@ body:has(.workspace) {
     padding-inline: 10px;
   }
 }
+
+/* Exceptions use a quiet dossier margin and a chronological decision trail. */
+.ws-situation {
+  margin: 24px 0;
+  padding: 18px 22px;
+  border-left: 4px solid #996b14;
+  background: #fff7e3;
+}
+.ws-situation h3 {
+  margin-top: 0;
+}
+.ws-situation blockquote {
+  margin: 14px 0;
+  padding-left: 16px;
+  border-left: 1px solid #c3a569;
+  white-space: pre-wrap;
+}
+.ws-decisions {
+  margin-top: 28px;
+}
+.ws-decision-action {
+  border-top: 1px solid var(--ws-line);
+  padding: 18px 0;
+}
+.ws-decision-action summary {
+  cursor: pointer;
+  color: #194baf;
+  font-weight: 650;
+  padding: 4px 0;
+}
+.ws-decision-action[open] summary {
+  margin-bottom: 16px;
+}
+.ws-decision-history {
+  margin-top: 28px;
+}
+.ws-decision-history ol {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0 6px;
+}
+.ws-decision-history li {
+  position: relative;
+  border-left: 1px solid #9eb3cf;
+  padding: 0 0 24px 22px;
+}
+.ws-decision-history li::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #194baf;
+}
+.ws-decision-history li:last-child {
+  padding-bottom: 0;
+}
+.ws-decision-history li > strong,
+.ws-decision-history li > span {
+  display: block;
+}
+.ws-decision-history p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+}
+@media (max-width: 760px) {
+  .ws-situation {
+    padding: 14px;
+  }
+  .ws-decision-action .ws-button {
+    width: 100%;
+  }
+}
