@@ -1,3 +1,8 @@
+import {
+  CaseNavigation,
+  CaseSection,
+  useCaseNavigation,
+} from "./CaseNavigation";
 import { Activity } from "./ActivityJournal";
 import { Settlements, settlementLabels } from "./Settlements";
 import { DemoGuide, GuideProgress } from "./DemoGuide";
@@ -699,12 +704,13 @@ function Requests() {
     </>
   );
 }
-function CaseDetail({ c }: { c: Case }) {
+export function CaseDetail({ c }: { c: Case }) {
   const { state, role, lang, t, act, go } = useWorkspace();
   const missing = missingRequirements(state, c.id).length;
   const remaining = openTasks(state, c.id).length;
+  const navigation = useCaseNavigation(c, role);
   return (
-    <article className="ws-panel ws-case-detail">
+    <article ref={navigation.root} className="ws-panel ws-case-detail">
       <div className="ws-detail-heading">
         <small>{c.id}</small>
         <Badge good={c.stage === "completed"}>
@@ -718,122 +724,16 @@ function CaseDetail({ c }: { c: Case }) {
         {state.properties.find((p) => p.id === c.property)?.name ||
           t("Non associé", "Não associado")}
       </p>
-      <CaseSituation c={c} />
+      <CaseSituation
+        c={c}
+        onDecisions={() => navigation.open("decisions")}
+        onPayment={() => navigation.open("proposal")}
+      />
       {c.sourceCase && (
         <p className="ws-hint">
           {t("Besoin repris depuis", "Necessidade retomada de")} {c.sourceCase}.{" "}
           {t("Proposition indépendante.", "Proposta independente.")}
         </p>
-      )}
-      <ol className="ws-timeline">
-        {c.history.map((s, i) => (
-          <li key={i}>
-            <span aria-hidden="true">✓</span>
-            {t(...stageLabels[s as keyof typeof stageLabels])}
-          </li>
-        ))}
-      </ol>
-      <Proposals key={`${c.id}-${c.stage}-${c.proposals.length}`} c={c} />
-      <div className="ws-actions">
-        {canWork(c) && role === "team" && c.stage === "submitted" && (
-          <Button
-            onClick={() => act({ type: "stage", id: c.id, stage: "review" })}
-          >
-            {t("Commencer le cadrage", "Iniciar análise")}
-          </Button>
-        )}
-        {canWork(c) && role === "team" && c.stage === "approved" && (
-          <Button
-            disabled={c.payment !== "paid" || missing > 0}
-            onClick={() =>
-              act({ type: "stage", id: c.id, stage: "inprogress" })
-            }
-          >
-            {t("Démarrer la mission", "Iniciar missão")}
-          </Button>
-        )}
-        {canWork(c) && role !== "member" && c.stage === "inprogress" && (
-          <Button
-            disabled={missing > 0 || remaining > 0}
-            onClick={() => act({ type: "stage", id: c.id, stage: "delivered" })}
-          >
-            {t("Remettre pour vérification", "Entregar para verificação")}
-          </Button>
-        )}
-        {canWork(c) && role === "team" && c.stage === "delivered" && (
-          <Button
-            disabled={missing > 0 || remaining > 0}
-            onClick={() => act({ type: "stage", id: c.id, stage: "completed" })}
-          >
-            {t("Valider la clôture", "Validar conclusão")}
-          </Button>
-        )}
-      </div>
-      {canWork(c) && (missing > 0 || remaining > 0) && (
-        <p className="ws-blocker">
-          {t("Avant la remise du dossier :", "Antes da entrega do pedido:")}{" "}
-          {missing > 0 &&
-            t(
-              "des pièces restent à vérifier. ",
-              "há documentos por verificar. ",
-            )}
-          {remaining > 0 &&
-            `${remaining} ${t("tâche(s) à terminer.", "tarefa(s) por concluir.")}`}
-        </p>
-      )}
-      <CaseRequirements caseId={c.id} />
-      <details className="ws-case-tasks">
-        <summary>
-          {t("Tâches du dossier", "Tarefas do pedido")} ({remaining})
-        </summary>
-        <Tasks key={c.id} caseId={c.id} />
-      </details>
-      {role === "member" &&
-        c.stage === "approved" &&
-        (canWork(c) || c.payment === "pending") && (
-          <PaymentControls
-            status={c.payment}
-            onChange={(result) => act({ type: "pay", id: c.id, result })}
-          />
-        )}
-      {canWork(c) && role === "team" && c.stage === "approved" && (
-        <p>
-          {t(
-            "La mission démarre après confirmation de la provision dans la vue adhérent.",
-            "A missão começa após confirmação da provisão na vista do aderente.",
-          )}
-        </p>
-      )}
-      {role === "team" && (
-        <div className="ws-assignment">
-          <h3>{t("Attribution de la mission", "Atribuição da missão")}</h3>
-          <p>
-            {t(
-              c.partner
-                ? "Attribuée au partenaire démo. Seules les pièces partagées lui sont visibles."
-                : "Traitée par l’équipe. Aucun partenaire n’a accès à ce dossier.",
-              c.partner
-                ? "Atribuída ao parceiro demo. Apenas os documentos partilhados são visíveis."
-                : "Tratada pela equipa. Nenhum parceiro tem acesso a este pedido.",
-            )}
-          </p>
-          <Button
-            secondary
-            disabled={!c.partner && (!canWork(c) || !state.partnerEnabled)}
-            onClick={() =>
-              act({ type: "assign", id: c.id, assigned: !c.partner })
-            }
-          >
-            {t(
-              c.partner
-                ? "Retirer l’accès du partenaire"
-                : "Attribuer au partenaire démo",
-              c.partner
-                ? "Retirar acesso do parceiro"
-                : "Atribuir ao parceiro demo",
-            )}
-          </Button>
-        </div>
       )}
       <div className="ws-actions">
         <Button secondary onClick={() => go("messages", c.id)}>
@@ -843,48 +743,174 @@ function CaseDetail({ c }: { c: Case }) {
           {t("Voir les documents", "Ver documentos")}
         </Button>
       </div>
-      {role === "team" && (
-        <details className="ws-internal">
-          <summary>
-            {t(
-              "Consulter l’activité du dossier",
-              "Consultar atividade do pedido",
-            )}
-          </summary>
-          <Activity caseId={c.id} />
-        </details>
-      )}
-      <CaseDecisions
-        key={`${c.id}-${c.stage}-${Boolean(c.cancellation)}`}
-        c={c}
-      />
-      {role === "team" && (
-        <details className="ws-internal">
-          <summary>
-            {t(
-              "Notes internes · équipe uniquement",
-              "Notas internas · apenas equipa",
-            )}
-          </summary>
-          {c.notes.map((n, i) => (
-            <p key={i}>{n}</p>
+      <CaseNavigation navigation={navigation} />
+      <CaseSection navigation={navigation} name="progress">
+        <ol className="ws-timeline">
+          {c.history.map((s, i) => (
+            <li key={i}>
+              <span aria-hidden="true">✓</span>
+              {t(...stageLabels[s as keyof typeof stageLabels])}
+            </li>
           ))}
-          <Form
-            onSave={(d) =>
-              act({ type: "note", id: c.id, body: value(d, "note") })
-            }
-          >
-            <Field
-              label={t("Ajouter une note interne", "Adicionar nota interna")}
+        </ol>
+        <div className="ws-actions">
+          {canWork(c) && role === "team" && c.stage === "submitted" && (
+            <Button
+              onClick={() => act({ type: "stage", id: c.id, stage: "review" })}
             >
-              <textarea name="note" required maxLength={1000} />
-            </Field>
-            <Button secondary type="submit">
-              {t("Conserver la note", "Guardar nota")}
+              {t("Commencer le cadrage", "Iniciar análise")}
             </Button>
-          </Form>
+          )}
+          {canWork(c) && role === "team" && c.stage === "approved" && (
+            <Button
+              disabled={c.payment !== "paid" || missing > 0}
+              onClick={() =>
+                act({ type: "stage", id: c.id, stage: "inprogress" })
+              }
+            >
+              {t("Démarrer la mission", "Iniciar missão")}
+            </Button>
+          )}
+          {canWork(c) && role !== "member" && c.stage === "inprogress" && (
+            <Button
+              disabled={missing > 0 || remaining > 0}
+              onClick={() =>
+                act({ type: "stage", id: c.id, stage: "delivered" })
+              }
+            >
+              {t("Remettre pour vérification", "Entregar para verificação")}
+            </Button>
+          )}
+          {canWork(c) && role === "team" && c.stage === "delivered" && (
+            <Button
+              disabled={missing > 0 || remaining > 0}
+              onClick={() =>
+                act({ type: "stage", id: c.id, stage: "completed" })
+              }
+            >
+              {t("Valider la clôture", "Validar conclusão")}
+            </Button>
+          )}
+        </div>
+        {canWork(c) && (missing > 0 || remaining > 0) && (
+          <p className="ws-blocker">
+            {t("Avant la remise du dossier :", "Antes da entrega do pedido:")}{" "}
+            {missing > 0 &&
+              t(
+                "des pièces restent à vérifier. ",
+                "há documentos por verificar. ",
+              )}
+            {remaining > 0 &&
+              `${remaining} ${t("tâche(s) à terminer.", "tarefa(s) por concluir.")}`}
+          </p>
+        )}
+        <CaseRequirements caseId={c.id} />
+        <details className="ws-case-tasks">
+          <summary>
+            {t("Tâches du dossier", "Tarefas do pedido")} ({remaining})
+          </summary>
+          <Tasks key={c.id} caseId={c.id} />
         </details>
-      )}
+        {canWork(c) && role === "team" && c.stage === "approved" && (
+          <p>
+            {t(
+              "La mission démarre après confirmation de la provision dans la vue adhérent.",
+              "A missão começa após confirmação da provisão na vista do aderente.",
+            )}
+          </p>
+        )}
+      </CaseSection>
+      <CaseSection navigation={navigation} name="proposal">
+        <Proposals key={`${c.id}-${c.stage}-${c.proposals.length}`} c={c} />
+        {role === "member" &&
+          c.stage === "approved" &&
+          (canWork(c) || c.payment === "pending") && (
+            <PaymentControls
+              status={c.payment}
+              onChange={(result) => act({ type: "pay", id: c.id, result })}
+            />
+          )}
+      </CaseSection>
+      <CaseSection navigation={navigation} name="decisions">
+        <CaseDecisions
+          key={`${c.id}-${c.stage}-${Boolean(c.cancellation)}`}
+          c={c}
+        />
+      </CaseSection>
+      <CaseSection navigation={navigation} name="team">
+        {role === "team" && (
+          <div className="ws-assignment">
+            <h3>{t("Attribution de la mission", "Atribuição da missão")}</h3>
+            <p>
+              {t(
+                c.partner
+                  ? "Attribuée au partenaire démo. Seules les pièces partagées lui sont visibles."
+                  : "Traitée par l’équipe. Aucun partenaire n’a accès à ce dossier.",
+                c.partner
+                  ? "Atribuída ao parceiro demo. Apenas os documentos partilhados são visíveis."
+                  : "Tratada pela equipa. Nenhum parceiro tem acesso a este pedido.",
+              )}
+            </p>
+            <Button
+              secondary
+              disabled={!c.partner && (!canWork(c) || !state.partnerEnabled)}
+              onClick={() =>
+                act({ type: "assign", id: c.id, assigned: !c.partner })
+              }
+            >
+              {t(
+                c.partner
+                  ? "Retirer l’accès du partenaire"
+                  : "Attribuer au partenaire démo",
+                c.partner
+                  ? "Retirar acesso do parceiro"
+                  : "Atribuir ao parceiro demo",
+              )}
+            </Button>
+          </div>
+        )}
+        {role === "team" && (
+          <details className="ws-internal">
+            <summary>
+              {t(
+                "Notes internes · équipe uniquement",
+                "Notas internas · apenas equipa",
+              )}
+            </summary>
+            {c.notes.map((n, i) => (
+              <p key={i}>{n}</p>
+            ))}
+            <Form
+              onSave={(d) =>
+                act({ type: "note", id: c.id, body: value(d, "note") })
+              }
+            >
+              <Field
+                label={t("Ajouter une note interne", "Adicionar nota interna")}
+              >
+                <textarea name="note" required maxLength={1000} />
+              </Field>
+              <Button secondary type="submit">
+                {t("Conserver la note", "Guardar nota")}
+              </Button>
+            </Form>
+          </details>
+        )}
+        {role === "team" && (
+          <details className="ws-internal">
+            <summary>
+              {t(
+                "Consulter l’activité du dossier",
+                "Consultar atividade do pedido",
+              )}
+            </summary>
+            <Activity
+              caseId={c.id}
+              onOpenCase={() => navigation.open("progress")}
+            />
+          </details>
+        )}
+      </CaseSection>
     </article>
   );
 }

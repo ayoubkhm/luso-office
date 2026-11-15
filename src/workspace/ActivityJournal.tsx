@@ -2,7 +2,13 @@ import { useState } from "react";
 import { activityCategories, matchingActivity } from "./activity";
 import { Button, Field, Panel, roleNames, useWorkspace } from "./ui";
 
-export function Activity({ caseId }: { caseId?: string }) {
+export function Activity({
+  caseId,
+  onOpenCase,
+}: {
+  caseId?: string;
+  onOpenCase?: () => void;
+}) {
   const { state, role, lang, t, go } = useWorkspace();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -124,12 +130,20 @@ export function Activity({ caseId }: { caseId?: string }) {
               </div>
               <Button
                 secondary
-                onClick={() =>
+                onClick={() => {
+                  if (
+                    onOpenCase &&
+                    event.caseId === caseId &&
+                    ["requests", "tasks"].includes(event.category)
+                  ) {
+                    onOpenCase();
+                    return;
+                  }
                   go(
                     event.category === "tasks" ? "requests" : event.category,
                     event.caseId,
-                  )
-                }
+                  );
+                }}
               >
                 {t("Ouvrir", "Abrir")} ·{" "}
                 {event.caseId ?? t(...activityCategories[event.category])}

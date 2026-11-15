@@ -19,3 +19,5 @@ export * from "./workspace/model";
 
 export * from "./workspace/scenarios";
 export { matchingActivity } from "./workspace/activity";
+export { CaseDetail } from "./workspace/Workspace";
+export { WorkspaceContext } from "./workspace/ui";

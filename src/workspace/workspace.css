@@ -446,6 +446,42 @@ body:has(.workspace) {
   justify-content: space-between;
   margin-bottom: 20px;
 }
+.ws-case-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--ws-line);
+  margin-top: 24px;
+  padding: 4px 3px 0;
+}
+.ws-case-tabs [role="tab"] {
+  flex: 1 0 120px;
+  padding: 12px 10px;
+  min-height: 48px;
+  border-bottom: 3px solid transparent;
+  color: #4b6078;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+}
+.ws-case-tabs [aria-selected="true"] {
+  border-bottom-color: #164bcb;
+  color: #164bcb;
+  background: #e9f2fc;
+}
+.ws-case-section {
+  padding-top: 20px;
+  min-width: 0;
+}
+.ws-case-section[hidden] {
+  display: none;
+}
+.ws-case-section > .ws-timeline {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
 .ws-timeline {
   display: flex;
   flex-wrap: wrap;

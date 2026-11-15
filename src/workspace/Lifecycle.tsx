@@ -27,7 +27,15 @@ const decisionLabels: Record<
   ],
 };
 
-export function CaseSituation({ c }: { c: Case }) {
+export function CaseSituation({
+  c,
+  onDecisions,
+  onPayment,
+}: {
+  c: Case;
+  onDecisions: () => void;
+  onPayment: () => void;
+}) {
   const { role, t } = useWorkspace();
   if (!c.cancellation && c.stage !== "cancelled") return null;
   return (
@@ -65,7 +73,7 @@ export function CaseSituation({ c }: { c: Case }) {
         </p>
       )}
       {role !== "partner" && (
-        <a className="ws-inline-link" href="#case-decisions">
+        <Button secondary onClick={onDecisions}>
           {t(
             c.cancellation
               ? "Voir les options d’annulation"
@@ -74,15 +82,22 @@ export function CaseSituation({ c }: { c: Case }) {
               ? "Ver opções de cancelamento"
               : "Ver histórico e próximos passos",
           )}
-        </a>
+        </Button>
       )}
       {role !== "partner" && c.payment === "pending" && (
-        <p className="ws-hint">
-          {t(
-            "Une tentative de paiement est encore en attente. Simulez son résultat dans la vue adhérent avant de confirmer l’annulation.",
-            "Uma tentativa de pagamento está pendente. Simule o resultado na vista do aderente antes de confirmar o cancelamento.",
+        <div>
+          <p className="ws-hint">
+            {t(
+              "Une tentative de paiement est encore en attente. Simulez son résultat dans la vue adhérent avant de confirmer l’annulation.",
+              "Uma tentativa de pagamento está pendente. Simule o resultado na vista do aderente antes de confirmar o cancelamento.",
+            )}
+          </p>
+          {role === "member" && (
+            <Button secondary onClick={onPayment}>
+              {t("Voir le paiement en attente", "Ver pagamento pendente")}
+            </Button>
           )}
-        </p>
+        </div>
       )}
     </section>
   );
@@ -94,6 +109,33 @@ export function CaseDecisions({ c }: { c: Case }) {
   if (role === "partner") return null;
   return (
     <section className="ws-decisions" id="case-decisions">
+      {c.stage === "completed" && (
+        <div>
+          <h3>{t("Ce dossier est clôturé", "Este pedido está concluído")}</h3>
+          <p>
+            {t(
+              "L’équipe a validé la fin de la mission dans la démo. Les documents et les échanges restent consultables depuis les boutons en haut du dossier.",
+              "A equipa validou o fim da missão na demo. Os documentos e as conversas continuam disponíveis nos botões no topo do pedido.",
+            )}
+          </p>
+          {c.payment === "paid" && (
+            <Button secondary onClick={() => go("settlements", c.id)}>
+              {t(
+                "Consulter le bilan du dossier",
+                "Consultar balanço do pedido",
+              )}
+            </Button>
+          )}
+        </div>
+      )}
+      {c.stage === "delivered" && !c.cancellation && (
+        <p>
+          {t(
+            "La mission a été remise pour vérification. L’équipe valide la clôture ; une correction peut être demandée ci-dessous si le livrable doit être repris.",
+            "A missão foi entregue para verificação. A equipa valida a conclusão; pode pedir uma correção abaixo se a entrega precisar de revisão.",
+          )}
+        </p>
+      )}
       {c.stage === "completed" && role === "team" && settlementLocked(c) && (
         <p className="ws-blocker">
           {t(
