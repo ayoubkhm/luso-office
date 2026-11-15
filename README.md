@@ -1,56 +1,64 @@
-# Luso Office
+# LusoOffice
 
-Vitrine franco-portugaise destinée aux Portugais et lusodescendants vivant à l’étranger, avec la France comme premier marché. Luso Office remplace « Perto de Casa » ; le dépôt et le dossier conservent provisoirement leur identifiant historique.
+Vitrine React / TypeScript pour les Portugais et lusodescendants vivant à l’étranger. LusoOffice remplace Perto de Casa ; le dépôt GitHub conserve son identifiant historique.
 
-L’identité conserve le bleu cobalt, les azulejos et Manrope. Cette correction de la vitrine existante reste en HTML/CSS/JavaScript ; une future refonte applicative suivra la préférence React, TypeScript et Node.js.
-
-## Prévisualisation locale
+## Lancer et vérifier
 
 ```sh
-python3 -m http.server 4177 --bind 127.0.0.1
+npm ci
+npm run dev
+# http://127.0.0.1:4177/
+npm run build
+npm test
+npm run preview
 ```
 
-Ouvrir `http://127.0.0.1:4177/`.
+Le build génère 12 pages HTML en français et portugais dans `dist/`, avec leurs ressources optimisées, et deux redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
 
-- `index.html` : accueil, services détaillés, étapes, présentation et contact.
-- `tarifs.html` : Accompagnement ; URL historique conservée.
-- `styles.css` et `pricing.css` : grille responsive, navigation et composants.
-- `app.js` : traductions FR/PT, menu, dialogues et récapitulatif local.
-- `scripts/check-site.py` : contrôle des liens, ressources, traductions et structure.
+## Pages
 
-## Corrections de l’audit
+- `index.html` : cinq domaines, adhésion ou service ponctuel, histoire et newsletter.
+- `services.html` : 28 fiches bilingues, recherche, filtre par domaine, contenu, livrable, limites, unité et prix indicatifs.
+- `adhesion.html` : propositions Member / Family / Premium, paiement mensuel ou annuel, avantages et FAQ. Premium reste à l’étude.
+- `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, sept axes à développer.
+- `a-propos.html` : histoire de la fondatrice, diaspora, présence internationale projetée, partenariat et contact TBD.
+- `journal.html` : format de la newsletter « Portugal — Tão longe e tão perto » et projet Coffret da Lis, sans édition ni produit fictif.
+- `/pt/` : mêmes pages en portugais. Le choix de langue conserve le domaine et les termes recherchés.
+- `tarifs.html` : ancienne URL redirigée vers l’adhésion.
 
-- Grille texte/image sans superposition ; menu replié à 1 250 px et cibles tactiles agrandies.
-- Trois services à développer avant d’ouvrir un récapitulatif présélectionné : situation, rôle de coordination et limites à définir.
-- Page Accompagnement distinguant besoin ponctuel et suivi dans la durée, préparation de l’échange, responsabilités, coûts et questions fréquentes.
-- Section À propos et contact avec champs **TBD**, conformément à la demande du 15 novembre 2026 : présentation personnelle, e-mail, téléphone, zones couvertes. Aucun portrait, numéro ou adresse inventé.
-- Formulaire sans catégorie arbitraire par défaut. Nom et situation obligatoires ; e-mail, pays et sujet facultatifs. Les catégories correspondent aux trois services présentés.
-- Résultat explicite : aucun envoi, aucun rendez-vous réservé, aucun dossier en cours de traitement ; téléchargement local pour préparer le futur échange.
-- Images WebP de 640, 960 et 1 536 px et polices WOFF2 latines couvrant les textes français et portugais. Les sources PNG/TTF restent disponibles mais ne sont plus chargées par les pages.
+## Sources et statut commercial
 
-## Contenu et limites de cette version
+La structure et les données sont tirées des deux fichiers fournis par Hélèna, conservés hors du dépôt public dans `../documents/luso-office/2026-11-15-recaps-chatgpt/` : compilation du 8 novembre 2026 et conversation du 22 octobre 2026. Les fichiers privés et leurs liens de bibliothèque ne sont pas inclus dans l’application.
 
-Les grands domaines et le rôle d’intermédiaire proviennent du rendez-vous du 21 octobre 2026. Les situations illustrent les besoins à discuter, sans constituer un catalogue de prestations acceptées automatiquement. Le catalogue exact, les déplacements, les autorisations et les conditions commerciales doivent encore être validés avec Hélèna.
+Catalogue de base : Maison 8, Documents 6, Famille 5, Retour 5, Business 4. Chaque fiche distingue résultat, limites et tarification. La définition des interventions, des unités, du temps, du volume, des déplacements, de la TVA et des frais de tiers reste à valider. Les chevauchements relevés dans les sources sont signalés dans les limites concernées. Les thèmes supplémentaires (nationalité, NIF, pensions, etc.) sont présentés comme à l’étude, pas comme des services déjà commercialisés.
 
-Les anciennes formules à 19, 49 et 99 € et les quotas non validés sont retirés. Une éventuelle cotisation n’est pas une offre disponible. Les actes et conseils spécialisés sont distingués du rôle de coordination de Luso Office.
+Les montants affichés sont uniquement les propositions en euros des documents : Member 29,90 €/mois ou 299 €/an ; Family 49,90 €/mois ou 499 €/an ; Premium 99,90 €/mois ou 999 €/an. Leur statut indicatif est visible. Aucune conversion de devise ou offre de marché non confirmée n’est inventée. L’adhésion et les services sont facturés séparément dans le modèle prévu ; l’accès aux prestations sans adhésion est explicite. Aucun quota ou délai garanti n’a été ajouté.
 
-Le formulaire ne possède aucun endpoint, envoi, stockage persistant, connexion ou suivi. Le fichier téléchargé reste sur l’appareil de l’utilisateur. Les informations de contact sont volontairement **TBD** ; aucun lien `mailto:` ou `tel:` fictif n’est généré. Les langues FR/PT désignent celles du site, sans affirmer les langues parlées par l’interlocuteur.
+L’histoire de la fondatrice fille d’émigrants en France est issue de la compilation. Sa présentation personnelle, les coordonnées, les zones portugaises et l’identité juridique restent TBD conformément à l’instruction de l’utilisateur. Paris/Londres sont en recherche, Francfort/Genève proposées, Fall River retenue pour la recherche aux États-Unis ; aucun bureau n’est présenté comme ouvert. Les partenaires ne sont pas présentés comme contractualisés. Aucune donnée commerciale d’une autre marque n’est réutilisée.
 
-Les comptes rendus et autres documents privés restent hors du répertoire du site.
+## Parcours et limites
 
-## Vérifications
+- Le visiteur consulte une fiche, un plan ou le partenariat et prépare un document texte local avec le sujet présélectionné.
+- Nom et situation obligatoires ; e-mail et pays facultatifs. Aucun document sensible demandé.
+- Le résultat précise qu’aucune demande n’a été envoyée ; il permet téléchargement et modification.
+- Aucun stockage persistant, endpoint, envoi, paiement, compte, newsletter active, suivi de dossier ou backoffice. « O meu Portugal » est explicitement un espace prévu.
+- Les prochaines phases fonctionnelles demandent un cadrage dédié : identification juridique, contrats, paiement, accès, sécurité documentaire, rôles des opérateurs et partenaires.
 
-```sh
-node --check app.js
-python3 scripts/check-site.py
-```
+## Design et architecture
 
-Compléter par une vérification visuelle des deux langues, de la grille ordinateur/mobile, des détails de service, du menu et du parcours formulaire → résultat → téléchargement/modification.
+Palette conservée et affinée : bleu cobalt `#164bcb`, marine `#092245`, blanc `#f8fbff`, bleu clair `#e9f2fc`, accent azulejo jaune `#e7c65c`. Manrope, titres lisibles et lignes de texte courtes. L’image d’azulejos porte l’identité ; le catalogue utilise des fiches développables et les plans une comparaison lisible. Pas de portrait, témoignage, statistique de clientèle ni implantation inventés.
 
-## Dépôt et publication
+- `src/catalogue.ts` : catalogue typé, traductions, plans, recherche et formatage des prix.
+- `src/App.tsx` : pages et composants partagés, navigation, dialogues et formulaire.
+- `src/routes.ts` : routes, métadonnées et sérialisation du récapitulatif.
+- `scripts/prerender.mjs` : génération des pages FR/PT et anciennes routes.
+- `scripts/site.test.mjs` : contrôles de données, recherche, prix, routes, récapitulatif et sortie statique.
+- `public/assets/` : images WebP et polices WOFF2. Les sources historiques restent dans `assets/` mais ne sont pas publiées par le build.
 
-GitHub Pages reste désactivé. Le domaine `lusooffice.com` est réservé ; les métadonnées ne le connectent pas à un hébergement. L’aperçu conserve `noindex, nofollow` et un `robots.txt` interdisant l’exploration jusqu’au lancement.
+## Hébergement
 
-La branche `codex/luso-office-audit` consolide la version locale auditée, son harmonisation Luso Office et les corrections demandées. La branche précédente `codex/luso-office-branding` ne contient que l’ancienne étape d’harmonisation. La copie `../helena-site/` est une archive distincte et ne doit pas être publiée.
+Le domaine `lusooffice.com` est réservé. Les métadonnées ne le connectent pas à un hébergement. `noindex, nofollow` et `robots.txt` bloquent volontairement l’indexation de cette version de travail. GitHub Pages reste désactivé. Le commit/push sauvegarde le travail, sans déploiement ni modification DNS. La copie historique `../helena-site/` n’est pas la source active.
 
-Un commit et un push sauvegardent le travail sur GitHub sans réactiver Pages ni modifier le DNS.
+## Vérifications de cette version
+
+Build TypeScript/Vite et sept tests automatisés réussis. Contrôle manuel dans Chrome : accueil et catalogue en français, catalogue et adhésions en portugais à 320 px, filtre conservé au changement de langue, détail de prestation, sujet présélectionné, création et modification du récapitulatif sans envoi, bascule des tarifs mensuels/annuels. Ces contrôles ciblés ne constituent pas une validation exhaustive sur tous les navigateurs.

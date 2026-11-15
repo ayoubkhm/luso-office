@@ -1,0 +1,24 @@
+{
+  "name": "luso-office",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4177 --strictPort",
+    "build": "tsc --noEmit && vite build && vite build --ssr src/entry-server.tsx --outDir .ssr && node scripts/prerender.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4177 --strictPort",
+    "test": "node --test scripts/site.test.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@types/node": "22.19.0",
+    "@vitejs/plugin-react": "5.0.0",
+    "typescript": "5.9.3",
+    "vite": "7.0.0"
+  }
+}
