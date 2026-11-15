@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 54 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Validation de l’atelier : build et 58 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 3 contrôles de rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -210,6 +210,16 @@ Correction de parcours : lorsqu’un dossier précis est affiché ou filtré, la
 
 Validation : quatre tests supplémentaires couvrent les frontières calendaires (dont année, année bissextile et changement d’heure), les filtres combinés FR/PT, les compteurs après clôture d’une tâche ou suspension/reprise d’un dossier, l’isolation partenaire et le rendu du formulaire de création. Build et 54 tests réussis. La revue visuelle et interactive reste à compléter : l’accès automatisé à l’onglet Chrome local échoue encore.
 
+### Documents et pièces attendues
+
+La vue Documents propose recherche sans distinction d’accents (nom, dossier, service, bien, pièce demandée), filtres combinés par vérification, garde de l’original et autorisation de partage partenaire, ainsi qu’un compteur de résultats. Chaque pièce affiche sa version et son état ; ses contrôles, son historique et son aperçu fictif se déplient pour garder la liste lisible.
+
+Pour un dossier sélectionné, les pièces attendues figurent à côté des documents déposés. L’action d’accueil « Fournir les pièces attendues » mène directement à cet écran. Le dépôt permet de répondre à une pièce encore manquante ou d’ajouter une pièce complémentaire. Une pièce déjà fournie ne peut pas être déposée une seconde fois pour le même besoin ; une correction passe par la version suivante. Le dépôt rapide depuis la liste des besoins efface les filtres locaux susceptibles de masquer la nouvelle pièce.
+
+Le formulaire est rattaché au dossier filtré et indisponible si celui-ci est suspendu ou clos. Dans la vue tous dossiers, le dossier du dépôt reste sélectionnable ; après réussite, la liste affiche ce dossier et retire les filtres de recherche. Les originaux à restituer restent consultables et restituables par l’équipe après clôture/annulation. L’autorisation de partage est distinguée de l’accès effectif du partenaire ; le partage Family demeure géré dans Mon compte.
+
+Validation : quatre tests supplémentaires couvrent les filtres FR/PT et les droits partenaire, le parcours besoin/dépôt/correction/version, la restitution après annulation et le rendu du dépôt limité au bon dossier. Build et 58 tests réussis. Aucun fichier réel n’est lu ou envoyé. Revue visuelle et interactive à compléter : l’accès à l’onglet Chrome local échoue toujours.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -238,6 +248,8 @@ Validation : quatre tests supplémentaires couvrent les frontières calendaires 
 17. Dans un dossier en cadrage, saisir une proposition sans la soumettre, passer au suivi puis revenir : les champs doivent être conservés. Parcourir les onglets au clavier (flèches, Début/Fin). Après l’accord, vérifier l’accès à la provision. Demander une annulation pendant un paiement en attente et vérifier les boutons d’accès à la décision et au paiement. Après clôture, ouvrir le bilan depuis « Décisions et suites ».
 
 18. Équipe → Tâches : créer trois tâches fictives avec une date passée, la date du jour et aucune date. Tester les repères et les filtres dossier/responsable/recherche, puis terminer la tâche en retard : elle quitte le compteur. Demander l’annulation du dossier et vérifier la vue « Dossiers suspendus ou clos ». Depuis ce dossier, vérifier qu’aucun formulaire ne propose une création pour un autre dossier ; retirer l’annulation et retrouver les tâches à traiter.
+
+19. Adhérent → Accueil → Fournir les pièces attendues : vérifier l’ouverture de Documents sur DEMO-002 et la liste des besoins. Déposer un intitulé fictif en le rattachant au besoin, puis passer en équipe, filtrer « Vérification attendue » et déplier la pièce pour demander une correction. Déposer la nouvelle version en adhérent. Sur DEMO-001, filtrer les originaux « À restituer », puis simuler leur restitution côté équipe.
 
 ### Modèle serveur proposé
 

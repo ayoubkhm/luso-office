@@ -1,3 +1,4 @@
+import { Documents } from "./Documents";
 import {
   CaseNavigation,
   CaseSection,
@@ -31,14 +32,12 @@ import {
   Badge,
   Form,
   value,
-  CaseSelect,
   useMoney,
   serviceName,
 } from "./ui";
 import {
   Tasks,
   CaseRequirements,
-  DocumentReview,
   PropertyEditor,
   PartnerAccess,
   EditionArchives,
@@ -976,186 +975,7 @@ function Properties() {
     </div>
   );
 }
-function Documents() {
-  const { state, role, t, act, selected } = useWorkspace();
-  const docs = visibleDocuments(state, role),
-    cases = visibleCases(state, role);
-  const [filter, setFilter] = useState(
-    cases.some((c) => c.id === selected) ? selected : "all",
-  );
-  return (
-    <>
-      <p className="ws-intro">
-        {t(
-          "Un document appartient à un dossier. Son partage avec un partenaire est une décision explicite, indépendante de l’attribution de la mission.",
-          "Um documento pertence a um pedido. A partilha com um parceiro é uma decisão explícita, independente da atribuição da missão.",
-        )}
-      </p>
-      <div className="ws-two">
-        <Panel title={t("Documents accessibles", "Documentos acessíveis")}>
-          <Field label={t("Filtrer par dossier", "Filtrar por pedido")}>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-              <option value="all">
-                {t("Tous les dossiers", "Todos os pedidos")}
-              </option>
-              {cases.map((c) => (
-                <option key={c.id}>{c.id}</option>
-              ))}
-            </select>
-          </Field>
-          {docs
-            .filter((d) => filter === "all" || d.caseId === filter)
-            .map((d) => (
-              <article className="ws-document" key={d.id}>
-                <small>{d.caseId}</small>
-                <h3>{d.name}</h3>
-                <DocumentReview
-                  key={`${d.id}-${d.version}-${d.review}`}
-                  doc={d}
-                />
-                <Badge>
-                  {t(
-                    d.shared
-                      ? "Partage partenaire autorisé"
-                      : "Adhérent et équipe uniquement",
-                    d.shared
-                      ? "Partilha com parceiro autorizada"
-                      : "Apenas aderente e equipa",
-                  )}
-                </Badge>
-                <p>
-                  {t("Original", "Original")} :{" "}
-                  {t(
-                    d.custody === "digital"
-                      ? "aucun original confié"
-                      : d.custody === "received"
-                        ? "réception simulée"
-                        : "restitution simulée",
-                    d.custody === "digital"
-                      ? "sem original entregue"
-                      : d.custody === "received"
-                        ? "receção simulada"
-                        : "devolução simulada",
-                  )}
-                </p>
-                <details>
-                  <summary>
-                    {t(
-                      "Aperçu du document démo",
-                      "Pré-visualizar documento demo",
-                    )}
-                  </summary>
-                  <p className="ws-sample">
-                    DEMO — {d.name}
-                    <br />
-                    {t(
-                      "Aucun contenu réel. L’accès au fichier et son téléchargement sécurisé seront connectés ultérieurement.",
-                      "Sem conteúdo real. O acesso ao ficheiro e a transferência segura serão ligados posteriormente.",
-                    )}
-                  </p>
-                </details>
-                <div className="ws-actions">
-                  {role !== "partner" &&
-                    (d.shared ||
-                      cases.some((c) => c.id === d.caseId && canWork(c))) && (
-                      <Button
-                        secondary
-                        onClick={() =>
-                          act({ type: "share", id: d.id, shared: !d.shared })
-                        }
-                      >
-                        {t(
-                          d.shared
-                            ? "Retirer le partage"
-                            : "Autoriser le partage partenaire",
-                          d.shared
-                            ? "Retirar partilha"
-                            : "Autorizar partilha com parceiro",
-                        )}
-                      </Button>
-                    )}
-                  {role === "team" &&
-                    d.custody !== "returned" &&
-                    (d.custody === "received" ||
-                      cases.some((c) => c.id === d.caseId && canWork(c))) && (
-                      <Button
-                        secondary
-                        onClick={() =>
-                          act({
-                            type: "custody",
-                            id: d.id,
-                            custody:
-                              d.custody === "digital" ? "received" : "returned",
-                          })
-                        }
-                      >
-                        {t(
-                          d.custody === "digital"
-                            ? "Simuler la réception de l’original"
-                            : "Simuler la restitution de l’original",
-                          d.custody === "digital"
-                            ? "Simular receção do original"
-                            : "Simular devolução do original",
-                        )}
-                      </Button>
-                    )}
-                </div>
-              </article>
-            ))}
-          {!docs.some((d) => filter === "all" || d.caseId === filter) && (
-            <p className="ws-empty">
-              {t(
-                "Aucun document accessible pour ce dossier.",
-                "Sem documentos acessíveis para este pedido.",
-              )}
-            </p>
-          )}
-        </Panel>
-        <Panel title={t("Simuler un dépôt", "Simular entrega")}>
-          <p>
-            {t(
-              "Ajoutez uniquement un intitulé fictif. Aucun fichier n’est lu ou téléversé.",
-              "Adicione apenas um título fictício. Nenhum ficheiro é lido ou enviado.",
-            )}
-          </p>
-          {cases.some(canWork) ? (
-            <Form
-              onSave={(d) =>
-                act({
-                  type: "document",
-                  id: value(d, "case"),
-                  name: value(d, "name"),
-                })
-              }
-            >
-              <Field label={t("Dossier", "Pedido")}>
-                <CaseSelect current={selected} activeOnly />
-              </Field>
-              <Field
-                label={t("Nom du document démo", "Nome do documento demo")}
-              >
-                <input name="name" required maxLength={120} />
-              </Field>
-              <Button type="submit">
-                {t(
-                  "Ajouter le document d’exemple",
-                  "Adicionar documento de exemplo",
-                )}
-              </Button>
-            </Form>
-          ) : (
-            <p className="ws-empty">
-              {t(
-                "Aucun dossier ouvert pour un dépôt. Les documents existants restent consultables.",
-                "Nenhum pedido aberto para entrega. Os documentos existentes continuam disponíveis.",
-              )}
-            </p>
-          )}
-        </Panel>
-      </div>
-    </>
-  );
-}
+
 function Billing() {
   const { state, role, t, lang, act, go } = useWorkspace();
   const money = useMoney();

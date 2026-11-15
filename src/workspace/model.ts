@@ -1592,6 +1592,7 @@ export function attentionItems(s: State, role: Role): AttentionItem[] {
             r.caseId === c.id &&
             !s.documents.some((d) => d.requirement === r.id),
         ).length,
+        "documents",
       );
     }
     if (role === "team") {

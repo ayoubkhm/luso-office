@@ -1,3 +1,4 @@
+import { documentReviewLabels } from "./documentBoard";
 import {
   localDay,
   matchingTasks,
@@ -482,7 +483,13 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
     </article>
   );
 }
-export function CaseRequirements({ caseId }: { caseId: string }) {
+export function CaseRequirements({
+  caseId,
+  onOpenDocuments,
+}: {
+  caseId: string;
+  onOpenDocuments?: () => void;
+}) {
   const { state, role, t, act, go } = useWorkspace();
   if (role === "partner") return null;
   const c = state.cases.find((c) => c.id === caseId)!;
@@ -528,20 +535,28 @@ export function CaseRequirements({ caseId }: { caseId: string }) {
             {!doc && role === "member" && canWork(c) && (
               <Button
                 secondary
-                onClick={() =>
-                  act({
-                    type: "document",
-                    id: caseId,
-                    name: `${r.label} · DEMO`,
-                    requirement: r.id,
-                  })
-                }
+                onClick={() => {
+                  if (
+                    act({
+                      type: "document",
+                      id: caseId,
+                      name: `${r.label} · DEMO`,
+                      requirement: r.id,
+                    })
+                  )
+                    onOpenDocuments?.();
+                }}
               >
                 {t("Fournir un document démo", "Entregar documento demo")}
               </Button>
             )}
             {doc && (
-              <Button secondary onClick={() => go("documents", caseId)}>
+              <Button
+                secondary
+                onClick={() =>
+                  onOpenDocuments ? onOpenDocuments() : go("documents", caseId)
+                }
+              >
                 {t("Ouvrir les documents", "Abrir documentos")}
               </Button>
             )}
@@ -596,19 +611,7 @@ export function DocumentReview({ doc }: { doc: Document }) {
   return (
     <div className="ws-doc-review">
       <Badge good={doc.review === "accepted"}>
-        {t(
-          doc.review === "accepted"
-            ? "Version vérifiée"
-            : doc.review === "pending"
-              ? "Vérification attendue"
-              : "Correction demandée",
-          doc.review === "accepted"
-            ? "Versão verificada"
-            : doc.review === "pending"
-              ? "A aguardar verificação"
-              : "Correção solicitada",
-        )}{" "}
-        · v{doc.version}
+        {t(...documentReviewLabels[doc.review])} · v{doc.version}
       </Badge>
       {doc.reason && <p>{doc.reason}</p>}
       {role === "team" && doc.review === "pending" && !closed && (
