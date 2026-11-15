@@ -1,0 +1,2106 @@
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { services, plans, type Lang } from "../catalogue";
+import { href } from "../routes";
+import {
+  initialState,
+  transition,
+  visibleCases,
+  visibleDocuments,
+  eligibleRecipients,
+  total,
+  stageLabels,
+  stages,
+  type State,
+  type Role,
+  type Action,
+  type Case,
+  type PaymentState,
+} from "./model";
+import "./workspace.css";
+
+type View =
+  | "overview"
+  | "requests"
+  | "properties"
+  | "documents"
+  | "messages"
+  | "billing"
+  | "profile"
+  | "newsletter"
+  | "admin";
+type Context = {
+  state: State;
+  role: Role;
+  lang: Lang;
+  act: (a: Action) => boolean;
+  go: (v: View, id?: string) => void;
+  selected: string;
+  select: (id: string) => void;
+  t: (fr: string, pt: string) => string;
+};
+const WorkspaceContext = createContext<Context>(null!);
+const useWorkspace = () => useContext(WorkspaceContext);
+const labels: Record<View, [string, string]> = {
+  overview: ["Vue d’ensemble", "Visão geral"],
+  requests: ["Demandes", "Pedidos"],
+  properties: ["Mes biens", "Os meus imóveis"],
+  documents: ["Documents", "Documentos"],
+  messages: ["Messages", "Mensagens"],
+  billing: ["Adhésion et paiements", "Adesão e pagamentos"],
+  profile: ["Mon compte", "A minha conta"],
+  newsletter: ["Le journal", "O jornal"],
+  admin: ["Administration", "Administração"],
+};
+const roleNames: Record<Role, [string, string]> = {
+  member: ["Adhérent", "Aderente"],
+  team: ["Équipe", "Equipa"],
+  partner: ["Partenaire", "Parceiro"],
+};
+const icons: Record<View, string> = {
+  overview: "◈",
+  requests: "↗",
+  properties: "⌂",
+  documents: "▤",
+  messages: "◌",
+  billing: "€",
+  profile: "◎",
+  newsletter: "▥",
+  admin: "⚙",
+};
+function Button({
+  children,
+  onClick,
+  type = "button",
+  secondary = false,
+  disabled = false,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  type?: "button" | "submit";
+  secondary?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type={type}
+      className={`ws-button ${secondary ? "ws-secondary" : ""}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="ws-field">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+function Panel({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`ws-panel ${className}`}>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  );
+}
+function Badge({
+  children,
+  good = false,
+}: {
+  children: ReactNode;
+  good?: boolean;
+}) {
+  return (
+    <span className={`ws-badge ${good ? "ws-good" : ""}`}>{children}</span>
+  );
+}
+function useMoney() {
+  const { lang } = useWorkspace();
+  return (n: number) =>
+    new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "pt-PT", {
+      style: "currency",
+      currency: "EUR",
+    }).format(n);
+}
+function serviceName(id: string, lang: Lang) {
+  return services.find((s) => s.id === id)?.name[lang] || id;
+}
+function Form({
+  children,
+  onSave,
+  className = "",
+}: {
+  children: ReactNode;
+  onSave: (d: FormData) => boolean | void;
+  className?: string;
+}) {
+  return (
+    <form
+      className={`ws-form ${className}`}
+      onSubmit={(e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        if (onSave(new FormData(form)) === true) form.reset();
+      }}
+    >
+      {children}
+    </form>
+  );
+}
+const value = (d: FormData, k: string) => String(d.get(k) || "").trim();
+function CaseSelect({
+  name = "case",
+  current,
+}: {
+  name?: string;
+  current?: string;
+}) {
+  const { state, role, lang } = useWorkspace();
+  return (
+    <select name={name} defaultValue={current} required>
+      {visibleCases(state, role).map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.id} — {serviceName(c.service, lang)}
+        </option>
+      ))}
+    </select>
+  );
+}
+function PaymentControls({
+  status,
+  onChange,
+}: {
+  status: PaymentState;
+  onChange: (status: PaymentState) => void;
+}) {
+  const { t } = useWorkspace();
+  return (
+    <div className="ws-payment">
+      <Badge good={status === "paid"}>
+        {t(
+          {
+            unpaid: "À régler",
+            pending: "Vérification en cours",
+            failed: "Paiement refusé",
+            paid: "Paiement simulé confirmé",
+          }[status],
+          {
+            unpaid: "Por pagar",
+            pending: "Em verificação",
+            failed: "Pagamento recusado",
+            paid: "Pagamento simulado confirmado",
+          }[status],
+        )}
+      </Badge>
+      {status === "pending" ? (
+        <>
+          <p>
+            {t(
+              "Scénario du retour du prestataire de paiement. Aucune carte ni opération bancaire.",
+              "Cenário de resposta do prestador de pagamento. Sem cartão nem operação bancária.",
+            )}
+          </p>
+          <div className="ws-actions">
+            <Button onClick={() => onChange("paid")}>
+              {t("Simuler la confirmation", "Simular confirmação")}
+            </Button>
+            <Button secondary onClick={() => onChange("failed")}>
+              {t("Simuler un refus", "Simular recusa")}
+            </Button>
+          </div>
+        </>
+      ) : (
+        status !== "paid" && (
+          <Button onClick={() => onChange("pending")}>
+            {t(
+              status === "failed"
+                ? "Réessayer la simulation"
+                : "Simuler le paiement",
+              status === "failed" ? "Repetir simulação" : "Simular pagamento",
+            )}
+          </Button>
+        )
+      )}
+    </div>
+  );
+}
+
+export function Workspace({ lang: initialLang }: { lang: Lang }) {
+  const [lang, setLang] = useState(initialLang),
+    [state, setState] = useState(initialState),
+    [role, setRole] = useState<Role>("member"),
+    [view, setView] = useState<View>("overview"),
+    [selected, select] = useState("DEMO-001"),
+    [notice, setNotice] = useState(""),
+    [reset, setReset] = useState(false);
+  const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    document.title =
+      "O meu Portugal — " + t("Maquette LusoOffice", "Protótipo LusoOffice");
+    document.documentElement.lang = lang;
+  }, [lang]);
+  const go = (v: View, id?: string) => {
+    setView(v);
+    if (id) select(id);
+    setNotice("");
+    requestAnimationFrame(() => heading.current?.focus());
+  };
+  const act = (a: Action) => {
+    const result = transition(state, role, a);
+    setNotice(
+      result.ok
+        ? t(
+            "Simulation mise à jour. Aucun envoi ni paiement réel.",
+            "Simulação atualizada. Sem envio nem pagamento real.",
+          )
+        : t(
+            "Action indisponible : vérifiez les champs, les droits et l’étape du dossier.",
+            "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
+          ),
+    );
+    if (result.ok) setState(result.state);
+    return result.ok;
+  };
+  const views: View[] =
+    role === "member"
+      ? [
+          "overview",
+          "requests",
+          "properties",
+          "documents",
+          "messages",
+          "billing",
+          "newsletter",
+          "profile",
+        ]
+      : role === "team"
+        ? [
+            "overview",
+            "requests",
+            "documents",
+            "messages",
+            "billing",
+            "newsletter",
+            "admin",
+          ]
+        : ["overview", "requests", "documents", "messages"];
+  return (
+    <WorkspaceContext.Provider
+      value={{ state, role, lang, act, go, selected, select, t }}
+    >
+      <div className="workspace">
+        <a className="skip-link" href="#workspace-main">
+          {t("Aller au contenu", "Ir para o conteúdo")}
+        </a>
+        <div className="ws-demo">
+          <span>
+            <strong>{t("Atelier de conception", "Atelier de conceção")}</strong>{" "}
+            {t(
+              "Données fictives. Tout reste en mémoire et s’efface au rechargement.",
+              "Dados fictícios. Tudo fica em memória e desaparece ao recarregar.",
+            )}
+          </span>
+          <button onClick={() => setReset(!reset)}>
+            {t("Réinitialiser", "Repor")}
+          </button>
+        </div>
+        {reset && (
+          <div className="ws-reset">
+            <p>
+              {t(
+                "Revenir au scénario initial ? Les modifications de cette maquette seront effacées.",
+                "Voltar ao cenário inicial? As alterações deste protótipo serão apagadas.",
+              )}
+            </p>
+            <Button
+              onClick={() => {
+                setState(initialState());
+                setReset(false);
+                select("DEMO-001");
+                go("overview");
+              }}
+            >
+              {t("Revenir au début", "Voltar ao início")}
+            </Button>
+            <Button secondary onClick={() => setReset(false)}>
+              {t("Conserver", "Manter")}
+            </Button>
+          </div>
+        )}
+        <header className="ws-top">
+          <a href={href("home", lang)} className="wordmark">
+            Luso<span>Office</span>
+          </a>
+          <a className="ws-back" href={href("home", lang)}>
+            {t("Retour au site", "Voltar ao site")}
+          </a>
+          <div className="ws-language" aria-label={t("Langue", "Idioma")}>
+            <button aria-pressed={lang === "fr"} onClick={() => setLang("fr")}>
+              FR
+            </button>
+            <button aria-pressed={lang === "pt"} onClick={() => setLang("pt")}>
+              PT
+            </button>
+          </div>
+        </header>
+        <div className="ws-layout">
+          <aside className="ws-sidebar">
+            <p className="ws-title">
+              O meu <br />
+              Portugal
+              <span>
+                {t(
+                  "Votre lien, au quotidien.",
+                  "A sua ligação, todos os dias.",
+                )}
+              </span>
+            </p>
+            <Field label={t("Explorer la vue démo", "Explorar a vista demo")}>
+              <select
+                value={role}
+                onChange={(e) => {
+                  const r = e.target.value as Role;
+                  setRole(r);
+                  select(visibleCases(state, r)[0]?.id || "");
+                  go("overview");
+                }}
+              >
+                {Object.entries(roleNames).map(([r, l]) => (
+                  <option key={r} value={r}>
+                    {t(...l)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <nav aria-label={t("Navigation de l’espace", "Navegação da área")}>
+              {views.map((v) => (
+                <button
+                  key={v}
+                  aria-current={v === view ? "page" : undefined}
+                  onClick={() => go(v)}
+                >
+                  <span aria-hidden="true">{icons[v]}</span>
+                  {t(...labels[v])}
+                </button>
+              ))}
+            </nav>
+            <div className="ws-identity">
+              <span className="ws-avatar">LO</span>
+              <div>
+                <strong>{t(...roleNames[role])} · démo</strong>
+                <small>
+                  {t("Aucun compte connecté", "Nenhuma conta ligada")}
+                </small>
+              </div>
+            </div>
+          </aside>
+          <main id="workspace-main" className="ws-main">
+            <div className="ws-page-heading">
+              <p>LusoOffice / {t(...roleNames[role])}</p>
+              <h1 ref={heading} tabIndex={-1}>
+                {view === "overview"
+                  ? t(
+                      role === "member"
+                        ? "Le Portugal, à portée de main."
+                        : role === "team"
+                          ? "À chaque dossier, sa prochaine étape."
+                          : "Vos missions, au bon endroit.",
+                      role === "member"
+                        ? "Portugal, sempre por perto."
+                        : role === "team"
+                          ? "Cada pedido tem um próximo passo."
+                          : "As suas missões, no lugar certo.",
+                    )
+                  : t(...labels[view])}
+              </h1>
+            </div>
+            <p className="ws-feedback" role="status" aria-live="polite">
+              {notice}
+            </p>
+            {view === "overview" && <Overview />}
+            {view === "requests" && <Requests />}
+            {view === "properties" && <Properties />}
+            {view === "documents" && <Documents />}
+            {view === "messages" && <Messages />}
+            {view === "billing" && <Billing />}
+            {view === "profile" && <Profile />}
+            {view === "newsletter" && <Newsletter />}
+            {view === "admin" && <Administration />}
+            <footer className="ws-footer">
+              <strong>
+                {t(
+                  "Confidentialité de la maquette",
+                  "Privacidade do protótipo",
+                )}
+              </strong>
+              <p>
+                {t(
+                  "N’utilisez que des exemples. Aucun fichier réel, mot de passe ou numéro de carte n’est demandé. Les vues de rôle servent à la revue de conception ; elles ne constituent pas une authentification.",
+                  "Utilize apenas exemplos. Não são pedidos ficheiros reais, palavras-passe ou números de cartão. As vistas servem para rever a conceção; não constituem autenticação.",
+                )}
+              </p>
+            </footer>
+          </main>
+        </div>
+      </div>
+    </WorkspaceContext.Provider>
+  );
+}
+function Overview() {
+  const { state, role, lang, t, go } = useWorkspace();
+  const cases = visibleCases(state, role);
+  const pending = cases.filter((c) =>
+    role === "member"
+      ? ["quote", "approved"].includes(c.stage)
+      : role === "partner"
+        ? c.stage === "inprogress"
+        : ["submitted", "review", "delivered"].includes(c.stage),
+  );
+  return (
+    <>
+      <div className="ws-welcome">
+        <div>
+          <Badge>
+            {t("Scénario de démonstration", "Cenário de demonstração")}
+          </Badge>
+          <h2>
+            {t(
+              role === "member"
+                ? "Une maison, des projets. Un fil à garder."
+                : "Le bon interlocuteur, au bon moment.",
+              role === "member"
+                ? "Uma casa, projetos. Uma ligação a manter."
+                : "O interlocutor certo, no momento certo.",
+            )}
+          </h2>
+          <p>
+            {t(
+              role === "member"
+                ? "Retrouvez ce qui attend votre accord et ce qui avance au Portugal."
+                : "Consultez les dossiers attribués, les pièces partagées et les échanges utiles.",
+              role === "member"
+                ? "Veja o que espera pela sua aprovação e o que avança em Portugal."
+                : "Consulte os pedidos atribuídos, os documentos partilhados e as mensagens úteis.",
+            )}
+          </p>
+          <Button onClick={() => go("requests")}>
+            {t(
+              role === "member"
+                ? "Préparer une demande"
+                : "Ouvrir les dossiers",
+              role === "member" ? "Preparar um pedido" : "Abrir pedidos",
+            )}
+          </Button>
+        </div>
+        <div className="ws-tile" aria-hidden="true" />
+      </div>
+      <div className="ws-summary">
+        <div>
+          <strong>{cases.filter((c) => c.stage !== "completed").length}</strong>
+          <span>{t("dossiers ouverts", "pedidos abertos")}</span>
+        </div>
+        <div>
+          <strong>{pending.length}</strong>
+          <span>{t("actions à examiner", "ações a analisar")}</span>
+        </div>
+        <div>
+          <strong>{visibleDocuments(state, role).length}</strong>
+          <span>{t("documents accessibles", "documentos acessíveis")}</span>
+        </div>
+      </div>
+      <Panel title={t("La prochaine étape", "O próximo passo")}>
+        {pending.length ? (
+          pending.map((c) => (
+            <button
+              className="ws-case-row"
+              key={c.id}
+              onClick={() => go("requests", c.id)}
+            >
+              <span>
+                <small>{c.id}</small>
+                <strong>{serviceName(c.service, lang)}</strong>
+              </span>
+              <Badge>{t(...stageLabels[c.stage])}</Badge>
+              <span aria-hidden="true">↗</span>
+            </button>
+          ))
+        ) : (
+          <p>
+            {t(
+              "Aucune action en attente. Vous pouvez consulter les dossiers en cours.",
+              "Sem ações pendentes. Pode consultar os pedidos em curso.",
+            )}
+          </p>
+        )}
+      </Panel>
+      <div className="ws-two">
+        <Panel
+          title={t(
+            "Un échange rattaché à chaque dossier",
+            "Uma conversa por pedido",
+          )}
+        >
+          <p>
+            {t(
+              "Les messages et documents restent dans leur contexte. L’équipe garde ses notes internes à part.",
+              "As mensagens e os documentos mantêm o contexto. A equipa guarda as notas internas separadamente.",
+            )}
+          </p>
+          <Button secondary onClick={() => go("messages")}>
+            {t("Voir les échanges", "Ver conversas")}
+          </Button>
+        </Panel>
+        <Panel
+          title={
+            role === "member"
+              ? `${state.subscription.plan} · DEMO`
+              : t(
+                  "Accès limités au nécessaire",
+                  "Acessos limitados ao necessário",
+                )
+          }
+        >
+          <p>
+            {t(
+              role === "member"
+                ? "Votre adhésion et vos prestations restent deux éléments distincts. Consultez le détail avant chaque règlement."
+                : "Le partenaire ne voit que ses missions et les documents explicitement partagés. Les notes internes et la facturation client lui sont masquées.",
+              role === "member"
+                ? "A adesão e os serviços são distintos. Consulte o detalhe antes de cada pagamento."
+                : "O parceiro vê apenas as suas missões e os documentos partilhados. As notas internas e a faturação do cliente não são visíveis.",
+            )}
+          </p>
+        </Panel>
+      </div>
+    </>
+  );
+}
+function Requests() {
+  const { state, role, lang, t, act, selected, select } = useWorkspace();
+  const cases = visibleCases(state, role);
+  const [filter, setFilter] = useState("all"),
+    [create, setCreate] = useState(false);
+  const shown = cases.filter((c) => filter === "all" || c.stage === filter);
+  const current = shown.find((c) => c.id === selected) || shown[0];
+  return (
+    <>
+      <div className="ws-toolbar">
+        <Field label={t("État du dossier", "Estado do pedido")}>
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="all">{t("Tous", "Todos")}</option>
+            {stages.map((s) => (
+              <option key={s} value={s}>
+                {t(...stageLabels[s])}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {role === "member" && (
+          <Button onClick={() => setCreate(!create)}>
+            {t(
+              create ? "Fermer le formulaire" : "Nouvelle demande démo",
+              create ? "Fechar formulário" : "Novo pedido demo",
+            )}
+          </Button>
+        )}
+      </div>
+      {create && (
+        <Panel title={t("Décrivez votre besoin", "Descreva o que precisa")}>
+          <Form
+            onSave={(d) => {
+              const ok = act({
+                type: "request",
+                service: value(d, "service"),
+                property: value(d, "property"),
+                description: value(d, "description"),
+              });
+              if (ok) {
+                setCreate(false);
+                setFilter("all");
+                select(
+                  `DEMO-${String(state.cases.length + 1).padStart(3, "0")}`,
+                );
+              }
+            }}
+          >
+            <Field label={t("Service", "Serviço")}>
+              <select name="service">
+                {services.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name[lang]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t("Bien concerné", "Imóvel associado")}>
+              <select name="property">
+                <option value="">
+                  {t("Sans bien associé", "Sem imóvel associado")}
+                </option>
+                {state.properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field
+              label={t(
+                "Situation et échéance souhaitée — exemple uniquement",
+                "Situação e prazo pretendido — apenas exemplo",
+              )}
+            >
+              <textarea name="description" required maxLength={2000} rows={3} />
+            </Field>
+            <p className="ws-hint">
+              {t(
+                "Après réception : cadrage par l’équipe, proposition détaillée, votre accord, puis provision. Aucun délai n’est garanti.",
+                "Após receção: análise da equipa, proposta detalhada, aprovação e provisão. Sem prazo garantido.",
+              )}
+            </p>
+            <Button type="submit">
+              {t("Simuler l’envoi à l’équipe", "Simular envio à equipa")}
+            </Button>
+          </Form>
+        </Panel>
+      )}
+      <div className="ws-case-layout">
+        <section
+          className="ws-case-list"
+          aria-label={t("Liste des demandes", "Lista de pedidos")}
+        >
+          {shown.length ? (
+            shown.map((c) => (
+              <button
+                className={current?.id === c.id ? "selected" : ""}
+                key={c.id}
+                onClick={() => select(c.id)}
+                aria-pressed={current?.id === c.id}
+              >
+                <small>{c.id}</small>
+                <strong>{serviceName(c.service, lang)}</strong>
+                <Badge>{t(...stageLabels[c.stage])}</Badge>
+              </button>
+            ))
+          ) : (
+            <p className="ws-empty">
+              {t("Aucun dossier dans cet état.", "Nenhum pedido neste estado.")}
+            </p>
+          )}
+        </section>
+        {current && <CaseDetail key={current.id} c={current} />}
+      </div>
+    </>
+  );
+}
+function CaseDetail({ c }: { c: Case }) {
+  const { state, role, lang, t, act, go } = useWorkspace();
+  const money = useMoney();
+  return (
+    <article className="ws-panel ws-case-detail">
+      <div className="ws-detail-heading">
+        <small>{c.id}</small>
+        <Badge good={c.stage === "completed"}>
+          {t(...stageLabels[c.stage])}
+        </Badge>
+      </div>
+      <h2>{serviceName(c.service, lang)}</h2>
+      <p>{c.description}</p>
+      <p className="ws-hint">
+        {t("Bien", "Imóvel")} :{" "}
+        {state.properties.find((p) => p.id === c.property)?.name ||
+          t("Non associé", "Não associado")}
+      </p>
+      <ol className="ws-timeline">
+        {c.history.map((s, i) => (
+          <li key={i}>
+            <span aria-hidden="true">✓</span>
+            {t(...stageLabels[s as keyof typeof stageLabels])}
+          </li>
+        ))}
+      </ol>
+      {role !== "partner" && c.quote > 0 && (
+        <div className="ws-breakdown">
+          <h3>
+            {t("Proposition de démonstration", "Proposta de demonstração")}
+          </h3>
+          <p>
+            {t(
+              "Montants de scénario à valider. TVA, déplacements et périmètre à préciser avant toute offre réelle.",
+              "Valores de cenário a validar. IVA, deslocações e âmbito por definir antes de uma proposta real.",
+            )}
+          </p>
+          <dl>
+            <div>
+              <dt>{t("Coordination LusoOffice", "Coordenação LusoOffice")}</dt>
+              <dd>{money(c.quote)}</dd>
+            </div>
+            <div>
+              <dt>
+                {t("Frais officiels (scénario)", "Taxas oficiais (cenário)")}
+              </dt>
+              <dd>{money(c.fees)}</dd>
+            </div>
+            <div>
+              <dt>
+                {t(
+                  "Prestations de tiers (scénario)",
+                  "Serviços de terceiros (cenário)",
+                )}
+              </dt>
+              <dd>{money(c.thirdParty)}</dd>
+            </div>
+            <div>
+              <dt>{t("Provision illustrée", "Provisão ilustrativa")}</dt>
+              <dd>{money(total(c))}</dd>
+            </div>
+          </dl>
+          <p className="ws-hint">
+            {t(
+              "L’adhésion n’inclut pas cette prestation. Un éventuel solde ou remboursement fera l’objet d’un rapprochement distinct.",
+              "A adesão não inclui este serviço. Um eventual saldo ou reembolso será objeto de reconciliação separada.",
+            )}
+          </p>
+        </div>
+      )}
+      <div className="ws-actions">
+        {role === "member" && c.stage === "quote" && (
+          <Button
+            onClick={() => act({ type: "stage", id: c.id, stage: "approved" })}
+          >
+            {t("Simuler mon accord", "Simular a minha aprovação")}
+          </Button>
+        )}
+        {role === "team" && c.stage === "submitted" && (
+          <Button
+            onClick={() => act({ type: "stage", id: c.id, stage: "review" })}
+          >
+            {t("Commencer le cadrage", "Iniciar análise")}
+          </Button>
+        )}
+        {role === "team" && c.stage === "approved" && (
+          <Button
+            disabled={c.payment !== "paid"}
+            onClick={() =>
+              act({ type: "stage", id: c.id, stage: "inprogress" })
+            }
+          >
+            {t("Démarrer la mission", "Iniciar missão")}
+          </Button>
+        )}
+        {role !== "member" && c.stage === "inprogress" && (
+          <Button
+            onClick={() => act({ type: "stage", id: c.id, stage: "delivered" })}
+          >
+            {t("Remettre pour vérification", "Entregar para verificação")}
+          </Button>
+        )}
+        {role === "team" && c.stage === "delivered" && (
+          <Button
+            onClick={() => act({ type: "stage", id: c.id, stage: "completed" })}
+          >
+            {t("Valider la clôture", "Validar conclusão")}
+          </Button>
+        )}
+      </div>
+      {role === "member" && c.stage === "approved" && (
+        <PaymentControls
+          status={c.payment}
+          onChange={(result) => act({ type: "pay", id: c.id, result })}
+        />
+      )}
+      {role === "team" && c.stage === "approved" && (
+        <p>
+          {t(
+            "La mission démarre après confirmation de la provision dans la vue adhérent.",
+            "A missão começa após confirmação da provisão na vista do aderente.",
+          )}
+        </p>
+      )}
+      {role === "team" && c.stage === "review" && (
+        <Form
+          onSave={(d) => {
+            act({
+              type: "quote",
+              id: c.id,
+              quote: Number(value(d, "quote")),
+              fees: Number(value(d, "fees")),
+              thirdParty: Number(value(d, "thirdParty")),
+            });
+          }}
+        >
+          <h3>{t("Préparer la proposition", "Preparar proposta")}</h3>
+          <div className="ws-three">
+            {[
+              ["quote", t("Coordination (€)", "Coordenação (€)")],
+              ["fees", t("Frais officiels (€)", "Taxas oficiais (€)")],
+              ["thirdParty", t("Tiers (€)", "Terceiros (€)")],
+            ].map(([name, label]) => (
+              <Field key={name} label={label}>
+                <input
+                  name={name}
+                  type="number"
+                  min={name === "quote" ? "0.01" : "0"}
+                  max="100000"
+                  step="0.01"
+                  defaultValue={name === "quote" ? "" : "0"}
+                  required
+                />
+              </Field>
+            ))}
+          </div>
+          <Button type="submit">
+            {t(
+              "Soumettre à l’accord de l’adhérent",
+              "Submeter à aprovação do aderente",
+            )}
+          </Button>
+        </Form>
+      )}
+      {role === "team" && (
+        <div className="ws-assignment">
+          <h3>{t("Attribution de la mission", "Atribuição da missão")}</h3>
+          <p>
+            {t(
+              c.partner
+                ? "Attribuée au partenaire démo. Seules les pièces partagées lui sont visibles."
+                : "Traitée par l’équipe. Aucun partenaire n’a accès à ce dossier.",
+              c.partner
+                ? "Atribuída ao parceiro demo. Apenas os documentos partilhados são visíveis."
+                : "Tratada pela equipa. Nenhum parceiro tem acesso a este pedido.",
+            )}
+          </p>
+          <Button
+            secondary
+            disabled={c.stage === "completed"}
+            onClick={() =>
+              act({ type: "assign", id: c.id, assigned: !c.partner })
+            }
+          >
+            {t(
+              c.partner
+                ? "Retirer l’accès du partenaire"
+                : "Attribuer au partenaire démo",
+              c.partner
+                ? "Retirar acesso do parceiro"
+                : "Atribuir ao parceiro demo",
+            )}
+          </Button>
+        </div>
+      )}
+      <div className="ws-actions">
+        <Button secondary onClick={() => go("messages", c.id)}>
+          {t("Ouvrir les messages", "Abrir mensagens")}
+        </Button>
+        <Button secondary onClick={() => go("documents", c.id)}>
+          {t("Voir les documents", "Ver documentos")}
+        </Button>
+      </div>
+      {role === "team" && (
+        <details className="ws-internal">
+          <summary>
+            {t(
+              "Notes internes · équipe uniquement",
+              "Notas internas · apenas equipa",
+            )}
+          </summary>
+          {c.notes.map((n, i) => (
+            <p key={i}>{n}</p>
+          ))}
+          <Form
+            onSave={(d) =>
+              act({ type: "note", id: c.id, body: value(d, "note") })
+            }
+          >
+            <Field
+              label={t("Ajouter une note interne", "Adicionar nota interna")}
+            >
+              <textarea name="note" required maxLength={1000} />
+            </Field>
+            <Button secondary type="submit">
+              {t("Conserver la note", "Guardar nota")}
+            </Button>
+          </Form>
+        </details>
+      )}
+    </article>
+  );
+}
+function Properties() {
+  const { state, t, act, go } = useWorkspace();
+  return (
+    <div className="ws-two">
+      <div>
+        {state.properties.map((p) => (
+          <Panel title={p.name} key={p.id}>
+            <Badge>
+              {t("Bien de démonstration", "Imóvel de demonstração")}
+            </Badge>
+            <p>{p.town}</p>
+            <p>
+              {state.cases.filter((c) => c.property === p.id).length}{" "}
+              {t("dossier(s) associé(s)", "pedido(s) associado(s)")}
+            </p>
+            {state.cases
+              .filter((c) => c.property === p.id)
+              .map((c) => (
+                <Button
+                  key={c.id}
+                  secondary
+                  onClick={() => go("requests", c.id)}
+                >
+                  {c.id}
+                </Button>
+              ))}
+          </Panel>
+        ))}
+      </div>
+      <Panel
+        title={t("Ajouter un bien d’exemple", "Adicionar imóvel de exemplo")}
+      >
+        <Form
+          onSave={(d) =>
+            act({
+              type: "property",
+              name: value(d, "name"),
+              town: value(d, "town"),
+            })
+          }
+        >
+          <Field label={t("Nom du bien", "Nome do imóvel")}>
+            <input name="name" required maxLength={80} />
+          </Field>
+          <Field label={t("Commune fictive", "Localidade fictícia")}>
+            <input name="town" required maxLength={100} />
+          </Field>
+          <p>
+            {t(
+              "La version connectée prévoira adresse, accès autorisés et justificatifs de mandat. Ne saisissez pas de code d’accès ici.",
+              "A versão ligada incluirá morada, acessos autorizados e comprovativos de mandato. Não introduza códigos de acesso aqui.",
+            )}
+          </p>
+          <Button type="submit">
+            {t("Ajouter à la maquette", "Adicionar ao protótipo")}
+          </Button>
+        </Form>
+      </Panel>
+    </div>
+  );
+}
+function Documents() {
+  const { state, role, t, act, selected } = useWorkspace();
+  const docs = visibleDocuments(state, role),
+    cases = visibleCases(state, role);
+  const [filter, setFilter] = useState(
+    cases.some((c) => c.id === selected) ? selected : "all",
+  );
+  return (
+    <>
+      <p className="ws-intro">
+        {t(
+          "Un document appartient à un dossier. Son partage avec un partenaire est une décision explicite, indépendante de l’attribution de la mission.",
+          "Um documento pertence a um pedido. A partilha com um parceiro é uma decisão explícita, independente da atribuição da missão.",
+        )}
+      </p>
+      <div className="ws-two">
+        <Panel title={t("Documents accessibles", "Documentos acessíveis")}>
+          <Field label={t("Filtrer par dossier", "Filtrar por pedido")}>
+            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="all">
+                {t("Tous les dossiers", "Todos os pedidos")}
+              </option>
+              {cases.map((c) => (
+                <option key={c.id}>{c.id}</option>
+              ))}
+            </select>
+          </Field>
+          {docs
+            .filter((d) => filter === "all" || d.caseId === filter)
+            .map((d) => (
+              <article className="ws-document" key={d.id}>
+                <small>{d.caseId}</small>
+                <h3>{d.name}</h3>
+                <Badge>
+                  {t(
+                    d.shared
+                      ? "Partage partenaire autorisé"
+                      : "Adhérent et équipe uniquement",
+                    d.shared
+                      ? "Partilha com parceiro autorizada"
+                      : "Apenas aderente e equipa",
+                  )}
+                </Badge>
+                <p>
+                  {t("Original", "Original")} :{" "}
+                  {t(
+                    d.custody === "digital"
+                      ? "aucun original confié"
+                      : d.custody === "received"
+                        ? "réception simulée"
+                        : "restitution simulée",
+                    d.custody === "digital"
+                      ? "sem original entregue"
+                      : d.custody === "received"
+                        ? "receção simulada"
+                        : "devolução simulada",
+                  )}
+                </p>
+                <details>
+                  <summary>
+                    {t(
+                      "Aperçu du document démo",
+                      "Pré-visualizar documento demo",
+                    )}
+                  </summary>
+                  <p className="ws-sample">
+                    DEMO — {d.name}
+                    <br />
+                    {t(
+                      "Aucun contenu réel. L’accès au fichier et son téléchargement sécurisé seront connectés ultérieurement.",
+                      "Sem conteúdo real. O acesso ao ficheiro e a transferência segura serão ligados posteriormente.",
+                    )}
+                  </p>
+                </details>
+                <div className="ws-actions">
+                  {role !== "partner" && (
+                    <Button
+                      secondary
+                      onClick={() =>
+                        act({ type: "share", id: d.id, shared: !d.shared })
+                      }
+                    >
+                      {t(
+                        d.shared
+                          ? "Retirer le partage"
+                          : "Autoriser le partage partenaire",
+                        d.shared
+                          ? "Retirar partilha"
+                          : "Autorizar partilha com parceiro",
+                      )}
+                    </Button>
+                  )}
+                  {role === "team" && d.custody !== "returned" && (
+                    <Button
+                      secondary
+                      onClick={() =>
+                        act({
+                          type: "custody",
+                          id: d.id,
+                          custody:
+                            d.custody === "digital" ? "received" : "returned",
+                        })
+                      }
+                    >
+                      {t(
+                        d.custody === "digital"
+                          ? "Simuler la réception de l’original"
+                          : "Simuler la restitution de l’original",
+                        d.custody === "digital"
+                          ? "Simular receção do original"
+                          : "Simular devolução do original",
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </article>
+            ))}
+          {!docs.some((d) => filter === "all" || d.caseId === filter) && (
+            <p className="ws-empty">
+              {t(
+                "Aucun document accessible pour ce dossier.",
+                "Sem documentos acessíveis para este pedido.",
+              )}
+            </p>
+          )}
+        </Panel>
+        <Panel title={t("Simuler un dépôt", "Simular entrega")}>
+          <p>
+            {t(
+              "Ajoutez uniquement un intitulé fictif. Aucun fichier n’est lu ou téléversé.",
+              "Adicione apenas um título fictício. Nenhum ficheiro é lido ou enviado.",
+            )}
+          </p>
+          {cases.length > 0 && (
+            <Form
+              onSave={(d) =>
+                act({
+                  type: "document",
+                  id: value(d, "case"),
+                  name: value(d, "name"),
+                })
+              }
+            >
+              <Field label={t("Dossier", "Pedido")}>
+                <CaseSelect current={selected} />
+              </Field>
+              <Field
+                label={t("Nom du document démo", "Nome do documento demo")}
+              >
+                <input name="name" required maxLength={120} />
+              </Field>
+              <Button type="submit">
+                {t(
+                  "Ajouter le document d’exemple",
+                  "Adicionar documento de exemplo",
+                )}
+              </Button>
+            </Form>
+          )}
+        </Panel>
+      </div>
+    </>
+  );
+}
+function Messages() {
+  const { state, role, lang, t, act, selected, select } = useWorkspace();
+  const cases = visibleCases(state, role);
+  const current = cases.find((c) => c.id === selected) || cases[0];
+  if (!current)
+    return (
+      <p className="ws-empty">
+        {t("Aucune conversation accessible.", "Nenhuma conversa acessível.")}
+      </p>
+    );
+  return (
+    <div className="ws-two">
+      <Panel title={t("Choisir une conversation", "Escolher conversa")}>
+        {cases.map((c) => (
+          <button
+            key={c.id}
+            className="ws-case-row"
+            aria-pressed={current.id === c.id}
+            onClick={() => select(c.id)}
+          >
+            <span>
+              <small>{c.id}</small>
+              <strong>{serviceName(c.service, lang)}</strong>
+            </span>
+          </button>
+        ))}
+      </Panel>
+      <Panel title={current.id}>
+        <p className="ws-hint">
+          {t(
+            "Conversation visible par l’adhérent, l’équipe et le partenaire attribué. Aucun message ne quitte la maquette.",
+            "Conversa visível pelo aderente, equipa e parceiro atribuído. Nenhuma mensagem sai do protótipo.",
+          )}
+        </p>
+        <div className="ws-thread">
+          {state.messages
+            .filter((m) => m.caseId === current.id)
+            .map((m) => (
+              <article
+                className={`ws-message ${m.role === role ? "mine" : ""}`}
+                key={m.id}
+              >
+                <strong>{t(...roleNames[m.role])} · démo</strong>
+                <p>{m.body}</p>
+              </article>
+            ))}
+          {!state.messages.some((m) => m.caseId === current.id) && (
+            <p>
+              {t(
+                "Commencez l’échange sur ce dossier.",
+                "Inicie a conversa sobre este pedido.",
+              )}
+            </p>
+          )}
+        </div>
+        <Form
+          key={current.id}
+          onSave={(d) =>
+            act({ type: "message", id: current.id, body: value(d, "body") })
+          }
+        >
+          <Field
+            label={t("Votre message d’exemple", "A sua mensagem de exemplo")}
+          >
+            <textarea name="body" required rows={3} maxLength={2000} />
+          </Field>
+          <Button type="submit">
+            {t("Ajouter à la conversation démo", "Adicionar à conversa demo")}
+          </Button>
+        </Form>
+      </Panel>
+    </div>
+  );
+}
+function Billing() {
+  const { state, role, t, lang, act, go } = useWorkspace();
+  const money = useMoney();
+  const sub = state.subscription;
+  const [plan, setPlan] = useState(sub.plan),
+    [period, setPeriod] = useState(sub.period),
+    [confirm, setConfirm] = useState(false);
+  const proposal = plans.find((p) => p.id === plan)!;
+  return (
+    <>
+      <p className="ws-intro">
+        {t(
+          "L’adhésion donne accès aux avantages du plan. Chaque prestation, provision et éventuel ajustement conserve son propre suivi.",
+          "A adesão dá acesso às vantagens do plano. Cada serviço, provisão e eventual acerto tem o seu próprio acompanhamento.",
+        )}
+      </p>
+      <div className="ws-two">
+        <Panel title={t("Adhésion de démonstration", "Adesão de demonstração")}>
+          <div className="ws-membership-card">
+            <span>LusoOffice</span>
+            <strong>{sub.plan}</strong>
+            <span>O meu Portugal</span>
+            <small>
+              DEMO · 0001 ·{" "}
+              {t("Carte fictive, sans valeur", "Cartão fictício, sem validade")}
+            </small>
+          </div>
+          <p>
+            {t(
+              sub.period === "annual"
+                ? "Modalité annuelle"
+                : "Modalité mensuelle",
+              sub.period === "annual"
+                ? "Modalidade anual"
+                : "Modalidade mensal",
+            )}
+          </p>
+          <Badge good={sub.active}>
+            {t(
+              sub.active
+                ? "Droits actifs dans le scénario"
+                : "Adhésion inactive",
+              sub.active ? "Direitos ativos no cenário" : "Adesão inativa",
+            )}
+          </Badge>
+          <p>
+            {t(
+              sub.cancelAtEnd
+                ? "Renouvellement désactivé dans la maquette. Les droits sont conservés jusqu’à l’échéance, à définir au contrat."
+                : "Renouvellement prévu dans le scénario. Échéance, modalités et conditions : à valider.",
+              sub.cancelAtEnd
+                ? "Renovação desativada no protótipo. Os direitos mantêm-se até ao termo, a definir no contrato."
+                : "Renovação prevista no cenário. Data, modalidades e condições: por validar.",
+            )}
+          </p>
+          {role === "member" && (
+            <>
+              <Button secondary onClick={() => setConfirm(true)}>
+                {t(
+                  sub.cancelAtEnd
+                    ? "Réactiver le renouvellement démo"
+                    : "Préparer la résiliation à échéance",
+                  sub.cancelAtEnd
+                    ? "Reativar renovação demo"
+                    : "Preparar cancelamento no termo",
+                )}
+              </Button>
+              {confirm && (
+                <div className="ws-confirm">
+                  <p>
+                    {t(
+                      "Cette action modifie uniquement le scénario de renouvellement, sans annuler les demandes en cours.",
+                      "Esta ação altera apenas o cenário de renovação, sem cancelar os pedidos em curso.",
+                    )}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      act({ type: "cancel", cancel: !sub.cancelAtEnd });
+                      setConfirm(false);
+                    }}
+                  >
+                    {t("Confirmer la simulation", "Confirmar simulação")}
+                  </Button>
+                  <Button secondary onClick={() => setConfirm(false)}>
+                    {t("Revenir", "Voltar")}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </Panel>
+        <Panel
+          title={t(
+            "Préparer un changement de formule",
+            "Preparar alteração de plano",
+          )}
+        >
+          {role === "member" ? (
+            <>
+              <div className="ws-form">
+                <Field label={t("Formule proposée", "Plano proposto")}>
+                  <select
+                    value={plan}
+                    onChange={(e) => setPlan(e.target.value as typeof plan)}
+                  >
+                    <option>Member</option>
+                    <option>Family</option>
+                    <option disabled>Premium</option>
+                  </select>
+                </Field>
+                <Field label={t("Modalité", "Modalidade")}>
+                  <select
+                    value={period}
+                    onChange={(e) => setPeriod(e.target.value as typeof period)}
+                  >
+                    <option value="annual">{t("Annuelle", "Anual")}</option>
+                    <option value="monthly">{t("Mensuelle", "Mensal")}</option>
+                  </select>
+                </Field>
+              </div>
+              <p className="ws-plan-price">
+                {money(
+                  period === "annual" ? proposal.annual : proposal.monthly,
+                )}
+                <small>
+                  {" "}
+                  /{" "}
+                  {t(
+                    period === "annual" ? "an" : "mois",
+                    period === "annual" ? "ano" : "mês",
+                  )}
+                </small>
+              </p>
+              <p>
+                {t(
+                  "Tarif indicatif du brief, TVA et conditions à valider. Premium reste à l’étude. Prorata et date d’effet ne sont pas calculés dans cette maquette.",
+                  "Valor indicativo do briefing, IVA e condições por validar. Premium permanece em estudo. Proporção e data de efeito não são calculadas neste protótipo.",
+                )}
+              </p>
+              <Button
+                disabled={sub.payment === "pending"}
+                onClick={() => act({ type: "subscription", plan, period })}
+              >
+                {t("Préparer le paiement démo", "Preparar pagamento demo")}
+              </Button>
+              {sub.pending && (
+                <p>
+                  {t("Changement en attente", "Alteração pendente")} :{" "}
+                  {sub.pending.plan} /{" "}
+                  {sub.pending.period === "annual"
+                    ? t("annuel", "anual")
+                    : t("mensuel", "mensal")}
+                </p>
+              )}
+              {sub.payment === "pending" && (
+                <PaymentControls
+                  status={sub.payment}
+                  onChange={(result) =>
+                    act({ type: "subscription-payment", result })
+                  }
+                />
+              )}
+              {sub.payment === "failed" && (
+                <p role="status">
+                  {t(
+                    "Paiement refusé dans le scénario. Votre formule précédente est conservée ; vous pouvez préparer un nouvel essai.",
+                    "Pagamento recusado no cenário. O plano anterior mantém-se; pode preparar nova tentativa.",
+                  )}
+                </p>
+              )}
+              <p className="ws-hint">
+                {t(
+                  "Parcours prévus : carte ou mandat de prélèvement chez le prestataire de paiement. Aucun renseignement bancaire ici.",
+                  "Percursos previstos: cartão ou mandato de débito direto no prestador de pagamento. Sem dados bancários aqui.",
+                )}
+              </p>
+            </>
+          ) : (
+            <p>
+              {t(
+                "Les changements de formule et le paiement sont à explorer dans la vue adhérent. L’équipe ne marque pas manuellement un paiement comme réussi.",
+                "As alterações de plano e o pagamento estão na vista do aderente. A equipa não marca manualmente um pagamento como concluído.",
+              )}
+            </p>
+          )}
+        </Panel>
+      </div>
+      <Panel
+        title={t(
+          "Prestations, provisions et pièces de facturation",
+          "Serviços, provisões e documentos de faturação",
+        )}
+      >
+        <p>
+          {t(
+            "Exemples non fiscaux. Une confirmation de paiement ne remplace pas une facture ; l’émission numérotée et les avoirs seront reliés à la facturation.",
+            "Exemplos sem valor fiscal. Uma confirmação de pagamento não substitui uma fatura; a emissão numerada e as notas de crédito serão ligadas à faturação.",
+          )}
+        </p>
+        {visibleCases(state, role)
+          .filter((c) => c.quote > 0)
+          .map((c) => (
+            <div className="ws-invoice" key={c.id}>
+              <div>
+                <small>{c.id} · DEMO</small>
+                <strong>{serviceName(c.service, lang)}</strong>
+              </div>
+              <strong>{money(total(c))}</strong>
+              <Badge good={c.payment === "paid"}>
+                {t(
+                  c.payment === "paid"
+                    ? "Provision simulée réglée"
+                    : "Provision à suivre",
+                  c.payment === "paid"
+                    ? "Provisão simulada paga"
+                    : "Provisão a acompanhar",
+                )}
+              </Badge>
+              <Button secondary onClick={() => go("requests", c.id)}>
+                {t("Voir le détail", "Ver detalhe")}
+              </Button>
+              <details>
+                <summary>
+                  {t(
+                    "Aperçu de pièce de démonstration",
+                    "Pré-visualizar documento demo",
+                  )}
+                </summary>
+                <div className="ws-sample">
+                  <strong>
+                    DEMO — {t("Sans valeur fiscale", "Sem valor fiscal")}
+                  </strong>
+                  <p>
+                    {t(
+                      "Émetteur / NIPC / adresse / TVA : TBD. Client : compte démo. Aucun numéro de facture émis.",
+                      "Emitente / NIPC / morada / IVA: TBD. Cliente: conta demo. Sem número de fatura emitido.",
+                    )}
+                  </p>
+                  <p>
+                    {t("Prestation", "Serviço")} :{" "}
+                    {serviceName(c.service, lang)} · {money(total(c))}
+                  </p>
+                </div>
+              </details>
+            </div>
+          ))}
+      </Panel>
+    </>
+  );
+}
+function Profile() {
+  const { state, t, act } = useWorkspace();
+  return (
+    <div className="ws-two">
+      <Panel title={t("Profil et préférences", "Perfil e preferências")}>
+        <Form
+          onSave={(d) => {
+            act({
+              type: "profile",
+              profile: {
+                name: value(d, "name"),
+                country: value(d, "country"),
+                language: value(d, "language") as Lang,
+                consent: d.has("consent"),
+              },
+            });
+          }}
+        >
+          <Field label={t("Nom de démonstration", "Nome de demonstração")}>
+            <input
+              name="name"
+              required
+              maxLength={80}
+              defaultValue={state.profile.name}
+            />
+          </Field>
+          <Field label={t("Pays de résidence", "País de residência")}>
+            <select name="country" defaultValue={state.profile.country}>
+              {[
+                "France",
+                "Portugal",
+                "Deutschland",
+                "United Kingdom",
+                "Schweiz / Suisse",
+                "Autre / Outro",
+              ].map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+          </Field>
+          <Field
+            label={t("Langue de correspondance", "Idioma de correspondência")}
+          >
+            <select name="language" defaultValue={state.profile.language}>
+              <option value="fr">Français</option>
+              <option value="pt">Português</option>
+            </select>
+          </Field>
+          <p>
+            {t(
+              "EUR dans ce scénario. Les marchés, langues DE/EN et autres devises restent à cadrer.",
+              "EUR neste cenário. Mercados, idiomas DE/EN e outras moedas ainda por definir.",
+            )}
+          </p>
+          <label className="ws-check">
+            <input
+              name="consent"
+              type="checkbox"
+              defaultChecked={state.profile.consent}
+            />
+            <span>
+              {t(
+                "Recevoir le journal mensuel en portugais (préférence simulée)",
+                "Receber o jornal mensal em português (preferência simulada)",
+              )}
+            </span>
+          </label>
+          <Button type="submit">
+            {t("Conserver les préférences démo", "Guardar preferências demo")}
+          </Button>
+        </Form>
+      </Panel>
+      <div>
+        <Panel
+          title={t(
+            "Compte et sécurité : parcours prévu",
+            "Conta e segurança: percurso previsto",
+          )}
+        >
+          <ol className="ws-steps">
+            <li>
+              {t(
+                "Vérifier l’adresse e-mail avant l’ouverture du compte.",
+                "Verificar o endereço de e-mail antes da abertura da conta.",
+              )}
+            </li>
+            <li>
+              {t(
+                "Se connecter, récupérer son accès et fermer ses sessions.",
+                "Entrar, recuperar o acesso e terminar sessões.",
+              )}
+            </li>
+            <li>
+              {t(
+                "Renforcer la connexion de l’équipe et des partenaires.",
+                "Reforçar o acesso da equipa e dos parceiros.",
+              )}
+            </li>
+            <li>
+              {t(
+                "Demander l’export ou la suppression des données selon les règles de conservation à définir.",
+                "Pedir exportação ou eliminação dos dados conforme as regras de conservação a definir.",
+              )}
+            </li>
+          </ol>
+          <p className="ws-hint">
+            {t(
+              "La maquette n’ouvre aucun compte et ne collecte aucun mot de passe.",
+              "O protótipo não abre contas nem recolhe palavras-passe.",
+            )}
+          </p>
+        </Panel>
+        <Panel title={t("Bénéficiaires Family", "Beneficiários Family")}>
+          <p>
+            {t(
+              "Jusqu’à quatre utilisateurs prévus, titulaire inclus. L’accès aux dossiers et biens de chacun devra être accordé séparément.",
+              "Até quatro utilizadores previstos, incluindo o titular. O acesso aos pedidos e imóveis de cada um deverá ser atribuído separadamente.",
+            )}
+          </p>
+          {state.subscription.plan === "Family" &&
+          state.subscription.payment === "paid" ? (
+            <>
+              <Form
+                onSave={(d) =>
+                  act({ type: "invite", email: value(d, "email") })
+                }
+              >
+                <Field
+                  label={t(
+                    "E-mail fictif du bénéficiaire",
+                    "E-mail fictício do beneficiário",
+                  )}
+                >
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="exemple@example.test"
+                  />
+                </Field>
+                <Button type="submit" disabled={state.invitations.length >= 3}>
+                  {t("Préparer l’invitation démo", "Preparar convite demo")}
+                </Button>
+              </Form>
+              {state.invitations.map((email) => (
+                <p key={email}>
+                  {email} —{" "}
+                  {t("préparée, non envoyée", "preparado, não enviado")}
+                </p>
+              ))}
+            </>
+          ) : (
+            <p>
+              {t(
+                "Explorez ce parcours après avoir simulé le passage à Family.",
+                "Explore este percurso após simular a passagem a Family.",
+              )}
+            </p>
+          )}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+function Newsletter() {
+  const { state, role, t, act } = useWorkspace();
+  const [preview, setPreview] = useState(false);
+  const edition = state.edition;
+  const headings = [
+    "Portugal de hoje",
+    "Cultura e raízes",
+    "Vida prática",
+    "A nossa comunidade",
+  ];
+  const [draft, setDraft] = useState(edition);
+  return (
+    <>
+      <div className="ws-journal-title">
+        <span>
+          {t(
+            "Le rendez-vous mensuel en portugais",
+            "O encontro mensal em português",
+          )}
+        </span>
+        <h2>
+          Portugal —<br />
+          Tão longe e tão perto
+        </h2>
+        <p>
+          {t(
+            "Édition de travail, jamais diffusée. Rubriques proposées pour la maquette, à valider éditorialement.",
+            "Edição de trabalho, nunca distribuída. Rubricas propostas para o protótipo, sujeitas a validação editorial.",
+          )}
+        </p>
+      </div>
+      {role === "team" ? (
+        <>
+          <div className="ws-two">
+            <Panel title={t("Préparer l’édition", "Preparar edição")}>
+              <Badge>
+                {t(
+                  edition.status === "draft"
+                    ? "Brouillon"
+                    : edition.status === "review"
+                      ? "En relecture"
+                      : "Publication simulée",
+                  edition.status === "draft"
+                    ? "Rascunho"
+                    : edition.status === "review"
+                      ? "Em revisão"
+                      : "Publicação simulada",
+                )}
+              </Badge>
+              <form
+                className="ws-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  act({
+                    type: "edition",
+                    edition: { ...draft, status: "review" },
+                  });
+                }}
+              >
+                <Field label={t("Titre", "Título")}>
+                  <input
+                    required
+                    maxLength={150}
+                    disabled={edition.status === "published"}
+                    value={draft.title}
+                    onChange={(e) =>
+                      setDraft({ ...draft, title: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field
+                  label={t(
+                    "Extrait public proposé",
+                    "Excerto público proposto",
+                  )}
+                >
+                  <textarea
+                    required
+                    rows={2}
+                    maxLength={600}
+                    disabled={edition.status === "published"}
+                    value={draft.excerpt}
+                    onChange={(e) =>
+                      setDraft({ ...draft, excerpt: e.target.value })
+                    }
+                  />
+                </Field>
+                {headings.map((h, i) => (
+                  <Field label={h} key={h}>
+                    <textarea
+                      required
+                      maxLength={5000}
+                      rows={3}
+                      disabled={edition.status === "published"}
+                      value={draft.sections[i]}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          sections: draft.sections.map((s, n) =>
+                            n === i ? e.target.value : s,
+                          ),
+                        })
+                      }
+                    />
+                  </Field>
+                ))}
+                <div className="ws-actions">
+                  <Button
+                    secondary
+                    disabled={edition.status === "published"}
+                    onClick={() =>
+                      act({
+                        type: "edition",
+                        edition: { ...draft, status: "draft" },
+                      })
+                    }
+                  >
+                    {t("Conserver le brouillon", "Guardar rascunho")}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={edition.status === "published"}
+                  >
+                    {t("Soumettre à relecture", "Submeter a revisão")}
+                  </Button>
+                </div>
+              </form>
+            </Panel>
+            <div>
+              <Panel title={t("Relire et publier", "Rever e publicar")}>
+                <p>
+                  {t(
+                    "Vérifiez les sources, les droits des visuels et la version portugaise avant publication. La version publiée est figée dans ce scénario.",
+                    "Verifique as fontes, os direitos das imagens e a versão portuguesa antes da publicação. A versão publicada fica fixa neste cenário.",
+                  )}
+                </p>
+                <Button secondary onClick={() => setPreview(!preview)}>
+                  {t(
+                    preview
+                      ? "Fermer l’aperçu"
+                      : "Relire la version enregistrée",
+                    preview
+                      ? "Fechar pré-visualização"
+                      : "Rever versão guardada",
+                  )}
+                </Button>
+                {preview && <EditionPreview edition={edition} />}
+                <Button
+                  disabled={edition.status !== "review"}
+                  onClick={() => act({ type: "publish" })}
+                >
+                  {t("Simuler la publication", "Simular publicação")}
+                </Button>
+              </Panel>
+              <Panel
+                title={t("Préparer la distribution", "Preparar distribuição")}
+              >
+                <p>
+                  {t(
+                    "Audience proposée : adhérents actifs ayant choisi de recevoir le journal. La préférence est revérifiée au moment de la simulation d’envoi.",
+                    "Público proposto: aderentes ativos que optaram por receber o jornal. A preferência é verificada novamente na simulação de envio.",
+                  )}
+                </p>
+                <p className="ws-audience">
+                  <strong>{eligibleRecipients(state).length}</strong>{" "}
+                  {t(
+                    "destinataire éligible dans la démo",
+                    "destinatário elegível na demo",
+                  )}
+                </p>
+                <Badge>
+                  {t(
+                    state.campaign.status === "idle"
+                      ? "Non préparée"
+                      : state.campaign.status === "queued"
+                        ? "En attente de simulation"
+                        : "Simulation terminée",
+                    state.campaign.status === "idle"
+                      ? "Não preparada"
+                      : state.campaign.status === "queued"
+                        ? "A aguardar simulação"
+                        : "Simulação concluída",
+                  )}
+                </Badge>
+                <div className="ws-actions">
+                  <Button
+                    disabled={
+                      edition.status !== "published" ||
+                      state.campaign.status !== "idle" ||
+                      !eligibleRecipients(state).length
+                    }
+                    onClick={() => act({ type: "queue" })}
+                  >
+                    {t("Préparer la campagne démo", "Preparar campanha demo")}
+                  </Button>
+                  <Button
+                    disabled={state.campaign.status !== "queued"}
+                    onClick={() => act({ type: "dispatch" })}
+                  >
+                    {t("Simuler la distribution", "Simular distribuição")}
+                  </Button>
+                </div>
+                {state.campaign.status === "sent" && (
+                  <p>
+                    {state.campaign.delivered.length}{" "}
+                    {t(
+                      "destinataire retenu, aucun e-mail envoyé.",
+                      "destinatário selecionado, nenhum e-mail enviado.",
+                    )}{" "}
+                    {state.campaign.recipients.length -
+                      state.campaign.delivered.length}{" "}
+                    {t(
+                      "exclu après vérification.",
+                      "excluído após verificação.",
+                    )}
+                  </p>
+                )}
+                <p className="ws-hint">
+                  {t(
+                    "Planification mensuelle, rebonds, plaintes et reprise des erreurs : à connecter au service d’envoi.",
+                    "Agendamento mensal, devoluções, reclamações e repetição de erros: a ligar ao serviço de envio.",
+                  )}
+                </p>
+              </Panel>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <Panel title={t("Votre édition", "A sua edição")}>
+            {edition.status === "published" && state.subscription.active ? (
+              <EditionPreview edition={edition} />
+            ) : (
+              <p className="ws-empty">
+                {t(
+                  "Aucune édition publiée dans cette démonstration. La vue équipe permet d’en préparer une, puis de la rendre visible ici.",
+                  "Nenhuma edição publicada nesta demonstração. A vista da equipa permite preparar uma e torná-la visível aqui.",
+                )}
+              </p>
+            )}
+          </Panel>
+          <Panel title={t("Recevoir le journal", "Receber o jornal")}>
+            <p>
+              {t(
+                state.profile.consent
+                  ? "Réception activée dans le scénario. Le journal prévu est en portugais."
+                  : "Vous avez désactivé la réception. La lecture reste accessible avec une adhésion active.",
+                state.profile.consent
+                  ? "Receção ativada no cenário. O jornal previsto é em português."
+                  : "Desativou a receção. A leitura continua acessível com uma adesão ativa.",
+              )}
+            </p>
+            <Button
+              secondary
+              onClick={() =>
+                act({
+                  type: "profile",
+                  profile: {
+                    ...state.profile,
+                    consent: !state.profile.consent,
+                  },
+                })
+              }
+            >
+              {t(
+                state.profile.consent
+                  ? "Simuler ma désinscription"
+                  : "Simuler mon inscription",
+                state.profile.consent
+                  ? "Simular cancelamento"
+                  : "Simular inscrição",
+              )}
+            </Button>
+          </Panel>
+        </>
+      )}
+    </>
+  );
+}
+function EditionPreview({ edition }: { edition: State["edition"] }) {
+  const { t } = useWorkspace();
+  return (
+    <article className="ws-edition" lang="pt">
+      <small>DEMO · {t("Sans diffusion", "Sem distribuição")}</small>
+      <h3>{edition.title}</h3>
+      <p>
+        {edition.excerpt ||
+          t("Extrait non renseigné.", "Excerto por preencher.")}
+      </p>
+      {edition.sections.map((s, i) => (
+        <section key={i}>
+          <h4>
+            {
+              [
+                "Portugal de hoje",
+                "Cultura e raízes",
+                "Vida prática",
+                "A nossa comunidade",
+              ][i]
+            }
+          </h4>
+          <p>{s || "Texto por preparar."}</p>
+        </section>
+      ))}
+    </article>
+  );
+}
+function Administration() {
+  const { state, t } = useWorkspace();
+  return (
+    <>
+      <div className="ws-two">
+        <Panel
+          title={t(
+            "Accès et responsabilités proposés",
+            "Acessos e responsabilidades propostos",
+          )}
+        >
+          <div className="ws-permissions">
+            {[
+              [
+                t("Adhérent", "Aderente"),
+                t(
+                  "Ses dossiers, biens, documents, paiements et préférences.",
+                  "Os seus pedidos, imóveis, documentos, pagamentos e preferências.",
+                ),
+              ],
+              [
+                t("Opérateur", "Operador"),
+                t(
+                  "Dossiers autorisés, tâches, propositions et suivi des originaux.",
+                  "Pedidos autorizados, tarefas, propostas e seguimento de originais.",
+                ),
+              ],
+              [
+                t("Partenaire", "Parceiro"),
+                t(
+                  "Uniquement les missions attribuées et pièces partagées. Aucun accès aux notes internes ou à la facturation client.",
+                  "Apenas missões atribuídas e documentos partilhados. Sem acesso a notas internas ou faturação do cliente.",
+                ),
+              ],
+              [
+                t("Éditeur", "Editor"),
+                t(
+                  "Brouillons et relecture du journal. Pas d’accès aux pièces des clients.",
+                  "Rascunhos e revisão do jornal. Sem acesso a documentos dos clientes.",
+                ),
+              ],
+              [
+                t("Administrateur", "Administrador"),
+                t(
+                  "Invitations, révocations et configuration. Attribution nominative et journalisée.",
+                  "Convites, revogações e configuração. Atribuição nominativa e registada.",
+                ),
+              ],
+            ].map(([r, d]) => (
+              <div key={r}>
+                <h3>{r}</h3>
+                <p>{d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="ws-hint">
+            {t(
+              "La vue équipe réunit ces fonctions pour la revue. Leur séparation devra être appliquée côté serveur.",
+              "A vista da equipa reúne estas funções para revisão. A separação deverá ser aplicada no servidor.",
+            )}
+          </p>
+        </Panel>
+        <Panel title={t("Dossiers et opérations", "Pedidos e operações")}>
+          <dl className="ws-admin-counts">
+            <div>
+              <dt>{t("Compte fictif", "Conta fictícia")}</dt>
+              <dd>1</dd>
+            </div>
+            <div>
+              <dt>{t("Dossiers", "Pedidos")}</dt>
+              <dd>{state.cases.length}</dd>
+            </div>
+            <div>
+              <dt>
+                {t(
+                  "Missions attribuées au partenaire",
+                  "Missões atribuídas ao parceiro",
+                )}
+              </dt>
+              <dd>{state.cases.filter((c) => c.partner).length}</dd>
+            </div>
+            <div>
+              <dt>
+                {t(
+                  "Originaux à restituer (démo)",
+                  "Originais por devolver (demo)",
+                )}
+              </dt>
+              <dd>
+                {state.documents.filter((d) => d.custody === "received").length}
+              </dd>
+            </div>
+          </dl>
+          <h3>
+            {t("Gestion du contenu public", "Gestão do conteúdo público")}
+          </h3>
+          <p>
+            {t(
+              "Le catalogue et les tarifs restent dans une version contrôlée. Parcours cible : rédaction, relecture, validation, publication et retour à une version précédente. Aucun tarif provisoire ne devient définitif depuis cette maquette.",
+              "O catálogo e os preços mantêm-se numa versão controlada. Percurso previsto: redação, revisão, validação, publicação e regresso a versão anterior. Nenhum preço provisório se torna definitivo neste protótipo.",
+            )}
+          </p>
+        </Panel>
+      </div>
+      <Panel
+        title={t(
+          "Journal des actions de la session",
+          "Registo de ações da sessão",
+        )}
+      >
+        <p>
+          {t(
+            "Trace de démonstration sans valeur d’audit : rôle, action et dossier. En production : identité vérifiée, date serveur, objet, modification et résultat.",
+            "Registo de demonstração sem valor de auditoria: função, ação e pedido. Em produção: identidade verificada, data do servidor, objeto, alteração e resultado.",
+          )}
+        </p>
+        {state.audit.length ? (
+          <ol className="ws-audit">
+            {state.audit
+              .slice()
+              .reverse()
+              .map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+          </ol>
+        ) : (
+          <p className="ws-empty">
+            {t(
+              "Aucune action depuis l’ouverture. Essayez le parcours d’un dossier.",
+              "Sem ações desde a abertura. Experimente o percurso de um pedido.",
+            )}
+          </p>
+        )}
+      </Panel>
+    </>
+  );
+}

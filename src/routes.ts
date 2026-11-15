@@ -6,6 +6,7 @@ export const pageNames = [
   "business",
   "about",
   "journal",
+  "workspace",
 ] as const;
 export type Page = (typeof pageNames)[number];
 export const files: Record<Page, string> = {
@@ -15,6 +16,7 @@ export const files: Record<Page, string> = {
   business: "business.html",
   about: "a-propos.html",
   journal: "journal.html",
+  workspace: "espace.html",
 };
 export function route(path: string, search = ""): { page: Page; lang: Lang } {
   const file = path.split("/").filter(Boolean).at(-1) || "index.html";
@@ -33,6 +35,10 @@ export function route(path: string, search = ""): { page: Page; lang: Lang } {
 export const href = (page: Page, lang: Lang, search = "") =>
   `${lang === "pt" ? "/pt/" : "/"}${files[page]}${search}`;
 export const titles: Record<Page, Record<Lang, string>> = {
+  workspace: {
+    fr: "O meu Portugal — Maquette LusoOffice",
+    pt: "O meu Portugal — Protótipo LusoOffice",
+  },
   home: {
     fr: "LusoOffice — Vos liens au Portugal",
     pt: "LusoOffice — Os seus laços com Portugal",

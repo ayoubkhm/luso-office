@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1 --port 4177 --strictPort",
     "build": "tsc --noEmit && vite build && vite build --ssr src/entry-server.tsx --outDir .ssr && node scripts/prerender.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4177 --strictPort",
-    "test": "node --test scripts/site.test.mjs"
+    "test": "node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",

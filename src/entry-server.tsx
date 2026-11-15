@@ -14,3 +14,5 @@ export { services, areas, plans, filterServices, price } from "./catalogue";
 export { requestText, route } from "./routes";
 export const render = (page: Page, lang: Lang) =>
   renderToString(<App page={page} lang={lang} />);
+
+export * from "./workspace/model";

@@ -97,7 +97,7 @@ test("Local summary explicitly describes no transmission and preserves user cont
     );
   }
 });
-test("12 pre-rendered pages have localized content, valid links, unique IDs and no indexing", async () => {
+test("14 pre-rendered pages have localized content, valid links, unique IDs and no indexing", async () => {
   let inspected = 0;
   for (const lang of ["fr", "pt"])
     for (const page of pageNames) {
@@ -126,7 +126,7 @@ test("12 pre-rendered pages have localized content, valid links, unique IDs and 
       if (page === "services")
         assert.equal((html.match(/class="service-row"/g) || []).length, 28);
     }
-  assert.equal(inspected, 12);
+  assert.equal(inspected, 14);
 });
 test("Optimized images stay below the agreed payload budget", async () => {
   for (const size of [640, 960, 1536])

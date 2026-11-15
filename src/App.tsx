@@ -1,3 +1,4 @@
+import { Workspace } from "./workspace/Workspace";
 import {
   createContext,
   useContext,
@@ -321,6 +322,7 @@ export function App({
   };
   const link = (p: Page, q = "") => href(p, lang, q);
 
+  if (page === "workspace") return <Workspace lang={lang} />;
   return (
     <SiteContext.Provider value={{ lang, open }}>
       <a className="skip-link" href="#main">
@@ -421,6 +423,9 @@ export function App({
               {label}
             </a>
           ))}
+          <a href={link("workspace")}>
+            O meu Portugal · {t("maquette", "protótipo")}
+          </a>
           <button onClick={() => open()}>
             {t("Préparer mon échange", "Preparar a conversa")}
           </button>
@@ -727,11 +732,17 @@ export function App({
                 <div>
                   <span className="status-pill">
                     {t(
-                      "Espace prévu · pas encore disponible",
-                      "Área prevista · ainda indisponível",
+                      "Espace en conception · explorer la maquette",
+                      "Área em conceção · explorar o protótipo",
                     )}
                   </span>
                   <h2>O meu Portugal</h2>
+                  <a className="button primary" href={link("workspace")}>
+                    {t(
+                      "Explorer l’espace de démonstration",
+                      "Explorar a área de demonstração",
+                    )}
+                  </a>
                   <p>
                     {t(
                       "À terme, un même espace pour votre adhésion, vos demandes, vos biens, vos documents et vos échanges.",
@@ -1225,6 +1236,9 @@ export function App({
             <p>Ligamos Portugal aos Portugueses no Mundo</p>
           </div>
           <nav aria-label={t("Liens de pied de page", "Ligações do rodapé")}>
+            <a href={link("workspace")}>
+              O meu Portugal · {t("maquette", "protótipo")}
+            </a>
             {nav.map(([p, label]) => (
               <a key={p} href={link(p)}>
                 {label}

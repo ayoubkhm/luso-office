@@ -31,4 +31,4 @@ for (const lang of ["fr", "pt"]) {
     `<!doctype html><html lang="${lang}"><head><meta charset="UTF-8"><meta name="robots" content="noindex,nofollow"><meta http-equiv="refresh" content="0;url=adhesion.html"><title>LusoOffice</title></head><body><a href="adhesion.html">${lang === "fr" ? "Découvrir l’adhésion" : "Conhecer a adesão"}</a><script>const p=new URLSearchParams(location.search);const lang=location.pathname.startsWith('/pt/')||p.get('lang')==='pt';p.delete('lang');location.replace((lang?'/pt/':'/')+'adhesion.html'+(p.size?'?'+p:'')+location.hash);</script></body></html>`,
   );
 }
-console.log("Prerendered 12 FR/PT pages and 2 legacy redirects.");
+console.log("Prerendered 14 FR/PT pages and 2 legacy redirects.");

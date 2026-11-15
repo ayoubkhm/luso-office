@@ -13,7 +13,7 @@ npm test
 npm run preview
 ```
 
-Le build génère 12 pages HTML en français et portugais dans `dist/`, avec leurs ressources optimisées, et deux redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
+Le build génère 14 pages HTML en français et portugais dans `dist/`, avec leurs ressources optimisées, et deux redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
 
 ## Pages
 
@@ -23,6 +23,7 @@ Le build génère 12 pages HTML en français et portugais dans `dist/`, avec leu
 - `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, sept axes à développer.
 - `a-propos.html` : histoire de la fondatrice, diaspora, présence internationale projetée, partenariat et contact TBD.
 - `journal.html` : format de la newsletter « Portugal — Tão longe e tão perto » et projet Coffret da Lis, sans édition ni produit fictif.
+- `espace.html` : atelier interactif « O meu Portugal », vues adhérent, équipe et partenaire, entièrement en mémoire.
 - `/pt/` : mêmes pages en portugais. Le choix de langue conserve le domaine et les termes recherchés.
 - `tarifs.html` : ancienne URL redirigée vers l’adhésion.
 
@@ -41,7 +42,7 @@ L’histoire de la fondatrice fille d’émigrants en France est issue de la com
 - Le visiteur consulte une fiche, un plan ou le partenariat et prépare un document texte local avec le sujet présélectionné.
 - Nom et situation obligatoires ; e-mail et pays facultatifs. Aucun document sensible demandé.
 - Le résultat précise qu’aucune demande n’a été envoyée ; il permet téléchargement et modification.
-- Aucun stockage persistant, endpoint, envoi, paiement, compte, newsletter active, suivi de dossier ou backoffice. « O meu Portugal » est explicitement un espace prévu.
+- Aucun stockage persistant, endpoint, envoi, paiement, compte, newsletter active, suivi de dossier ou backoffice. « O meu Portugal » dispose désormais d’une maquette interactive, sans authentification ni persistance.
 - Les prochaines phases fonctionnelles demandent un cadrage dédié : identification juridique, contrats, paiement, accès, sécurité documentaire, rôles des opérateurs et partenaires.
 
 ## Design et architecture
@@ -61,4 +62,77 @@ Le domaine `lusooffice.com` est réservé. Les métadonnées ne le connectent pa
 
 ## Vérifications de cette version
 
-Build TypeScript/Vite et sept tests automatisés réussis. Contrôle manuel dans Chrome : accueil et catalogue en français, catalogue et adhésions en portugais à 320 px, filtre conservé au changement de langue, détail de prestation, sujet présélectionné, création et modification du récapitulatif sans envoi, bascule des tarifs mensuels/annuels. Ces contrôles ciblés ne constituent pas une validation exhaustive sur tous les navigateurs.
+Build TypeScript/Vite et tests automatisés du site et des transitions métier (voir `npm test`). Contrôle manuel dans Chrome : accueil et catalogue en français, catalogue et adhésions en portugais à 320 px, filtre conservé au changement de langue, détail de prestation, sujet présélectionné, création et modification du récapitulatif sans envoi, bascule des tarifs mensuels/annuels. Ces contrôles ciblés ne constituent pas une validation exhaustive sur tous les navigateurs.
+
+## Conception des espaces et des opérations
+
+### Périmètre de l’atelier
+
+Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
+
+Validation de l’atelier : build et 13 tests réussis (7 contrôles du site, 6 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Les styles étroits ont été renforcés, mais leur contrôle final reste à compléter.
+
+Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
+
+| Besoin | Parcours démontrable | Reste à connecter / concevoir en détail |
+| --- | --- | --- |
+| Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
+| Biens et documents | Ajout d’un bien, rattachement des demandes, dépôt fictif, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers, versions, conservation, preuves de garde et restitution |
+| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; échanges et notes internes | API, notifications transactionnelles, tâches datées/assignées, échéances, annulation, litige et réouverture |
+| Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
+| Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, journal d’actions démo | Rôles serveur séparés, invitations nominatives, tâches, gestion des clients, éditeur du catalogue et journal d’audit durable |
+| Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution et désinscription | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
+
+### Scénario de revue avec Hélèna
+
+1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
+2. Adhérent : simuler l’accord puis le paiement. Un refus laisse la mission bloquée ; une nouvelle tentative confirmée autorise son démarrage par l’équipe.
+3. Équipe : attribuer au partenaire. Dans Documents, autoriser uniquement les pièces nécessaires. Partenaire : consulter la mission, échanger, ajouter un livrable fictif et le remettre pour vérification. Équipe : clôturer après contrôle.
+4. Adhérent → Adhésion : simuler le passage à Family. Un échec conserve Member ; une confirmation applique Family. Mon compte : préparer trois invitations au maximum. Résilier à échéance conserve les droits de la période courante.
+5. Équipe → Journal : compléter titre, extrait et quatre rubriques, soumettre à relecture, relire la version enregistrée et simuler sa publication. Préparer la campagne. Adhérent → Journal : se désinscrire. Équipe : simuler la distribution ; le destinataire retiré est exclu. Aucun e-mail n’est envoyé.
+
+### Modèle serveur proposé
+
+Application React/TypeScript existante, API Node/TypeScript, base relationnelle, stockage privé pour fichiers, traitements asynchrones pour notifications et paiements. Les fournisseurs et l’hébergement restent à sélectionner ; aucun abonnement technique n’a été souscrit. Les fichiers statiques GitHub Pages ne suffisent pas pour héberger ces fonctions serveur.
+
+| Ensemble | Objets principaux et liens |
+| --- | --- |
+| Identité | `User`, `Session`, `Household`, `HouseholdMember`, `Invitation`, `RoleGrant` ; invitations expirables, propriétaire et bénéficiaires distincts |
+| Opérations | `Property`, `Mandate`, `ServiceRequest`, `Task`, `Assignment`, `RequestEvent` ; propriétaire/mandat, commune, service et intervenants identifiés |
+| Documents | `Document`, `DocumentVersion`, `DocumentGrant`, `CustodyEvent` ; rattachement dossier, taille/type/empreinte, validation, déposant, détenteur, réception et restitution avec preuve |
+| Échanges | `Thread`, `Message`, `InternalNote` ; participants explicitement dérivés des accès au dossier, notes internes séparées |
+| Commerce | `PlanVersion`, `Subscription`, `QuoteVersion`, `QuoteLine`, `PaymentAttempt`, `Invoice`, `CreditNote` ; montants en unités monétaires entières, devise et traitement fiscal explicites |
+| Éditorial | `Edition`, `EditionRevision`, `Publication`, `ConsentEvent`, `Campaign`, `Delivery` ; version publiée immuable et livraison unique par destinataire/édition |
+| Traçabilité | `AuditEvent`, `OutboxEvent`, `ProviderEvent` ; auteur, date serveur, objet, version, résultat et identifiant d’événement externe |
+
+L’accès sans adhésion doit rester possible dans la version connectée : un client peut avoir un compte et commander un service au tarif non-adhérent. L’adhésion active est un droit commercial distinct de l’authentification. Pour Family, appartenir au foyer ne donne pas automatiquement accès à tous les dossiers ; les droits sur les biens et pièces doivent être explicites.
+
+### Contrats d’opérations à implémenter
+
+API conceptuelle, non exposée dans la maquette :
+
+- `POST /requests` : identité/mandat vérifiés, service et périmètre validés, clé d’idempotence. Transaction unique pour demande, événement et notification à traiter ; le numéro de dossier est renvoyé après persistance. Un échec d’e-mail ne doit pas perdre le dossier ni annoncer un envoi réussi.
+- `POST /requests/:id/quotes` puis `POST /quotes/:id/accept` : proposition versionnée, durée de validité, montants et pièces contractuelles. Un accord porte sur une version précise, pas sur un tarif modifiable après coup.
+- `POST /payments/checkout` : montant et devise recalculés depuis la proposition côté serveur. Retour navigateur ≠ confirmation de paiement. L’événement signé du prestataire est vérifié, dédoublonné et rapproché ; aucun champ `paid=true` envoyé par le client ne fait foi.
+- `POST /subscriptions/:id/change` et `/cancel-at-period-end` : date d’effet et règles commerciales visibles avant confirmation. L’ancien droit reste actif pendant une tentative de changement ; impayé, reprise, expiration et remboursement demandent des transitions dédiées.
+- `POST /requests/:id/assignments` et `POST /documents/:id/grants` : vérification indépendante de l’attribution et du partage. Chaque lecture/téléchargement vérifie propriétaire, rôle, mandat et révocation. URL de téléchargement temporaire, absence d’index public et analyse des fichiers avant disponibilité.
+- `POST /requests/:id/messages` : participants autorisés ; stockage avant notification, identifiant stable contre le double envoi. Historique de garde des originaux append-only, distinct des copies numériques.
+- `POST /editions/:id/review`, `/publish`, puis `POST /campaigns` : version figée approuvée, calendrier et fuseau explicites. Le job recontrôle préférences, suppression et éligibilité avant chaque livraison ; identifiant unique, tentatives bornées et reprise des échecs sans double diffusion. Désinscription depuis chaque e-mail, prise en compte des rebonds et plaintes.
+
+Les rôles opérateur, éditeur, publieur, facturation et administrateur seront séparés côté serveur. Le partenaire n’accède pas aux notes internes, aux coordonnées non nécessaires, aux autres clients, au catalogue d’administration ou à la facturation globale. La révocation annule immédiatement les lectures futures ; elle ne peut pas rappeler un document déjà téléchargé.
+
+### Décisions nécessaires avant branchement réel
+
+- Entité émettrice, coordonnées, périmètres/mandats, zones couvertes, catalogue final et partenaires habilités.
+- Tarifs, TVA, devises/marchés, modalités de renouvellement, prorata, bénéficiaires, remboursements et rapprochement des provisions. Premium reste à l’étude ; les tarifs de marché DE/UK/CH/US évoqués ne deviennent pas des conversions automatiques.
+- Politique documentaire : données collectées, personnes habilitées, conservation, originaux, restitution, export et suppression. Conditions et modèles contractuels à faire valider à partir des documents complets.
+- Responsables de validation, séparation des rôles, calendrier et rubriques définitives du journal. Les quatre intitulés de la maquette sont des propositions, pas des rubriques approuvées extraites mot pour mot.
+- Fournisseurs d’identité, paiement, stockage, facturation et e-mail ; domaine d’envoi authentifié, environnement de test puis production. FR/PT sont conçus ici ; DE/EN restent à produire et relire.
+
+### Ordre d’implémentation proposé
+
+1. Identité, droits, schéma de données et dossiers/messages persistants en environnement de test. Vérifier l’isolation entre deux foyers et la révocation partenaire.
+2. Documents privés, contrôle des fichiers, accès temporaires, tâches et traçabilité des originaux. Tester les téléchargements après révocation.
+3. Paiements et abonnements en bac à sable, facturation et rapprochement. Tester événements dupliqués/désordonnés, échec, annulation, remboursement et absence de double débit.
+4. Journal éditorial, envois de test, consentements, planification et reprise des erreurs. Tester la désinscription après préparation d’une campagne.
+5. Traductions complémentaires, accessibilité, sauvegarde/restauration, exploitation et revue de lancement. Activer les services réels seulement après validation et configuration des comptes de la société.
