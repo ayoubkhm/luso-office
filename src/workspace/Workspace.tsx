@@ -1,3 +1,4 @@
+import { ActionQueue, Messages } from "./Inbox";
 import { CaseSituation, CaseDecisions } from "./Lifecycle";
 import {
   WorkspaceContext,
@@ -29,6 +30,8 @@ import { services, plans, type Lang } from "../catalogue";
 import { href } from "../routes";
 import {
   initialState,
+  attentionItems,
+  unreadMessages,
   canWork,
   isClosed,
   transition,
@@ -131,17 +134,18 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   };
   const act = (a: Action) => {
     const result = transition(state, role, a);
-    setNotice(
-      result.ok
-        ? t(
-            "Simulation mise à jour. Aucun envoi ni paiement réel.",
-            "Simulação atualizada. Sem envio nem pagamento real.",
-          )
-        : t(
-            "Action indisponible : vérifiez les champs, les droits et l’étape du dossier.",
-            "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
-          ),
-    );
+    if (!["message-draft", "message-read"].includes(a.type))
+      setNotice(
+        result.ok
+          ? t(
+              "Simulation mise à jour. Aucun envoi ni paiement réel.",
+              "Simulação atualizada. Sem envio nem pagamento real.",
+            )
+          : t(
+              "Action indisponible : vérifiez les champs, les droits et l’étape du dossier.",
+              "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
+            ),
+      );
     if (result.ok) setState(result.state);
     return result.ok;
   };
@@ -267,6 +271,10 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                   {views.map((v) => (
                     <option key={v} value={v}>
                       {t(...labels[v])}
+                      {v === "messages" &&
+                      unreadMessages(state, role).length > 0
+                        ? ` (${unreadMessages(state, role).length})`
+                        : ""}
                     </option>
                   ))}
                 </select>
@@ -281,6 +289,18 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 >
                   <span aria-hidden="true">{icons[v]}</span>
                   {t(...labels[v])}
+                  {v === "messages" &&
+                    unreadMessages(state, role).length > 0 && (
+                      <span
+                        className="ws-nav-count"
+                        aria-label={`${unreadMessages(state, role).length} ${t(
+                          "messages non lus",
+                          "mensagens não lidas",
+                        )}`}
+                      >
+                        {unreadMessages(state, role).length}
+                      </span>
+                    )}
                 </button>
               ))}
             </nav>
@@ -352,15 +372,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
 function Overview() {
   const { state, role, lang, t, go } = useWorkspace();
   const cases = visibleCases(state, role);
-  const pending = cases.filter((c) =>
-    c.cancellation
-      ? role === "team"
-      : role === "member"
-        ? ["quote", "approved"].includes(c.stage)
-        : role === "partner"
-          ? c.stage === "inprogress"
-          : ["submitted", "review", "delivered"].includes(c.stage),
-  );
+  const pending = attentionItems(state, role);
   if (role === "partner" && !state.partnerEnabled)
     return (
       <Panel
@@ -426,69 +438,7 @@ function Overview() {
           <span>{t("documents accessibles", "documentos acessíveis")}</span>
         </div>
       </div>
-      {role !== "partner" && (
-        <Panel title={t("Les pièces à compléter", "Os documentos a completar")}>
-          {cases
-            .filter(
-              (c) => canWork(c) && missingRequirements(state, c.id).length > 0,
-            )
-            .map((c) => (
-              <button
-                className="ws-case-row"
-                key={c.id}
-                onClick={() => go("requests", c.id)}
-              >
-                <span>
-                  <small>{c.id}</small>
-                  <strong>{serviceName(c.service, lang)}</strong>
-                </span>
-                <Badge>
-                  {missingRequirements(state, c.id).length}{" "}
-                  {t("pièce(s) en attente", "documento(s) pendente(s)")}
-                </Badge>
-              </button>
-            ))}
-          {!cases.some(
-            (c) => canWork(c) && missingRequirements(state, c.id).length,
-          ) && (
-            <p>
-              {t(
-                "Aucune pièce en attente sur les dossiers en cours de traitement.",
-                "Nenhum documento pendente nos pedidos em tratamento.",
-              )}
-            </p>
-          )}
-        </Panel>
-      )}
-      <Panel title={t("La prochaine étape", "O próximo passo")}>
-        {pending.length ? (
-          pending.map((c) => (
-            <button
-              className="ws-case-row"
-              key={c.id}
-              onClick={() => go("requests", c.id)}
-            >
-              <span>
-                <small>{c.id}</small>
-                <strong>{serviceName(c.service, lang)}</strong>
-              </span>
-              <Badge>
-                {c.cancellation
-                  ? t("Annulation à examiner", "Cancelamento em análise")
-                  : t(...stageLabels[c.stage])}
-              </Badge>
-              <span aria-hidden="true">↗</span>
-            </button>
-          ))
-        ) : (
-          <p>
-            {t(
-              "Aucune action en attente. Vous pouvez consulter les dossiers en cours.",
-              "Sem ações pendentes. Pode consultar os pedidos em curso.",
-            )}
-          </p>
-        )}
-      </Panel>
+      <ActionQueue />
       <div className="ws-two">
         <Panel
           title={t(
@@ -1185,80 +1135,6 @@ function Documents() {
         </Panel>
       </div>
     </>
-  );
-}
-function Messages() {
-  const { state, role, lang, t, act, selected, select } = useWorkspace();
-  const cases = visibleCases(state, role);
-  const current = cases.find((c) => c.id === selected) || cases[0];
-  if (!current)
-    return (
-      <p className="ws-empty">
-        {t("Aucune conversation accessible.", "Nenhuma conversa acessível.")}
-      </p>
-    );
-  return (
-    <div className="ws-two">
-      <Panel title={t("Choisir une conversation", "Escolher conversa")}>
-        {cases.map((c) => (
-          <button
-            key={c.id}
-            className="ws-case-row"
-            aria-pressed={current.id === c.id}
-            onClick={() => select(c.id)}
-          >
-            <span>
-              <small>{c.id}</small>
-              <strong>{serviceName(c.service, lang)}</strong>
-            </span>
-          </button>
-        ))}
-      </Panel>
-      <Panel title={current.id}>
-        <p className="ws-hint">
-          {t(
-            "Conversation visible par l’adhérent, l’équipe et le partenaire attribué. Aucun message ne quitte la maquette.",
-            "Conversa visível pelo aderente, equipa e parceiro atribuído. Nenhuma mensagem sai do protótipo.",
-          )}
-        </p>
-        <div className="ws-thread">
-          {state.messages
-            .filter((m) => m.caseId === current.id)
-            .map((m) => (
-              <article
-                className={`ws-message ${m.role === role ? "mine" : ""}`}
-                key={m.id}
-              >
-                <strong>{t(...roleNames[m.role])} · démo</strong>
-                <p>{m.body}</p>
-              </article>
-            ))}
-          {!state.messages.some((m) => m.caseId === current.id) && (
-            <p>
-              {t(
-                "Commencez l’échange sur ce dossier.",
-                "Inicie a conversa sobre este pedido.",
-              )}
-            </p>
-          )}
-        </div>
-        <Form
-          key={current.id}
-          onSave={(d) =>
-            act({ type: "message", id: current.id, body: value(d, "body") })
-          }
-        >
-          <Field
-            label={t("Votre message d’exemple", "A sua mensagem de exemplo")}
-          >
-            <textarea name="body" required rows={3} maxLength={2000} />
-          </Field>
-          <Button type="submit">
-            {t("Ajouter à la conversation démo", "Adicionar à conversa demo")}
-          </Button>
-        </Form>
-      </Panel>
-    </div>
   );
 }
 function Billing() {

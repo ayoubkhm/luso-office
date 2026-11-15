@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   initialState,
+  unreadMessages,
+  attentionItems,
   transition,
   visibleCases,
   visibleDocuments,
@@ -604,4 +606,176 @@ test("Delivery corrections and justified reopening create mandatory tasks withou
     ["correction", "reopen"],
   );
   assert.equal(s.cases[0].history.filter((x) => x === "inprogress").length, 3);
+});
+
+test("Read state is role-specific, scoped to a visible thread and never consumes later messages", () => {
+  let s = initialState();
+  assert.equal(unreadMessages(s, "member").length, 1);
+  assert.equal(unreadMessages(s, "team").length, 0);
+  s = apply(s, "team", {
+    type: "message",
+    id: "DEMO-001",
+    body: "Nouvelle précision",
+  });
+  s = apply(s, "member", {
+    type: "message-read",
+    id: "DEMO-001",
+    through: "message-1",
+  });
+  assert.equal(unreadMessages(s, "member").length, 1);
+  assert.equal(unreadMessages(s, "partner").length, 2);
+  rejected(s, "member", {
+    type: "message-read",
+    id: "DEMO-002",
+    through: "message-1",
+  });
+  rejected(s, "partner", {
+    type: "message-read",
+    id: "DEMO-002",
+    through: "message-1",
+  });
+  s = apply(s, "member", {
+    type: "message-read",
+    id: "DEMO-001",
+    through: "message-2",
+  });
+  assert.equal(unreadMessages(s, "member").length, 0);
+  s = apply(s, "member", {
+    type: "message",
+    id: "DEMO-001",
+    body: "Bien reçu",
+  });
+  assert.equal(unreadMessages(s, "member").length, 0);
+  assert.equal(unreadMessages(s, "team").length, 1);
+  s = apply(s, "team", { type: "partner-access", enabled: false });
+  assert.equal(unreadMessages(s, "partner").length, 0);
+  rejected(s, "partner", {
+    type: "message-read",
+    id: "DEMO-001",
+    through: "message-3",
+  });
+  s = apply(s, "team", { type: "partner-access", enabled: true });
+  assert.equal(unreadMessages(s, "partner").length, 3);
+});
+
+test("Drafts stay separate by role and dossier, survive failed sends and clear only after a successful message", () => {
+  let s = initialState();
+  const audit = s.audit.length;
+  s = apply(s, "member", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "Brouillon A\nà conserver",
+  });
+  s = apply(s, "member", {
+    type: "message-draft",
+    id: "DEMO-002",
+    body: "Brouillon B",
+  });
+  s = apply(s, "team", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "Brouillon équipe",
+  });
+  assert.equal(
+    s.audit.length,
+    audit,
+    "Typing does not flood the operational audit",
+  );
+  assert.equal(s.messages.length, 1);
+  rejected(s, "member", { type: "message", id: "DEMO-001", body: " " });
+  rejected(s, "member", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "x".repeat(2001),
+  });
+  assert.equal(s.drafts.member["DEMO-001"], "Brouillon A\nà conserver");
+  s = apply(s, "member", {
+    type: "message",
+    id: "DEMO-001",
+    body: s.drafts.member["DEMO-001"],
+  });
+  assert.equal(s.drafts.member["DEMO-001"], "");
+  assert.equal(s.drafts.member["DEMO-002"], "Brouillon B");
+  assert.equal(s.drafts.team["DEMO-001"], "Brouillon équipe");
+  s = apply(s, "team", { type: "assign", id: "DEMO-001", assigned: false });
+  rejected(s, "partner", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "Interdit",
+  });
+  assert.deepEqual(initialState().drafts, {
+    member: {},
+    team: {},
+    partner: {},
+  });
+});
+
+test("Attention distinguishes pieces to provide from pieces awaiting team review and updates when decisions change", () => {
+  let s = initialState();
+  const has = (role, kind, id = "DEMO-002") =>
+    attentionItems(s, role).some((a) => a.kind === kind && a.caseId === id);
+  assert.ok(has("member", "approve"));
+  assert.ok(has("member", "provide"));
+  assert.equal(has("team", "approve"), false);
+  s = apply(s, "member", {
+    type: "document",
+    id: "DEMO-002",
+    name: "Pièce démo",
+    requirement: "need-1",
+  });
+  assert.equal(has("member", "provide"), false);
+  assert.ok(has("team", "review-documents"));
+  s = apply(s, "team", {
+    type: "document-review",
+    id: s.documents.at(-1).id,
+    review: "rejected",
+    reason: "Version à compléter",
+  });
+  assert.ok(has("member", "correct-documents"));
+  assert.equal(has("team", "review-documents"), false);
+  s = apply(s, "member", { type: "stage", id: "DEMO-002", stage: "approved" });
+  assert.ok(has("member", "pay"));
+  assert.equal(has("member", "approve"), false);
+  s = apply(s, "member", { type: "pay", id: "DEMO-002", result: "pending" });
+  s = apply(s, "member", {
+    type: "cancel-request",
+    id: "DEMO-002",
+    reason: "Pause",
+  });
+  assert.ok(has("team", "cancellation"));
+  assert.ok(has("member", "payment-result"));
+  assert.equal(has("member", "correct-documents"), false);
+  assert.equal(has("member", "pay"), false);
+});
+
+test("Attention never exposes other partner dossiers and keeps original returns visible after closure", () => {
+  let s = initialState();
+  assert.ok(attentionItems(s, "partner").every((a) => a.caseId === "DEMO-001"));
+  assert.ok(attentionItems(s, "partner").some((a) => a.kind === "tasks"));
+  assert.equal(
+    attentionItems(s, "partner").some((a) => a.kind === "deliver"),
+    false,
+  );
+  s = apply(s, "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "",
+  });
+  assert.ok(attentionItems(s, "partner").some((a) => a.kind === "deliver"));
+  s = apply(s, "team", { type: "stage", id: "DEMO-001", stage: "delivered" });
+  assert.ok(
+    attentionItems(s, "member").some((a) => a.kind === "review-delivery"),
+  );
+  s = apply(s, "team", { type: "stage", id: "DEMO-001", stage: "completed" });
+  assert.ok(
+    attentionItems(s, "team").some((a) => a.kind === "return-originals"),
+  );
+  s = apply(s, "team", { type: "custody", id: "doc-2", custody: "returned" });
+  assert.equal(
+    attentionItems(s, "team").some((a) => a.kind === "return-originals"),
+    false,
+  );
+  s = apply(s, "team", { type: "partner-access", enabled: false });
+  assert.deepEqual(attentionItems(s, "partner"), []);
 });

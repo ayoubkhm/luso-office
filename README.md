@@ -68,9 +68,9 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 ### Périmètre de l’atelier
 
-Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
+Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 22 tests réussis (7 contrôles du site, 15 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
+Validation de l’atelier : build et 26 tests réussis (7 contrôles du site, 19 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -78,7 +78,7 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | --- | --- | --- |
 | Compte | Profil, pays, langue, préférence newsletter, invitations Family limitées à trois bénéficiaires | Identité vérifiée, récupération d’accès, sessions, authentification renforcée, acceptation d’invitation, suppression/export |
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
-| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
+| Demandes et messages | Création, réception équipe, proposition détaillée, accord, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance | Prestataire de paiement, devis contractuel, prorata, réconciliation, remboursements, émission fiscale et avoirs |
 | Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
@@ -106,6 +106,19 @@ L’annulation est une proposition de fonctionnement à valider avec Hélèna, s
 
 Validation automatisée : quatre nouveaux scénarios couvrent le gel/retrait/refus, le paiement en attente, l’annulation avec révocation et reprise indépendante, puis les corrections/réouvertures avec tâche obligatoire. La connexion navigateur n’a pas permis la revue visuelle de cette itération.
 
+### Quatrième itération : messagerie et actions à suivre
+
+L’accueil présente désormais des actions calculées selon les droits et l’état du dossier : proposition à examiner, provision, documents à fournir/vérifier/corriger, tâches, livrable, annulation, messages non lus et restitution d’originaux après clôture. Une pièce déposée en attente de vérification devient une action équipe, pas une relance à l’adhérent. La suspension d’un dossier masque les actions d’exécution ; un paiement déjà en attente reste à résoudre.
+
+La messagerie dispose d’une recherche par dossier/service et de filtres « non lus » et « brouillons ». Chaque conversation montre son dernier échange, les messages non lus et un lien vers le dossier. Le fil est accessible au clavier et se place au dernier message quand la conversation change ou reçoit un nouvel ajout dans la démo.
+
+- « Marquer cette conversation comme lue » ne concerne que le rôle actif, le dossier accessible et les messages jusqu’à celui affiché lors du clic. La lecture n’est pas déduite de l’ouverture de l’écran et aucun accusé de lecture réel n’est envoyé.
+- Chaque rôle conserve un brouillon distinct par dossier. Changer de rubrique, de langue ou de rôle ne l’efface pas. Seul un envoi simulé réussi efface le brouillon correspondant ; les autres restent conservés. Le rechargement et la réinitialisation effacent toute la session.
+- Les brouillons et lectures ne remplissent pas le journal opérationnel à chaque frappe. Les notes internes restent séparées des messages partagés.
+- Les compteurs de non-lus et actions appliquent les mêmes restrictions que les dossiers. Un accès partenaire retiré/suspendu masque également ses alertes.
+
+Validation : quatre nouveaux tests couvrent les lectures indépendantes et leur borne, les brouillons et échecs d’envoi, la répartition des actions entre adhérent/équipe et la révocation/restitution d’originaux. Build et 26 tests réussis. La connexion Chrome a de nouveau empêché l’ouverture de l’aperçu automatisé : revue visuelle de la nouvelle messagerie et contrôle mobile encore à réaliser.
+
 ### Scénario de revue avec Hélèna
 
 1. Adhérent → Demandes : créer une demande fictive. Équipe → Demandes : ouvrir le même identifiant, commencer le cadrage et proposer les montants de coordination, frais officiels et tiers.
@@ -118,6 +131,9 @@ Validation automatisée : quatre nouveaux scénarios couvrent le gel/retrait/ref
 
 8. Adhérent → DEMO-001 : demander l’annulation avec un motif. Équipe : retrouver la demande via « Annulation à examiner », la refuser avec un motif puis examiner une nouvelle demande. Confirmer : le dossier est conservé, son partenaire perd l’accès et la provision reste à rapprocher.
 9. Adhérent : reprendre le besoin annulé ; vérifier le nouvel identifiant, le lien au dossier source et l’absence de paiement/pièces transférés. Sur un autre dossier remis, demander une correction puis terminer la tâche créée avant une nouvelle remise.
+
+10. Adhérent → Messages : saisir un brouillon, changer de rubrique puis revenir. Vérifier sa conservation. Basculer en équipe : le brouillon n’apparaît pas dans cette vue. Ajouter un message équipe, revenir en adhérent et vérifier le compteur non lu, puis marquer la conversation comme lue.
+11. Depuis l’accueil, ouvrir l’action « Fournir les pièces attendues » de DEMO-002. Déposer une pièce : cette action disparaît pour l’adhérent et devient « Vérifier les pièces déposées » pour l’équipe.
 
 ### Modèle serveur proposé
 

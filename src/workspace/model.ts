@@ -86,7 +86,14 @@ export interface State {
   cases: Case[];
   properties: { id: string; name: string; town: string }[];
   documents: Document[];
-  messages: { id: string; caseId: string; role: Role; body: string }[];
+  messages: {
+    id: string;
+    caseId: string;
+    role: Role;
+    body: string;
+    readBy: Role[];
+  }[];
+  drafts: Record<Role, Record<string, string>>;
   subscription: {
     plan: "Member" | "Family" | "Premium";
     period: "annual" | "monthly";
@@ -131,6 +138,7 @@ export const stageLabels: Record<Stage, [string, string]> = {
   cancelled: ["Annulée", "Cancelado"],
 };
 export const initialState = (): State => ({
+  drafts: { member: {}, team: {}, partner: {} },
   partnerEnabled: true,
   archives: [],
   requirements: [
@@ -222,6 +230,7 @@ export const initialState = (): State => ({
   messages: [
     {
       id: "message-1",
+      readBy: ["team"],
       caseId: "DEMO-001",
       role: "team",
       body: "Exemple / Exemplo : nous préparons la visite ; merci de préciser les accès / estamos a preparar a visita; indique os acessos.",
@@ -326,6 +335,8 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | { type: "message-read"; id: string; through: string }
+  | { type: "message-draft"; id: string; body: string }
   | { type: "cancel-request"; id: string; reason: string }
   | { type: "cancel-withdraw"; id: string }
   | { type: "cancel-decision"; id: string; confirm: boolean; reason: string }
@@ -831,15 +842,54 @@ export function transition(
       if (a.result !== "pending" && c.payment !== "pending") return reject;
       next = update({ payment: a.result });
       break;
+    case "message-draft":
+      if (!c || a.body.length > 2000) return reject;
+      return {
+        ok: true,
+        state: {
+          ...s,
+          drafts: {
+            ...s.drafts,
+            [role]: { ...s.drafts[role], [c.id]: a.body },
+          },
+        },
+      };
+    case "message-read": {
+      if (!c) return reject;
+      const end = s.messages.findIndex(
+        (m) => m.id === a.through && m.caseId === c.id,
+      );
+      if (end < 0) return reject;
+      return {
+        ok: true,
+        state: {
+          ...s,
+          messages: s.messages.map((m, i) =>
+            i <= end && m.caseId === c.id && !m.readBy.includes(role)
+              ? { ...m, readBy: [...m.readBy, role] }
+              : m,
+          ),
+        },
+      };
+    }
     case "message":
     case "note":
-      if (!c || !a.body.trim() || (a.type === "note" && role !== "team"))
+      if (
+        !c ||
+        !a.body.trim() ||
+        a.body.length > (a.type === "note" ? 1000 : 2000) ||
+        (a.type === "note" && role !== "team")
+      )
         return reject;
       next =
         a.type === "note"
           ? update({ notes: [...c.notes, a.body.trim()] })
           : {
               ...s,
+              drafts: {
+                ...s.drafts,
+                [role]: { ...s.drafts[role], [c.id]: "" },
+              },
               messages: [
                 ...s.messages,
                 {
@@ -847,6 +897,7 @@ export function transition(
                   caseId: c.id,
                   role,
                   body: a.body.trim(),
+                  readBy: [role],
                 },
               ],
             };
@@ -1042,4 +1093,115 @@ export function transition(
       ],
     },
   };
+}
+
+export function unreadMessages(s: State, role: Role, caseId?: string) {
+  const ids = new Set(visibleCases(s, role).map((c) => c.id));
+  return s.messages.filter(
+    (m) =>
+      ids.has(m.caseId) &&
+      (!caseId || m.caseId === caseId) &&
+      m.role !== role &&
+      !m.readBy.includes(role),
+  );
+}
+export type AttentionKind =
+  | "messages"
+  | "cancellation"
+  | "approve"
+  | "pay"
+  | "payment-result"
+  | "scope"
+  | "start"
+  | "deliver"
+  | "review-delivery"
+  | "close"
+  | "provide"
+  | "review-documents"
+  | "correct-documents"
+  | "tasks"
+  | "return-originals";
+export interface AttentionItem {
+  caseId: string;
+  kind: AttentionKind;
+  count: number;
+  target: "requests" | "documents" | "messages";
+}
+export function attentionItems(s: State, role: Role): AttentionItem[] {
+  const result: AttentionItem[] = [];
+  for (const c of visibleCases(s, role)) {
+    const add = (
+      kind: AttentionKind,
+      count = 1,
+      target: AttentionItem["target"] = "requests",
+    ) => {
+      if (count > 0) result.push({ caseId: c.id, kind, count, target });
+    };
+    add("messages", unreadMessages(s, role, c.id).length, "messages");
+    if (role === "team" && isClosed(c))
+      add(
+        "return-originals",
+        s.documents.filter((d) => d.caseId === c.id && d.custody === "received")
+          .length,
+        "documents",
+      );
+    if (c.cancellation) {
+      if (role === "team") add("cancellation");
+      if (role === "member" && c.payment === "pending") add("payment-result");
+      continue;
+    }
+    if (!canWork(c)) continue;
+    const docs = visibleDocuments(s, role).filter((d) => d.caseId === c.id);
+    if (role === "member") {
+      if (c.stage === "quote") add("approve");
+      if (c.stage === "approved" && c.payment !== "paid")
+        add(c.payment === "pending" ? "payment-result" : "pay");
+      if (c.stage === "delivered") add("review-delivery");
+      add(
+        "provide",
+        s.requirements.filter(
+          (r) =>
+            r.caseId === c.id &&
+            !s.documents.some((d) => d.requirement === r.id),
+        ).length,
+      );
+    }
+    if (role === "team") {
+      if (["submitted", "review"].includes(c.stage)) add("scope");
+      if (
+        c.stage === "approved" &&
+        c.payment === "paid" &&
+        !missingRequirements(s, c.id).length
+      )
+        add("start");
+      add(
+        "review-documents",
+        docs.filter((d) => d.review === "pending").length,
+        "documents",
+      );
+    } else
+      add(
+        "correct-documents",
+        docs.filter((d) => d.review === "rejected").length,
+        "documents",
+      );
+    if (role !== "member") {
+      const tasks = visibleTasks(s, role).filter(
+        (task) =>
+          task.caseId === c.id &&
+          task.status !== "done" &&
+          (role === "partner" ||
+            task.assignee === "team" ||
+            task.status === "blocked" ||
+            !c.partner ||
+            !s.partnerEnabled),
+      );
+      add("tasks", tasks.length);
+      if (!openTasks(s, c.id).length && !missingRequirements(s, c.id).length) {
+        if (c.stage === "inprogress") add("deliver");
+        if (c.stage === "delivered" && role === "team") add("close");
+      }
+    }
+  }
+  return result;
 }
