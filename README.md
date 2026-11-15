@@ -70,7 +70,7 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
 
-Validation de l’atelier : build et 34 tests réussis (7 contrôles du site, 27 scénarios métier). Chrome a permis de vérifier la composition desktop et le parcours accord → paiement en attente → refus → nouvel essai → confirmation. La revue visuelle à 320 px est partielle : captures recadrées puis erreur ScreenCaptureKit ; ne pas considérer tous les écrans mobiles comme visuellement validés. Cette deuxième itération ajoute un sélecteur de section sur mobile. La nouvelle vue d’ensemble et le dossier avec pièce manquante ont été contrôlés dans Chrome ; les bascules de fenêtre pendant le pilotage ont limité la suite de la revue. Le contrôle visuel complet des nouveaux parcours, notamment sur mobile, reste à compléter. Pour la troisième itération, l’onglet local a été retrouvé mais sa lecture via la connexion Chrome échoue ; les nouveaux écrans d’annulation/reprise ne sont pas déclarés visuellement validés.
+Validation de l’atelier : build et 37 tests réussis (7 contrôles du site, 30 scénarios métier et parcours). Les cinq exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -142,6 +142,26 @@ Le titulaire peut désormais préparer jusqu’à trois invitations réservant d
 - Un changement confirmé vers Member retire les invitations en attente et accès actifs, en conservant leur historique. Le parcours de paiement l’explique avant simulation. Revenir à Family ne réactive rien automatiquement : nouvelle invitation, acceptation et partages explicites nécessaires. Il s’agit de la règle proposée pour cette démo ; les dates d’effet commerciales ne sont pas calculées.
 
 Validation : quatre scénarios couvrent capacité/générations, minimisation de l’aperçu, changements de formule et retrait des partages après remplacement/révocation. Build et 34 tests réussis. La revue visuelle des nouveaux écrans reste à réaliser, le pilotage navigateur étant resté instable lors des dernières tentatives.
+
+### Parcours guidés dans l’interface
+
+Le bouton « Parcours guidés » du bandeau et la rubrique du même nom proposent cinq exemples prêts à explorer :
+
+| Exemple | Résultat à observer |
+| --- | --- |
+| Une proposition à ajuster | Nouvelle version proposée, accord lié à cette version et provision simulée |
+| Une pièce à corriger | Dépôt, refus motivé, remplacement et validation de la nouvelle version |
+| Une mission avec un partenaire | Partage sélectif, tâche terminée, remise et clôture par l’équipe |
+| Un bénéficiaire Family | Invitation acceptée, dossier/pièce partagés, puis accès retiré |
+| Une édition du journal | Relecture, publication démo et exclusion d’un désinscrit avant distribution simulée |
+
+Le chargement nécessite une confirmation explicite dans l’interface : il remplace l’état de la session, y compris ses brouillons. Les exemples utilisent uniquement des données fictives et préparent leur état avec les transitions métier ordinaires. Le texte du journal fourni sert uniquement à tester l’interface.
+
+Un encart indique la consigne et ouvre le bon rôle, la bonne rubrique et le dossier concerné. L’utilisateur effectue lui-même les actions ; le guide observe ensuite le résultat attendu pour avancer d’une étape. Les étapes déjà réalisées restent comptées même si une action ultérieure retire le partage testé. Si le visiteur sort de la séquence et rend une étape impossible, il peut recommencer l’exemple depuis la liste des parcours.
+
+« Quitter le guide, garder la session » conserve les données et retire seulement les consignes. La réinitialisation remet le scénario initial et efface aussi la progression du guide. Un changement manuel de rôle conserve désormais la rubrique et le dossier quand ils sont accessibles ; sinon il revient à une vue autorisée. Les formulaires de chaque rôle sont remontés pour éviter de garder leurs états visuels d’une vue à l’autre. Les brouillons de messages enregistrés dans l’état de la démo restent conservés.
+
+Validation : isolation des exemples, absence d’étape déjà validée au chargement, exécution complète des cinq suites et vérification qu’un retrait Family sans partage ne valide pas l’étape manquante. Contrôle visuel des guides encore à réaliser.
 
 ### Scénario de revue avec Hélèna
 

@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   initialState,
+  demoScenarios,
+  scenarioState,
+  advanceScenario,
   familyActive,
   familySlots,
   familyPreview,
@@ -1233,4 +1236,188 @@ test("Replacing a document clears Family sharing, and revocation clears all gran
     caseId: "DEMO-001",
     granted: true,
   });
+});
+
+test("Guided examples start independently with no completed first step or changed original state", () => {
+  const original = initialState();
+  assert.equal(new Set(demoScenarios.map((s) => s.id)).size, 5);
+  for (const scenario of demoScenarios) {
+    const seed = scenarioState(scenario.id);
+    assert.equal(advanceScenario(scenario, seed, 0), 0, scenario.id);
+    assert.ok(
+      scenario.steps.every(
+        (step) => step.title.every(Boolean) && step.instruction.every(Boolean),
+      ),
+    );
+    seed.profile.name = "Changed only in this example";
+    assert.notEqual(scenarioState(scenario.id).profile.name, seed.profile.name);
+  }
+  assert.deepEqual(initialState(), original);
+  assert.equal(scenarioState("family").subscription.plan, "Family");
+  assert.equal(scenarioState("family").invitations[0].status, "pending");
+  assert.equal(scenarioState("journal").edition.status, "draft");
+});
+
+test("All five guided walkthroughs complete using the real demo transition rules", () => {
+  const runs = {
+    proposal: [
+      [
+        "member",
+        {
+          type: "revise-quote",
+          id: "DEMO-002",
+          version: 1,
+          reason: "Ajuster le périmètre",
+        },
+      ],
+      [
+        "team",
+        {
+          type: "quote",
+          id: "DEMO-002",
+          quote: 140,
+          fees: 0,
+          thirdParty: 0,
+          scope: "Nouveau périmètre démo",
+          exclusions: "TBD",
+        },
+      ],
+      ["member", { type: "accept-quote", id: "DEMO-002", version: 2 }],
+      ["member", { type: "pay", id: "DEMO-002", result: "pending" }],
+      ["member", { type: "pay", id: "DEMO-002", result: "paid" }],
+    ],
+    documents: [
+      [
+        "member",
+        {
+          type: "document",
+          id: "DEMO-002",
+          name: "Pièce démo",
+          requirement: "need-1",
+        },
+      ],
+      [
+        "team",
+        {
+          type: "document-review",
+          id: "doc-3",
+          review: "rejected",
+          reason: "Corriger",
+        },
+      ],
+      [
+        "member",
+        { type: "document-replace", id: "doc-3", name: "Pièce corrigée" },
+      ],
+      [
+        "team",
+        {
+          type: "document-review",
+          id: "doc-3",
+          review: "accepted",
+          reason: "",
+        },
+      ],
+    ],
+    mission: [
+      ["team", { type: "share", id: "doc-1", shared: true }],
+      [
+        "partner",
+        {
+          type: "task-update",
+          id: "task-1",
+          status: "done",
+          note: "Rapport terminé",
+        },
+      ],
+      ["partner", { type: "stage", id: "DEMO-001", stage: "delivered" }],
+      ["team", { type: "stage", id: "DEMO-001", stage: "completed" }],
+    ],
+    family: [
+      [
+        "member",
+        {
+          type: "invite-state",
+          id: "family-1",
+          generation: 1,
+          status: "active",
+        },
+      ],
+      [
+        "member",
+        {
+          type: "family-case",
+          id: "family-1",
+          caseId: "DEMO-001",
+          granted: true,
+        },
+      ],
+      [
+        "member",
+        {
+          type: "family-document",
+          id: "family-1",
+          documentId: "doc-1",
+          granted: true,
+        },
+      ],
+      [
+        "member",
+        {
+          type: "invite-state",
+          id: "family-1",
+          generation: 1,
+          status: "revoked",
+        },
+      ],
+    ],
+    journal: [
+      [
+        "team",
+        (s) => ({
+          type: "edition",
+          edition: { ...s.edition, status: "review" },
+        }),
+      ],
+      ["team", { type: "publish" }],
+      ["team", { type: "queue" }],
+      [
+        "member",
+        (s) => ({ type: "profile", profile: { ...s.profile, consent: false } }),
+      ],
+      ["team", { type: "dispatch" }],
+    ],
+  };
+  for (const scenario of demoScenarios) {
+    let s = scenarioState(scenario.id),
+      completed = 0;
+    for (const [role, build] of runs[scenario.id]) {
+      s = apply(s, role, typeof build === "function" ? build(s) : build);
+      const next = advanceScenario(scenario, s, completed);
+      assert.ok(next === completed || next === completed + 1);
+      completed = next;
+    }
+    assert.equal(completed, scenario.steps.length, scenario.id);
+    assert.equal(advanceScenario(scenario, s, completed), completed);
+  }
+});
+
+test("Guided sharing cannot be marked tested by revoking a beneficiary before any sharing", () => {
+  const scenario = demoScenarios.find((s) => s.id === "family");
+  let s = scenarioState("family");
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "active",
+  });
+  let done = advanceScenario(scenario, s, 0);
+  assert.equal(done, 1);
+  s = apply(s, "member", {
+    type: "invite-state",
+    id: "family-1",
+    generation: 1,
+    status: "revoked",
+  });
+  assert.equal(advanceScenario(scenario, s, done), 1);
 });

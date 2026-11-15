@@ -1,3 +1,11 @@
+import { DemoGuide, GuideProgress } from "./DemoGuide";
+import {
+  demoScenarios,
+  scenarioState,
+  advanceScenario,
+  type ScenarioId,
+  type DemoStep,
+} from "./scenarios";
 import { Family } from "./Family";
 import { Proposals } from "./Proposals";
 import { ActionQueue, Messages } from "./Inbox";
@@ -9,6 +17,7 @@ import {
   roleNames,
   icons,
   type View,
+  viewsForRole,
   Button,
   Field,
   Panel,
@@ -120,7 +129,11 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     [view, setView] = useState<View>("overview"),
     [selected, select] = useState("DEMO-001"),
     [notice, setNotice] = useState(""),
-    [reset, setReset] = useState(false);
+    [reset, setReset] = useState(false),
+    [scenarioId, setScenarioId] = useState<ScenarioId | null>(null),
+    [completed, setCompleted] = useState(0),
+    [epoch, setEpoch] = useState(0);
+  const scenario = demoScenarios.find((s) => s.id === scenarioId);
   const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -148,34 +161,40 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
             ),
       );
-    if (result.ok) setState(result.state);
+    if (result.ok) {
+      setState(result.state);
+      if (scenario && !["message-draft", "message-read"].includes(a.type))
+        setCompleted(advanceScenario(scenario, result.state, completed));
+    }
     return result.ok;
   };
-  const views: View[] =
-    role === "member"
-      ? [
-          "overview",
-          "requests",
-          "tasks",
-          "properties",
-          "documents",
-          "messages",
-          "billing",
-          "newsletter",
-          "profile",
-        ]
-      : role === "team"
-        ? [
-            "overview",
-            "requests",
-            "tasks",
-            "documents",
-            "messages",
-            "billing",
-            "newsletter",
-            "admin",
-          ]
-        : ["overview", "requests", "tasks", "documents", "messages"];
+  const views = viewsForRole(role);
+  const openStep = (step: DemoStep) => {
+    setRole(step.role);
+    const accessible = visibleCases(state, step.role);
+    const id =
+      accessible.find((c) => c.id === step.caseId)?.id ||
+      accessible[0]?.id ||
+      "";
+    select(id);
+    go(step.view, id);
+  };
+  const startScenario = (id: ScenarioId) => {
+    const chosen = demoScenarios.find((s) => s.id === id)!;
+    const next = scenarioState(id);
+    setState(next);
+    setScenarioId(id);
+    setCompleted(0);
+    setEpoch((x) => x + 1);
+    setReset(false);
+    setRole(chosen.steps[0].role);
+    select(
+      chosen.steps[0].caseId ||
+        visibleCases(next, chosen.steps[0].role)[0]?.id ||
+        "",
+    );
+    go(chosen.steps[0].view, chosen.steps[0].caseId);
+  };
   return (
     <WorkspaceContext.Provider
       value={{ state, role, lang, act, go, selected, select, t }}
@@ -192,6 +211,9 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               "Dados fictícios. Tudo fica em memória e desaparece ao recarregar.",
             )}
           </span>
+          <button onClick={() => go("guide")}>
+            {t("Parcours guidés", "Percursos guiados")}
+          </button>
           <button onClick={() => setReset(!reset)}>
             {t("Réinitialiser", "Repor")}
           </button>
@@ -207,6 +229,9 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             <Button
               onClick={() => {
                 setState(initialState());
+                setScenarioId(null);
+                setCompleted(0);
+                setEpoch((x) => x + 1);
                 setReset(false);
                 select("DEMO-001");
                 go("overview");
@@ -253,8 +278,13 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 onChange={(e) => {
                   const r = e.target.value as Role;
                   setRole(r);
-                  select(visibleCases(state, r)[0]?.id || "");
-                  go("overview");
+                  const accessible = visibleCases(state, r);
+                  const id =
+                    accessible.find((c) => c.id === selected)?.id ||
+                    accessible[0]?.id ||
+                    "";
+                  select(id);
+                  go(viewsForRole(r).includes(view) ? view : "overview", id);
                 }}
               >
                 {Object.entries(roleNames).map(([r, l]) => (
@@ -339,18 +369,36 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             <p className="ws-feedback" role="status" aria-live="polite">
               {notice}
             </p>
-            {view === "overview" && <Overview />}
-            {view === "requests" && <Requests />}
-            {view === "tasks" && <Tasks />}
-            {view === "properties" && <Properties />}
-            {view === "documents" && <Documents />}
-            {view === "messages" && <Messages />}
-            {view === "billing" && <Billing />}
-            {view === "profile" && <Profile />}
-            {view === "newsletter" && (
-              <Newsletter key={state.archives.length} />
+            {scenario && (
+              <GuideProgress
+                scenario={scenario}
+                completed={completed}
+                openStep={openStep}
+                exit={() => setScenarioId(null)}
+              />
             )}
-            {view === "admin" && <Administration />}
+            <div key={`${role}-${epoch}`}>
+              {view === "guide" && (
+                <DemoGuide
+                  start={startScenario}
+                  active={scenario}
+                  completed={completed}
+                  openStep={openStep}
+                />
+              )}
+              {view === "overview" && <Overview />}
+              {view === "requests" && <Requests />}
+              {view === "tasks" && <Tasks />}
+              {view === "properties" && <Properties />}
+              {view === "documents" && <Documents key={selected} />}
+              {view === "messages" && <Messages />}
+              {view === "billing" && <Billing />}
+              {view === "profile" && <Profile />}
+              {view === "newsletter" && (
+                <Newsletter key={state.archives.length} />
+              )}
+              {view === "admin" && <Administration />}
+            </div>
             <footer className="ws-footer">
               <strong>
                 {t(
@@ -440,6 +488,12 @@ function Overview() {
           <span>{t("documents accessibles", "documentos acessíveis")}</span>
         </div>
       </div>
+      <p className="ws-guide-discovery">
+        {t("Première visite de la démo ?", "Primeira visita à demo?")}{" "}
+        <button className="ws-inline-link" onClick={() => go("guide")}>
+          {t("Choisir un parcours guidé", "Escolher um percurso guiado")}
+        </button>
+      </p>
       <ActionQueue />
       <div className="ws-two">
         <Panel

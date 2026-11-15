@@ -16,3 +16,5 @@ export const render = (page: Page, lang: Lang) =>
   renderToString(<App page={page} lang={lang} />);
 
 export * from "./workspace/model";
+
+export * from "./workspace/scenarios";

@@ -14,6 +14,7 @@ import {
   type Action,
 } from "./model";
 export type View =
+  | "guide"
   | "overview"
   | "requests"
   | "properties"
@@ -37,6 +38,7 @@ export type Context = {
 export const WorkspaceContext = createContext<Context>(null!);
 export const useWorkspace = () => useContext(WorkspaceContext);
 export const labels: Record<View, [string, string]> = {
+  guide: ["Parcours guidés", "Percursos guiados"],
   tasks: ["Tâches et échéances", "Tarefas e prazos"],
   overview: ["Vue d’ensemble", "Visão geral"],
   requests: ["Demandes", "Pedidos"],
@@ -54,6 +56,7 @@ export const roleNames: Record<Role, [string, string]> = {
   partner: ["Partenaire", "Parceiro"],
 };
 export const icons: Record<View, string> = {
+  guide: "◇",
   tasks: "✓",
   overview: "◈",
   requests: "↗",
@@ -202,4 +205,33 @@ export function CaseSelect({
         ))}
     </select>
   );
+}
+
+export function viewsForRole(role: Role): View[] {
+  return role === "member"
+    ? [
+        "overview",
+        "guide",
+        "requests",
+        "tasks",
+        "properties",
+        "documents",
+        "messages",
+        "billing",
+        "newsletter",
+        "profile",
+      ]
+    : role === "team"
+      ? [
+          "overview",
+          "guide",
+          "requests",
+          "tasks",
+          "documents",
+          "messages",
+          "billing",
+          "newsletter",
+          "admin",
+        ]
+      : ["overview", "guide", "requests", "tasks", "documents", "messages"];
 }
