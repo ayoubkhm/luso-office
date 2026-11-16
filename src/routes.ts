@@ -1,3 +1,4 @@
+import { aboutCopy } from "./aboutCopy";
 import { countryLabel } from "./countries";
 import { translate, languages, languageNames } from "./locales";
 import type { Lang } from "./catalogue";
@@ -80,6 +81,9 @@ export const descriptions = Object.fromEntries(
     translate(baseDescriptions.fr, baseDescriptions.pt, lang),
   ]),
 ) as Record<Lang, string>;
+export const pageDescription = (page: Page, lang: Lang) =>
+  page === "about" ? aboutCopy[lang].metaDescription : descriptions[lang];
+
 export interface RequestDraft {
   name: string;
   email: string;

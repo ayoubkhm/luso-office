@@ -3,7 +3,7 @@ import {
   pageNames,
   files,
   titles,
-  descriptions,
+  pageDescription,
   href,
   render,
 } from "../.ssr/entry-server.js";
@@ -14,7 +14,7 @@ for (const lang of ["fr", "pt", "en", "de"]) {
   if (lang !== "fr") await mkdir(`dist/${lang}`, { recursive: true });
   for (const page of pageNames) {
     const canonical = "https://lusooffice.com" + href(page, lang);
-    const meta = `<meta name="description" content="${esc(descriptions[lang])}"/><link rel="canonical" href="${canonical}"/><link rel="alternate" hreflang="fr" href="https://lusooffice.com${href(page, "fr")}"/><link rel="alternate" hreflang="pt" href="https://lusooffice.com${href(page, "pt")}"/><link rel="alternate" hreflang="en" href="https://lusooffice.com${href(page, "en")}"/><link rel="alternate" hreflang="de" href="https://lusooffice.com${href(page, "de")}"/><link rel="alternate" hreflang="x-default" href="https://lusooffice.com${href(page, "fr")}"/><meta property="og:site_name" content="LusoOffice"/><meta property="og:title" content="${esc(titles[page][lang])}"/><meta property="og:description" content="${esc(descriptions[lang])}"/><meta property="og:type" content="website"/><meta property="og:locale" content="${{ fr: "fr_FR", pt: "pt_PT", en: "en_GB", de: "de_DE" }[lang]}"/><meta property="og:url" content="${canonical}"/><meta name="twitter:card" content="summary"/>`;
+    const meta = `<meta name="description" content="${esc(pageDescription(page, lang))}"/><link rel="canonical" href="${canonical}"/><link rel="alternate" hreflang="fr" href="https://lusooffice.com${href(page, "fr")}"/><link rel="alternate" hreflang="pt" href="https://lusooffice.com${href(page, "pt")}"/><link rel="alternate" hreflang="en" href="https://lusooffice.com${href(page, "en")}"/><link rel="alternate" hreflang="de" href="https://lusooffice.com${href(page, "de")}"/><link rel="alternate" hreflang="x-default" href="https://lusooffice.com${href(page, "fr")}"/><meta property="og:site_name" content="LusoOffice"/><meta property="og:title" content="${esc(titles[page][lang])}"/><meta property="og:description" content="${esc(pageDescription(page, lang))}"/><meta property="og:type" content="website"/><meta property="og:locale" content="${{ fr: "fr_FR", pt: "pt_PT", en: "en_GB", de: "de_DE" }[lang]}"/><meta property="og:url" content="${canonical}"/><meta name="twitter:card" content="summary"/>`;
     const content = template
       .replace('<html lang="fr">', `<html lang="${lang}">`)
       .replace(

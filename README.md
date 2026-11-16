@@ -21,7 +21,7 @@ Le build génère 28 pages HTML en français, portugais, anglais et allemand dan
 - `services.html` : 28 fiches bilingues, recherche, filtre par domaine, contenu, livrable, limites, unité et prix indicatifs.
 - `adhesion.html` : propositions Member / Family / Premium, paiement mensuel ou annuel, avantages et FAQ. Premium reste à l’étude.
 - `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, sept axes à développer.
-- `a-propos.html` : histoire de la fondatrice, diaspora, présence internationale projetée, partenariat et contact TBD.
+- `a-propos.html` : mission, origine familiale, méthode d’accompagnement envisagée, liens avec la diaspora et préparation du contact. Les projets internationaux et associatifs sont regroupés dans un volet secondaire.
 - `journal.html` : format de la newsletter « Portugal — Tão longe e tão perto » et projet Coffret da Lis, sans édition ni produit fictif.
 - `espace.html` : atelier interactif « O meu Portugal », vues client, équipe et partenaire, avec sauvegarde locale facultative des exemples.
 - `/pt/`, `/en/`, `/de/` : mêmes pages en portugais, anglais et allemand. Le choix de langue conserve les filtres du catalogue ; dans l’espace, il conserve la session et la route courantes.
@@ -36,6 +36,12 @@ Catalogue de base : Maison 8, Documents 6, Famille 5, Retour 5, Business 4. Chaq
 Les montants affichés sont uniquement les propositions en euros des documents : Member 29,90 €/mois ou 299 €/an ; Family 49,90 €/mois ou 499 €/an ; Premium 99,90 €/mois ou 999 €/an. Leur statut indicatif est visible. Aucune conversion de devise ou offre de marché non confirmée n’est inventée. L’adhésion et les services sont facturés séparément dans le modèle prévu ; l’accès aux prestations sans adhésion est explicite. Aucun quota ou délai garanti n’a été ajouté.
 
 L’histoire de la fondatrice fille d’émigrants en France est issue de la compilation. Sa présentation personnelle, les coordonnées, les zones portugaises et l’identité juridique restent TBD conformément à l’instruction de l’utilisateur. Paris/Londres sont en recherche, Francfort/Genève proposées, Fall River retenue pour la recherche aux États-Unis ; aucun bureau n’est présenté comme ouvert. Les partenaires ne sont pas présentés comme contractualisés. Aucune donnée commerciale d’une autre marque n’est réutilisée.
+
+## Validation éditoriale de « Notre histoire »
+
+La page distingue les faits issus du brief (fondatrice fille d’émigrants portugais en France, public multigénérationnel) de la méthode et des partenariats envisagés. Le motif d’azulejos existant accompagne le récit ; il ne représente ni la fondatrice ni des locaux. Avant publication : faire valider le récit par Hélèna, son nom public, son rôle présenté et un éventuel portrait autorisé. Ces éléments restent à confirmer ; aucune citation personnelle n’est inventée.
+
+E-mail, téléphone, zones d’intervention, identité juridique et siège restent **TBD**. Ils sont conservés dans ce suivi plutôt qu’affichés sous forme de cinq blocs vides. Les recherches de présence à Paris, Londres et Fall River et les propositions de Francfort et Genève restent les pistes internes décrites plus haut, sans bureau annoncé comme ouvert. Les boutons de contact continuent de préparer un récapitulatif local sans envoi. Le texte et la description de la page sont déclinés en FR/PT/EN/DE.
 
 ## Parcours et limites
 

@@ -10,6 +10,7 @@ import {
   type Page,
 } from "./routes";
 export { pageNames, files, titles, descriptions, href };
+export { pageDescription } from "./routes";
 export { services, areas, plans, filterServices, price } from "./catalogue";
 export { requestText, route } from "./routes";
 export const render = (page: Page, lang: Lang) =>
