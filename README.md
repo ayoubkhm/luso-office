@@ -384,3 +384,9 @@ Les rôles opérateur, éditeur, publieur, facturation et administrateur seront 
 3. Paiements et abonnements en bac à sable, facturation et rapprochement. Tester événements dupliqués/désordonnés, échec, annulation, remboursement et absence de double débit.
 4. Journal éditorial, envois de test, consentements, planification et reprise des erreurs. Tester la désinscription après préparation d’une campagne.
 5. Traductions complémentaires, accessibilité, sauvegarde/restauration, exploitation et revue de lancement. Activer les services réels seulement après validation et configuration des comptes de la société.
+
+## Parcours publics et validation de l’offre
+
+L’accueil oriente par situation ; les services proposent un guide pour distinguer les trois visites de bien. Les liens vers une prestation ouvrent sa fiche. L’adhésion compare Member et Family, affiche l’écart indicatif entre l’annuel et douze mensualités et place Premium dans un volet à l’étude. Business Portugal relie chaque axe à une intervention de coordination et explique le premier entretien. Le journal contient un exemple éditorial en portugais explicitement non publié ; les contributions au Coffret da Lis ouvrent une préparation de partenariat. Les avantages supplémentaires, contrats, partenaires et calendrier éditorial restent à valider avec Hélèna.
+
+La fermeture du formulaire public conserve sa préparation en mémoire pour le même point d’entrée tant que la page reste ouverte. Il n’y a pas de stockage persistant ajouté : recharger ou quitter la page efface ces brouillons. La modalité mensuelle/annuelle est reprise dans le formulaire, le récapitulatif et son téléchargement. La devise souhaitée est conservée comme préférence, sans conversion. La limite de 2 000 caractères est partagée avec le transfert vers l’espace, validé avant navigation. Les liens de langue conservent la rubrique et les filtres ; chaque page publique possède une description spécifique dans les quatre langues.

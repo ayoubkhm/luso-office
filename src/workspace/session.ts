@@ -1,3 +1,4 @@
+import { requestMessageLimit } from "../requestLimits";
 import { validAction } from "./validateAction";
 import { initialState, transition, type Action, type Role } from "./model";
 import { demoScenarios, scenarioState, type ScenarioId } from "./scenarios";
@@ -87,7 +88,7 @@ export function readHandoff(raw: string): RequestHandoff | null {
     return d.version === 1 &&
       typeof d.service === "string" &&
       typeof d.description === "string" &&
-      d.description.length <= 2000 &&
+      d.description.length <= requestMessageLimit &&
       typeof d.name === "string" &&
       d.name.length <= 100 &&
       typeof d.country === "string"

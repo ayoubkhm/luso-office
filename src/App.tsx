@@ -1,8 +1,17 @@
+import {
+  ServiceChoice,
+  BusinessTopics,
+  BusinessPreparation,
+  JournalSample,
+  JournalAccess,
+} from "./PublicGuides";
+import { publicCopy } from "./publicCopy";
+import { requestMessageLimit } from "./requestLimits";
 import { About } from "./About";
 import { CountrySelect } from "./CountrySelect";
 import { MarketChoice, type Currency } from "./MarketChoice";
 import { translate, languages, languageNames } from "./locales";
-import { handoffKey } from "./workspace/session";
+import { handoffKey, readHandoff } from "./workspace/session";
 import { Workspace } from "./workspace/Workspace";
 import {
   createContext,
@@ -25,6 +34,7 @@ import {
 } from "./catalogue";
 import {
   href,
+  languageHref,
   titles,
   requestText,
   type Page,
@@ -129,21 +139,27 @@ const PageIntro = ({
   </section>
 );
 function DraftNotice() {
-  const { t } = useSite();
+  const { lang } = useSite();
   return (
     <p className="notice">
       <span className="notice-dot" aria-hidden="true" />
-      {t(
-        "Proposition à valider avec Hélèna. Prix en euros indicatifs ; périmètres, TVA, déplacements et frais de tiers à préciser. Aucune commande ni souscription sur cette version.",
-        "Proposta a validar com Hélèna. Valores indicativos em euros; âmbitos, IVA, deslocações e despesas de terceiros por esclarecer. Sem encomendas ou adesões nesta versão.",
-      )}
+      {publicCopy[lang].draftNotice}
     </p>
   );
 }
 function ServiceRow({ service: s }: { service: Service }) {
   const { lang, t } = useSite();
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const openTarget = () => {
+      if (location.hash === `#${s.id}` && ref.current) ref.current.open = true;
+    };
+    openTarget();
+    window.addEventListener("hashchange", openTarget);
+    return () => window.removeEventListener("hashchange", openTarget);
+  }, [s.id]);
   return (
-    <details className="service-row" id={s.id}>
+    <details ref={ref} className="service-row" id={s.id}>
       <summary>
         <span>
           <strong>{s.name[lang]}</strong>
@@ -162,12 +178,7 @@ function ServiceRow({ service: s }: { service: Service }) {
           <p className="unit">{s.unit[lang]}</p>
         </div>
         <aside className="service-price">
-          <p className="price-status">
-            {t(
-              "Montants de travail · à valider",
-              "Valores de trabalho · a validar",
-            )}
-          </p>
+          <p className="price-status">{publicCopy[lang].indicativePrice}</p>
           <dl>
             <div>
               <dt>{t("Sans adhésion", "Sem adesão")}</dt>
@@ -287,9 +298,29 @@ export function App({
   search?: string;
 }) {
   const t = (fr: string, pt: string) => translate(fr, pt, lang);
+  const copy = publicCopy[lang];
   const [menu, setMenu] = useState(false),
-    [request, setRequest] = useState<string | null>(null),
+    [request, setRequest] = useState<{
+      subject: string;
+      period?: RequestDraft["period"];
+    } | null>(null),
     [privacy, setPrivacy] = useState(false);
+  const requestDrafts = useRef<Record<string, RememberedRequest>>({});
+  const [anchor, setAnchor] = useState("");
+  const [publicSearch, setPublicSearch] = useState(search);
+  useEffect(() => {
+    const sync = () => {
+      setAnchor(location.hash);
+      setPublicSearch(location.search);
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    window.addEventListener("luso-public-location", sync);
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("luso-public-location", sync);
+    };
+  }, []);
   const menuRef = useRef<HTMLButtonElement>(null);
   const nav = [
     ["services", t("Services", "Serviços")],
@@ -321,9 +352,9 @@ export function App({
       mq.removeEventListener("change", resize);
     };
   }, [page, lang, menu]);
-  const open = (subject = "") => {
+  const open = (subject = "", period?: RequestDraft["period"]) => {
     setMenu(false);
-    setRequest(subject);
+    setRequest({ subject, period });
   };
   const link = (p: Page, q = "") => href(p, lang, q);
 
@@ -370,19 +401,14 @@ export function App({
               {languages.map((l) => (
                 <a
                   key={l}
-                  href={href(
-                    page,
-                    l,
-                    search
-                      .replace(/([?&])lang=[^&]*/, "$1")
-                      .replace(/[?&]$/, ""),
-                  )}
+                  href={languageHref(page, l, publicSearch, anchor)}
                   onClick={(e) => {
+                    // Preserve the live filters and the current section in every language.
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+                      return;
                     e.preventDefault();
-                    const q = new URLSearchParams(location.search);
-                    q.delete("lang");
                     location.assign(
-                      href(page, l, q.size ? "?" + q.toString() : ""),
+                      languageHref(page, l, location.search, location.hash),
                     );
                   }}
                   lang={l}
@@ -453,12 +479,7 @@ export function App({
                     "A sua vida está lá.\nOs seus laços estão cá.",
                   )}
                 </h1>
-                <p>
-                  {t(
-                    "Une maison de famille, des documents, un retour ou un projet à construire. LusoOffice est votre relais au Portugal, où que vous viviez.",
-                    "Uma casa de família, documentos, um regresso ou um projeto a construir. A LusoOffice é o seu apoio em Portugal, onde quer que viva.",
-                  )}
-                </p>
+                <p>{copy.homeIntro}</p>
                 <div className="hero-actions">
                   <a className="button primary" href={link("services")}>
                     {t("Trouver mon service", "Encontrar o meu serviço")}
@@ -468,12 +489,7 @@ export function App({
                     {t("Comprendre l’adhésion", "Compreender a adesão")}
                   </a>
                 </div>
-                <p className="hero-footnote">
-                  {t(
-                    "Prestations ponctuelles accessibles avec ou sans adhésion.",
-                    "Serviços pontuais disponíveis com ou sem adesão.",
-                  )}
-                </p>
+                <p className="hero-footnote">{copy.withoutMembership}</p>
               </div>
               <div className="hero-art">
                 <img
@@ -488,25 +504,15 @@ export function App({
                   )}
                   fetchPriority="high"
                 />
-                <span className="image-caption">
+                <span className="image-caption" lang="pt">
                   Ligamos Portugal aos Portugueses no Mundo
                 </span>
               </div>
             </section>
             <section className="section wrap">
               <div className="section-heading">
-                <h2>
-                  {t(
-                    "Cinq façons de garder\nle lien avec le Portugal.",
-                    "Cinco formas de manter\na ligação a Portugal.",
-                  )}
-                </h2>
-                <p>
-                  {t(
-                    "Partez de ce qui compte pour vous. Chaque domaine rassemble des prestations précises et leurs limites.",
-                    "Comece pelo que lhe importa. Cada área reúne serviços concretos e os seus limites.",
-                  )}
-                </p>
+                <h2>{copy.homeAreas}</h2>
+                <p>{copy.homeAreasIntro}</p>
               </div>
               <div className="areas-grid">
                 {areas.map((a) => (
@@ -516,7 +522,18 @@ export function App({
                     key={a.id}
                   >
                     <Icon name={a.icon} />
-                    <h3>{a.name[lang]}</h3>
+                    <span className="area-category">{a.name[lang]}</span>
+                    <h3>
+                      {
+                        {
+                          maison: copy.intentHouse,
+                          documents: copy.intentDocuments,
+                          famille: copy.intentFamily,
+                          retour: copy.intentReturn,
+                          business: copy.intentBusiness,
+                        }[a.id]
+                      }
+                    </h3>
                     <p>{a.description[lang]}</p>
                     <span className="area-bottom">
                       {services.filter((s) => s.area === a.id).length}{" "}
@@ -549,22 +566,12 @@ export function App({
                 </div>
                 <div className="two-paths">
                   <article>
-                    <h3>{t("Commander un service", "Pedir um serviço")}</h3>
-                    <p>
-                      {t(
-                        "Vous avez un besoin précis ? Les prestations sont accessibles sans adhésion, selon le périmètre convenu.",
-                        "Tem uma necessidade concreta? Os serviços estão disponíveis sem adesão, conforme o âmbito acordado.",
-                      )}
-                    </p>
+                    <h3>{copy.oneOff}</h3>
+                    <p>{copy.oneOffBody}</p>
                   </article>
                   <article>
-                    <h3>{t("Devenir adhérent", "Tornar-se aderente")}</h3>
-                    <p>
-                      {t(
-                        "Une adhésion pour des avantages dédiés et des prix adhérent. Les prestations restent facturées séparément.",
-                        "Uma adesão com vantagens próprias e preços de aderente. Os serviços continuam a ser cobrados separadamente.",
-                      )}
-                    </p>
+                    <h3>{copy.considerMembership}</h3>
+                    <p>{copy.membershipBody}</p>
                   </article>
                 </div>
               </div>
@@ -609,7 +616,7 @@ export function App({
                     "O encontro mensal previsto para os aderentes",
                   )}
                 </p>
-                <h2>Portugal — Tão longe e tão perto</h2>
+                <h2 lang="pt">Portugal — Tão longe e tão perto</h2>
               </div>
               <a className="text-link" href={link("journal")}>
                 {t("Découvrir le journal", "Conhecer o jornal")}
@@ -639,6 +646,7 @@ export function App({
               aria-label={t("Catalogue des services", "Catálogo de serviços")}
             >
               <DraftNotice />
+              <ServiceChoice lang={lang} />
               <Catalogue
                 lang={lang}
                 search={search}
@@ -673,12 +681,7 @@ export function App({
                 "Uma ligação duradoura.\nServiços à medida do pedido.",
               )}
             >
-              <p>
-                {t(
-                  "L’adhésion donne accès aux avantages de votre plan et aux prix adhérent. Les interventions au Portugal se choisissent et se paient séparément.",
-                  "A adesão dá acesso às vantagens do plano e aos preços de aderente. As intervenções em Portugal são escolhidas e pagas separadamente.",
-                )}
-              </p>
+              <p>{copy.membershipIntro}</p>
               <a className="text-link" href={link("services")}>
                 {t(
                   "Vous pouvez aussi faire appel à nous sans adhérer.",
@@ -741,7 +744,7 @@ export function App({
                       "Área em conceção · explorar o protótipo",
                     )}
                   </span>
-                  <h2>O meu Portugal</h2>
+                  <h2 lang="pt">O meu Portugal</h2>
                   <a className="button primary" href={link("workspace")}>
                     {t(
                       "Explorer l’espace de démonstration",
@@ -794,12 +797,7 @@ export function App({
               )}
               eyebrow="Business Portugal"
             >
-              <p>
-                {t(
-                  "Créer, installer ou développer une activité demande de réunir plusieurs compétences. LusoOffice organise le lien avec les intervenants adaptés à votre projet.",
-                  "Criar, instalar ou desenvolver uma atividade exige reunir várias competências. A LusoOffice organiza a ligação com os intervenientes adequados ao seu projeto.",
-                )}
-              </p>
+              <p>{copy.businessIntro}</p>
               <Button subject="business-entretien">
                 {t("Préparer mon projet", "Preparar o meu projeto")}
               </Button>
@@ -853,38 +851,9 @@ export function App({
                   )}
                 </p>
               </div>
-              <div className="business-topics">
-                {[
-                  L("Créer une entreprise", "Criar empresa"),
-                  L("Comptabilité et fiscalité", "Contabilidade e fiscalidade"),
-                  L(
-                    "Plan d’affaires et viabilité",
-                    "Plano de negócio e viabilidade",
-                  ),
-                  L(
-                    "Préparer un dossier de financement",
-                    "Preparar um dossier de financiamento",
-                  ),
-                  L(
-                    "Organiser un projet d’investissement",
-                    "Organizar um projeto de investimento",
-                  ),
-                  L(
-                    "S’installer et trouver des fournisseurs",
-                    "Instalar-se e encontrar fornecedores",
-                  ),
-                  L(
-                    "Suivre l’activité depuis l’étranger",
-                    "Acompanhar a atividade no estrangeiro",
-                  ),
-                ].map((x, i) => (
-                  <div key={x.fr}>
-                    <Icon name={i % 2 ? "file" : "business"} />
-                    <h3>{x[lang]}</h3>
-                  </div>
-                ))}
-              </div>
+              <BusinessTopics lang={lang} />
             </section>
+            <BusinessPreparation lang={lang} />
             <section className="section pale">
               <div className="wrap">
                 <h2>
@@ -912,7 +881,7 @@ export function App({
                 <p className="overline">
                   {t("Le journal de LusoOffice", "O jornal da LusoOffice")}
                 </p>
-                <h1>
+                <h1 lang="pt">
                   Portugal
                   <br />
                   Tão longe
@@ -924,12 +893,7 @@ export function App({
                     "Um encontro para continuar perto de Portugal, compreender os assuntos do dia a dia e preparar os próximos passos.",
                   )}
                 </p>
-                <span className="status-pill">
-                  {t(
-                    "Première édition à venir",
-                    "Primeira edição em preparação",
-                  )}
-                </span>
+                <span className="status-pill">{copy.journalStatus}</span>
               </div>
               <div className="journal-tile" aria-hidden="true">
                 <img
@@ -992,13 +956,9 @@ export function App({
                   </article>
                 ))}
               </div>
-              <p className="editorial-note">
-                {t(
-                  "Le calendrier et la responsabilité éditoriale restent à confirmer. Aucun abonnement à la newsletter n’est activé sur cette version.",
-                  "O calendário e a responsabilidade editorial estão por confirmar. Não é possível subscrever a newsletter nesta versão.",
-                )}
-              </p>
+              <p className="editorial-note">{copy.journalTiming}</p>
             </section>
+            <JournalSample lang={lang} />
             <section className="cultural-section">
               <div className="wrap cultural-layout">
                 <div>
@@ -1008,7 +968,7 @@ export function App({
                       "Projeto cultural a desenvolver",
                     )}
                   </p>
-                  <h2>Coffret da Lis</h2>
+                  <h2 lang="pt">Coffret da Lis</h2>
                   <p>
                     {t(
                       "Six illustrations autour de symboles portugais et un livre à construire avec les élèves des écoles de portugais à l’étranger, coautrices et coauteurs de leurs contributions.",
@@ -1021,6 +981,7 @@ export function App({
                       "Escolas, conteúdos, autorizações e produção estão por organizar. Não há coffrets à venda.",
                     )}
                   </p>
+                  <Button subject="partnership">{copy.contribute}</Button>
                 </div>
                 <ul>
                   {[
@@ -1036,7 +997,7 @@ export function App({
                 </ul>
               </div>
             </section>
-            <Cta />
+            <JournalAccess lang={lang} />
           </>
         )}
       </main>
@@ -1075,7 +1036,12 @@ export function App({
       {request !== null && (
         <RequestModal
           lang={lang}
-          initial={request}
+          initial={request.subject}
+          initialPeriod={request.period}
+          remembered={requestDrafts.current[request.subject || "other"]}
+          onRemember={(saved) => {
+            requestDrafts.current[request.subject || "other"] = saved;
+          }}
           onClose={() => setRequest(null)}
         />
       )}
@@ -1121,6 +1087,7 @@ function Catalogue({
       : url.searchParams.set("area", area);
     query ? url.searchParams.set("q", query) : url.searchParams.delete("q");
     history.replaceState(null, "", url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event("luso-public-location"));
   }, [area, query]);
   return (
     <>
@@ -1168,13 +1135,20 @@ function Catalogue({
       </div>
       <p className="result-count" role="status">
         {filtered.length}{" "}
-        {fr
-          ? filtered.length === 1
-            ? "service trouvé"
-            : "services trouvés"
-          : filtered.length === 1
-            ? "serviço encontrado"
-            : "serviços encontrados"}
+        {
+          {
+            fr: filtered.length === 1 ? "service trouvé" : "services trouvés",
+            pt:
+              filtered.length === 1
+                ? "serviço encontrado"
+                : "serviços encontrados",
+            en: filtered.length === 1 ? "service found" : "services found",
+            de:
+              filtered.length === 1
+                ? "Leistung gefunden"
+                : "Leistungen gefunden",
+          }[lang]
+        }
       </p>
       {areas.map((a) => {
         const items = filtered.filter((s) => s.area === a.id);
@@ -1227,10 +1201,11 @@ function Membership({
   onChoose,
 }: {
   lang: Lang;
-  onChoose: (s: string) => void;
+  onChoose: (s: string, period?: RequestDraft["period"]) => void;
 }) {
-  const [annual, setAnnual] = useState(true),
-    fr = lang === "fr";
+  const [annual, setAnnual] = useState(true);
+  const copy = publicCopy[lang];
+  const premium = plans.find((plan) => plan.id === "Premium")!;
   return (
     <>
       <div
@@ -1250,53 +1225,87 @@ function Membership({
         </button>
       </div>
       <div className="plan-grid">
-        {plans.map((p) => (
-          <article
-            className={`plan ${p.id === "Family" ? "family-plan" : ""}`}
-            key={p.id}
-          >
-            <p className="plan-state">
-              {p.id === "Premium"
-                ? translate("Plan à l’étude", "Plano em estudo", lang)
-                : translate("Proposition de plan", "Proposta de plano", lang)}
-            </p>
-            <h2>{p.id}</h2>
-            <p className="plan-people">{p.people[lang]}</p>
-            <p className="plan-amount">
-              {new Intl.NumberFormat(lang, {
-                style: "currency",
-                currency: "EUR",
-                minimumFractionDigits: annual ? 0 : 2,
-              }).format(annual ? p.annual : p.monthly)}
-              <span>
-                {" "}
-                /{" "}
-                {annual
-                  ? translate("an", "ano", lang)
-                  : translate("mois", "mês", lang)}
-              </span>
-            </p>
-            <small>
-              {translate(
-                "Montant indicatif, conditions et TVA à valider.",
-                "Valor indicativo, condições e IVA a validar.",
-                lang,
-              )}
-            </small>
-            <p className="plan-description">{p.description[lang]}</p>
-            <button
-              className={`button ${p.id === "Family" ? "primary" : "secondary"}`}
-              onClick={() => onChoose(p.id)}
+        {plans
+          .filter((p) => p.id !== "Premium")
+          .map((p) => (
+            <article
+              className={`plan ${p.id === "Family" ? "family-plan" : ""}`}
+              key={p.id}
             >
-              {translate(
-                "Parler de ce plan",
-                "Conversar sobre este plano",
-                lang,
+              <p className="plan-state">
+                {p.id === "Premium"
+                  ? translate("Plan à l’étude", "Plano em estudo", lang)
+                  : translate("Proposition de plan", "Proposta de plano", lang)}
+              </p>
+              <h2>{p.id}</h2>
+              <p className="plan-people">{p.people[lang]}</p>
+              <p className="plan-amount">
+                {new Intl.NumberFormat(lang, {
+                  style: "currency",
+                  currency: "EUR",
+                  minimumFractionDigits: annual ? 0 : 2,
+                }).format(annual ? p.annual : p.monthly)}
+                <span>
+                  {" "}
+                  /{" "}
+                  {annual
+                    ? translate("an", "ano", lang)
+                    : translate("mois", "mês", lang)}
+                </span>
+              </p>
+              <small>
+                {translate(
+                  "Montant indicatif, conditions et TVA à valider.",
+                  "Valor indicativo, condições e IVA a validar.",
+                  lang,
+                )}
+              </small>
+              <p className="plan-description">{p.description[lang]}</p>
+              {annual && (
+                <p className="plan-saving">
+                  {copy.annualSaving}{" "}
+                  <strong>
+                    {new Intl.NumberFormat(lang, {
+                      style: "currency",
+                      currency: "EUR",
+                    }).format(p.monthly * 12 - p.annual)}
+                  </strong>
+                </p>
               )}
-            </button>
-          </article>
-        ))}
+              <button
+                className={`button ${p.id === "Family" ? "primary" : "secondary"}`}
+                onClick={() => onChoose(p.id, annual ? "annual" : "monthly")}
+              >
+                {translate(
+                  "Parler de ce plan",
+                  "Conversar sobre este plano",
+                  lang,
+                )}
+              </button>
+            </article>
+          ))}
       </div>
+      <details className="premium-preview">
+        <summary>{copy.premiumTitle}</summary>
+        <p>{copy.premiumNote}</p>
+        <p>
+          {publicCopy[lang].indicativePrice} :{" "}
+          {new Intl.NumberFormat(lang, {
+            style: "currency",
+            currency: "EUR",
+          }).format(annual ? premium.annual : premium.monthly)}{" "}
+          /{" "}
+          {annual
+            ? translate("an", "ano", lang)
+            : translate("mois", "mês", lang)}
+        </p>
+        <button
+          className="button secondary"
+          onClick={() => onChoose("Premium", annual ? "annual" : "monthly")}
+        >
+          {translate("Parler de ce plan", "Conversar sobre este plano", lang)}
+        </button>
+      </details>
       <p className="plan-disclaimer">
         {translate(
           "L’annuel et le mensuel sont deux modalités distinctes. Échéances, renouvellement, bénéficiaires et limites d’accompagnement restent à préciser. Les services sont toujours facturés séparément.",
@@ -1441,21 +1450,42 @@ function Modal({
     </dialog>
   );
 }
+type RememberedRequest = {
+  draft: RequestDraft;
+  subject: string;
+  currency: Currency;
+  period?: RequestDraft["period"];
+};
 function RequestModal({
   lang,
   initial,
+  initialPeriod,
+  remembered,
+  onRemember,
   onClose,
 }: {
   lang: Lang;
   initial: string;
+  initialPeriod?: RequestDraft["period"];
+  remembered?: RememberedRequest;
+  onRemember: (saved: RememberedRequest) => void;
   onClose: () => void;
 }) {
   const fr = lang === "fr",
     t = (a: string, b: string) => translate(a, b, lang);
-  const [draft, setDraft] = useState<RequestDraft | null>(null),
+  const [draft, setDraft] = useState<RequestDraft | null>(
+      remembered?.draft || null,
+    ),
     [editing, setEditing] = useState(true);
   const [handoffError, setHandoffError] = useState("");
-  const [currency, setCurrency] = useState<Currency>("EUR");
+  const [currency, setCurrency] = useState<Currency>(
+    remembered?.currency || "EUR",
+  );
+  const [period, setPeriod] = useState<RequestDraft["period"]>(
+    initialPeriod || remembered?.period,
+  );
+  const formRef = useRef<HTMLFormElement>(null);
+  const copy = publicCopy[lang];
   const selected = services.find((s) => s.id === initial),
     plan = plans.find((p) => p.id === initial);
   const initialSubject =
@@ -1472,7 +1502,28 @@ function RequestModal({
     },
     { value: "other", label: t("À définir ensemble", "A definir em conjunto") },
   ];
-  const [subject, setSubject] = useState(initialSubject);
+  const [subject, setSubject] = useState(remembered?.subject || initialSubject);
+  const close = () => {
+    const data = formRef.current ? new FormData(formRef.current) : undefined;
+    const field = (name: "name" | "email" | "country" | "message") =>
+      data ? String(data.get(name) || "") : draft?.[name] || "";
+    onRemember({
+      subject,
+      currency,
+      period,
+      draft: {
+        name: field("name"),
+        email: field("email"),
+        country: field("country"),
+        message: field("message"),
+        subject:
+          options.find((option) => option.value === subject)?.label || "",
+        currency,
+        period: subject.startsWith("plan-") ? period : undefined,
+      },
+    });
+    onClose();
+  };
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -1487,7 +1538,15 @@ function RequestModal({
         return;
       }
     }
+    const message = form.elements.namedItem("message") as HTMLTextAreaElement;
+    if (message.value.length > requestMessageLimit) {
+      message.setCustomValidity(copy.messageLimit);
+      message.reportValidity();
+      return;
+    }
     setDraft({
+      currency,
+      period: subject.startsWith("plan-") ? period : undefined,
       name: String(data.get("name")).trim(),
       email: String(data.get("email")).trim(),
       country: String(data.get("country")),
@@ -1504,9 +1563,21 @@ function RequestModal({
   const download = () => {
     if (!draft) return;
     const url = URL.createObjectURL(
-      new Blob([requestText(draft, lang)], {
-        type: "text/plain;charset=utf-8",
-      }),
+      new Blob(
+        [
+          requestText(
+            {
+              ...draft,
+              currency,
+              period: subject.startsWith("plan-") ? period : undefined,
+            },
+            lang,
+          ),
+        ],
+        {
+          type: "text/plain;charset=utf-8",
+        },
+      ),
     );
     const a = document.createElement("a");
     a.href = url;
@@ -1526,7 +1597,7 @@ function RequestModal({
           : t("Votre récapitulatif est prêt.", "O seu resumo está preparado.")
       }
       lang={lang}
-      onClose={onClose}
+      onClose={close}
     >
       {editing ? (
         <>
@@ -1536,7 +1607,7 @@ function RequestModal({
               "Este formulário prepara um documento para descarregar. Não envia pedidos nem cria adesões.",
             )}
           </p>
-          <form onSubmit={submit}>
+          <form ref={formRef} onSubmit={submit}>
             <p className="form-note">
               {t(
                 "* Champs obligatoires. Les autres sont facultatifs.",
@@ -1612,22 +1683,43 @@ function RequestModal({
                 </optgroup>
               </select>
             </label>
+            {subject.startsWith("plan-") && (
+              <label>
+                {copy.periodLabel}
+                <select
+                  name="period"
+                  value={period || ""}
+                  onChange={(e) =>
+                    setPeriod(
+                      (e.target.value || undefined) as RequestDraft["period"],
+                    )
+                  }
+                >
+                  <option value="">{copy.periodUndecided}</option>
+                  <option value="monthly">{t("Mensuelle", "Mensal")}</option>
+                  <option value="annual">{t("Annuelle", "Anual")}</option>
+                </select>
+              </label>
+            )}
             <label>
               {t("Votre situation *", "A sua situação *")}
               <textarea
                 name="message"
                 rows={4}
-                maxLength={3000}
+                maxLength={requestMessageLimit}
                 required
                 defaultValue={draft?.message}
                 onInput={(e) => e.currentTarget.setCustomValidity("")}
-                aria-describedby="sensitive-note"
+                aria-describedby="sensitive-note message-limit"
                 placeholder={t(
                   "Quel besoin, dans quelle commune, pour quelle échéance ?",
                   "Qual a necessidade, em que concelho e para quando?",
                 )}
               />
             </label>
+            <p id="message-limit" className="form-note">
+              {copy.messageLimit}
+            </p>
             <p id="sensitive-note" className="form-note">
               {t(
                 "Ne saisissez pas de documents d’identité, de coordonnées bancaires ou d’informations sensibles.",
@@ -1652,6 +1744,18 @@ function RequestModal({
             <dd>{draft?.name}</dd>
             <dt>{t("Sujet", "Assunto")}</dt>
             <dd>{draft?.subject}</dd>
+            {subject.startsWith("plan-") && (
+              <>
+                <dt>{copy.periodLabel}</dt>
+                <dd>
+                  {period === "annual"
+                    ? t("Annuelle", "Anual")
+                    : period === "monthly"
+                      ? t("Mensuelle", "Mensal")
+                      : copy.periodUndecided}
+                </dd>
+              </>
+            )}
             <dt>{t("Situation", "Situação")}</dt>
             <dd>{draft?.message}</dd>
           </dl>
@@ -1661,17 +1765,19 @@ function RequestModal({
                 className="button primary full"
                 onClick={() => {
                   try {
-                    sessionStorage.setItem(
-                      handoffKey,
-                      JSON.stringify({
-                        version: 1,
-                        service: subject,
-                        description: draft?.message || "",
-                        name: draft?.name || "",
-                        country: draft?.country || "",
-                        currency,
-                      }),
-                    );
+                    const handoff = JSON.stringify({
+                      version: 1,
+                      service: subject,
+                      description: draft?.message || "",
+                      name: draft?.name || "",
+                      country: draft?.country || "",
+                      currency,
+                    });
+                    if (!readHandoff(handoff)) {
+                      setHandoffError(copy.invalidTransfer);
+                      return;
+                    }
+                    sessionStorage.setItem(handoffKey, handoff);
                     location.assign(
                       href("workspace", lang, "#view=requests&role=member"),
                     );
@@ -1707,14 +1813,9 @@ function RequestModal({
           <button className="text-link full" onClick={() => setEditing(true)}>
             {t("Modifier les informations", "Alterar as informações")}
           </button>
-          <p className="next-note">
-            {t(
-              "Coordonnées de contact : TBD. Aucun dossier n’est en attente de traitement.",
-              "Contactos: TBD. Nenhum processo está a aguardar tratamento.",
-            )}
-          </p>
-          <a className="text-link" href={href("about", lang, "#contact")}>
-            {t("Voir les informations de contact", "Ver os contactos")}
+          <p className="next-note">{copy.contactPending}</p>
+          <a className="text-link" href={href("about", lang)}>
+            {copy.returnProject}
             <Icon />
           </a>
         </>

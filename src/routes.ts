@@ -1,3 +1,5 @@
+import { publicCopy } from "./publicCopy";
+import type { Currency } from "./MarketChoice";
 import { aboutCopy } from "./aboutCopy";
 import { countryLabel } from "./countries";
 import { translate, languages, languageNames } from "./locales";
@@ -81,8 +83,28 @@ export const descriptions = Object.fromEntries(
     translate(baseDescriptions.fr, baseDescriptions.pt, lang),
   ]),
 ) as Record<Lang, string>;
-export const pageDescription = (page: Page, lang: Lang) =>
-  page === "about" ? aboutCopy[lang].metaDescription : descriptions[lang];
+export const pageDescription = (page: Page, lang: Lang) => {
+  const copy = publicCopy[lang];
+  return {
+    home: copy.metaHome,
+    services: copy.metaServices,
+    membership: copy.metaMembership,
+    business: copy.metaBusiness,
+    journal: copy.metaJournal,
+    about: aboutCopy[lang].metaDescription,
+    workspace: descriptions[lang],
+  }[page];
+};
+export function languageHref(
+  page: Page,
+  lang: Lang,
+  search: string,
+  hash = "",
+) {
+  const params = new URLSearchParams(search);
+  params.delete("lang");
+  return href(page, lang, (params.size ? "?" + params.toString() : "") + hash);
+}
 
 export interface RequestDraft {
   name: string;
@@ -90,6 +112,8 @@ export interface RequestDraft {
   country: string;
   subject: string;
   message: string;
+  currency?: Currency;
+  period?: "monthly" | "annual";
 }
 export function requestText(d: RequestDraft, lang: Lang) {
   const fr = lang === "fr";
@@ -105,6 +129,14 @@ export function requestText(d: RequestDraft, lang: Lang) {
     `E-mail : ${d.email || "—"}`,
     `${translate("Pays de résidence", "País de residência", lang)} : ${countryLabel(d.country, lang) || "—"}`,
     `${translate("Sujet", "Assunto", lang)} : ${d.subject}`,
+    ...(d.period
+      ? [
+          `${publicCopy[lang].periodLabel} : ${d.period === "annual" ? translate("Annuelle", "Anual", lang) : translate("Mensuelle", "Mensal", lang)}`,
+        ]
+      : []),
+    ...(d.currency
+      ? [`${publicCopy[lang].currencyLabel} : ${d.currency}`]
+      : []),
     "",
     d.message,
     "",
