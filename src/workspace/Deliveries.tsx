@@ -5,6 +5,7 @@ import {
   missingRequirements,
   openTasks,
   visibleDocuments,
+  visibleDeliveryDocuments,
   type Case,
 } from "./model";
 import { Button, Field, Form, useWorkspace, value } from "./ui";
@@ -45,17 +46,17 @@ export function Deliveries({
           </p>
           <p className="ws-proposal-copy">{latest.summary}</p>
           <ul>
-            {latest.documents.map((d) => (
+            {visibleDeliveryDocuments(state, role, c.id, latest).map((d) => (
               <li key={d.id}>
                 {exampleText(d.name, lang)} · v{d.version}
               </li>
             ))}
           </ul>
-          {!latest.documents.length && (
+          {!visibleDeliveryDocuments(state, role, c.id, latest).length && (
             <p className="ws-hint">
               {t(
-                "Compte rendu sans pièce jointe.",
-                "Relatório sem documento anexo.",
+                "Aucune pièce jointe accessible dans cette vue.",
+                "Nenhum documento anexo acessível nesta vista.",
               )}
             </p>
           )}
@@ -180,7 +181,7 @@ export function Deliveries({
               <p>{d.summary}</p>
               <p>{d.correction}</p>
               <ul>
-                {d.documents.map((doc) => (
+                {visibleDeliveryDocuments(state, role, c.id, d).map((doc) => (
                   <li key={doc.id}>
                     {exampleText(doc.name, lang)} · v{doc.version}
                   </li>

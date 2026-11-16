@@ -1,8 +1,11 @@
+import { hasFormBaseline, rememberForm } from "./navigation";
 import { translate, languages, languageNames } from "../locales";
 import {
   createContext,
   useContext,
   useState,
+  useRef,
+  useLayoutEffect,
   type FormEvent,
   type ReactNode,
 } from "react";
@@ -15,19 +18,8 @@ import {
   type Role,
   type Action,
 } from "./model";
-export type View =
-  | "guide"
-  | "settlements"
-  | "overview"
-  | "requests"
-  | "properties"
-  | "documents"
-  | "messages"
-  | "billing"
-  | "profile"
-  | "newsletter"
-  | "admin"
-  | "tasks";
+import type { View } from "./permissions";
+export { viewsForRole, type View } from "./permissions";
 export type Context = {
   state: State;
   role: Role;
@@ -155,22 +147,40 @@ export function Form({
   children,
   onSave,
   className = "",
+  preservesDraft = false,
 }: {
   children: ReactNode;
   onSave: (d: FormData) => boolean | void;
   className?: string;
+  preservesDraft?: boolean;
 }) {
   const { t, error } = useWorkspace();
   const [result, setResult] = useState<boolean | null>(null);
+  const ref = useRef<HTMLFormElement>(null);
+  const submitted = useRef(false);
+  useLayoutEffect(() => {
+    if (
+      ref.current &&
+      (!hasFormBaseline(ref.current) || submitted.current || preservesDraft)
+    ) {
+      rememberForm(ref.current);
+      submitted.current = false;
+    }
+  });
   return (
     <form
+      ref={ref}
       className={`ws-form ${className}`}
       onSubmit={(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const saved = onSave(new FormData(form));
         if (saved !== undefined) setResult(saved);
-        if (saved === true) form.reset();
+        if (saved === true) {
+          form.reset();
+          rememberForm(form);
+          submitted.current = true;
+        }
       }}
     >
       {children}
@@ -214,37 +224,6 @@ export function CaseSelect({
         ))}
     </select>
   );
-}
-
-export function viewsForRole(role: Role): View[] {
-  return role === "member"
-    ? [
-        "overview",
-        "guide",
-        "requests",
-        "tasks",
-        "properties",
-        "documents",
-        "messages",
-        "billing",
-        "settlements",
-        "newsletter",
-        "profile",
-      ]
-    : role === "team"
-      ? [
-          "overview",
-          "guide",
-          "requests",
-          "tasks",
-          "documents",
-          "messages",
-          "billing",
-          "settlements",
-          "newsletter",
-          "admin",
-        ]
-      : ["overview", "guide", "requests", "tasks", "documents", "messages"];
 }
 
 export function navigationGroups(views: View[]) {

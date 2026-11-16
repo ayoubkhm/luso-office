@@ -1,3 +1,4 @@
+import { canAccessView, canPerformAction } from "./permissions";
 import { nextRenewal, validDay } from "./calendar";
 import { failureReason } from "./failureReason";
 // In-memory design prototype. These checks demonstrate rules, not server authorization.
@@ -150,12 +151,7 @@ export interface FamilyInvitation {
   cases: string[];
   documents: string[];
   history: (
-    | "prepared"
-    | "accepted"
-    | "expired"
-    | "revoked"
-    | "renewed"
-    | "plan-change"
+    "prepared" | "accepted" | "expired" | "revoked" | "renewed" | "plan-change"
   )[];
 }
 export interface SubscriptionAttempt {
@@ -198,9 +194,10 @@ export interface State {
     caseId: string;
     role: Role;
     body: string;
-    readBy: Role[];
+    author: string;
+    readBy: string[];
   }[];
-  drafts: Record<Role, Record<string, string>>;
+  drafts: Record<string, Record<string, string>>;
   subscription: {
     startedOn?: string;
     renewsOn?: string;
@@ -268,7 +265,7 @@ export const initialState = (): State => ({
     { id: "partner-1", name: "João · demo", kind: "partner", enabled: true },
     { id: "partner-2", name: "Sofia · demo", kind: "partner", enabled: true },
   ],
-  drafts: { member: {}, team: {}, partner: {} },
+  drafts: {},
   partnerEnabled: true,
   archives: [],
   requirements: [
@@ -388,7 +385,8 @@ export const initialState = (): State => ({
   messages: [
     {
       id: "message-1",
-      readBy: ["team"],
+      author: "team:operator-1",
+      readBy: ["team:operator-1"],
       caseId: "DEMO-001",
       role: "team",
       body: "Exemple / Exemplo : nous préparons la visite ; merci de préciser les accès / estamos a preparar a visita; indique os acessos.",
@@ -505,9 +503,9 @@ export function matchingCases(
 export const validEdition = (e: Edition) =>
   Boolean(
     e.title.trim() &&
-      e.excerpt.trim() &&
-      e.sections.length === 4 &&
-      e.sections.every((x) => x.trim()),
+    e.excerpt.trim() &&
+    e.sections.length === 4 &&
+    e.sections.every((x) => x.trim()),
   );
 export type Action =
   | { type: "demo-date"; day: string }
@@ -707,8 +705,8 @@ function applyTransition(
         return reject;
       const expired = Boolean(
         s.subscription.active &&
-          s.subscription.renewsOn &&
-          a.day >= s.subscription.renewsOn,
+        s.subscription.renewsOn &&
+        a.day >= s.subscription.renewsOn,
       );
       next = {
         ...s,
@@ -1518,7 +1516,10 @@ function applyTransition(
           ...s,
           drafts: {
             ...s.drafts,
-            [role]: { ...s.drafts[role], [c.id]: a.body },
+            [actorKey(s, role)]: {
+              ...s.drafts[actorKey(s, role)],
+              [c.id]: a.body,
+            },
           },
         },
       };
@@ -1533,8 +1534,10 @@ function applyTransition(
         state: {
           ...s,
           messages: s.messages.map((m, i) =>
-            i <= end && m.caseId === c.id && !m.readBy.includes(role)
-              ? { ...m, readBy: [...m.readBy, role] }
+            i <= end &&
+            m.caseId === c.id &&
+            !m.readBy.includes(actorKey(s, role))
+              ? { ...m, readBy: [...m.readBy, actorKey(s, role)] }
               : m,
           ),
         },
@@ -1556,7 +1559,10 @@ function applyTransition(
               ...s,
               drafts: {
                 ...s.drafts,
-                [role]: { ...s.drafts[role], [c.id]: "" },
+                [actorKey(s, role)]: {
+                  ...s.drafts[actorKey(s, role)],
+                  [c.id]: "",
+                },
               },
               messages: [
                 ...s.messages,
@@ -1565,7 +1571,8 @@ function applyTransition(
                   caseId: c.id,
                   role,
                   body: a.body.trim(),
-                  readBy: [role],
+                  author: actorKey(s, role),
+                  readBy: [actorKey(s, role)],
                 },
               ],
             };
@@ -1959,14 +1966,45 @@ function applyTransition(
   };
 }
 
+export const actorKey = (s: State, role: Role) =>
+  `${role}:${role === "member" ? s.activeClient : role === "team" ? s.operatorId : s.partnerId}`;
+export function messageDraft(s: State, role: Role, caseId: string) {
+  return visibleCases(s, role).some((c) => c.id === caseId)
+    ? s.drafts[actorKey(s, role)]?.[caseId] || ""
+    : "";
+}
+export function messageAuthor(s: State, message: State["messages"][number]) {
+  const id = message.author.slice(message.author.indexOf(":") + 1);
+  return message.role === "member"
+    ? (id === s.activeClient
+        ? s.profile.name
+        : s.accounts.find((a) => a.id === id)?.profile.name) || id
+    : s.people.find((p) => p.id === id)?.name || id;
+}
+export function visibleDeliveryDocuments(
+  s: State,
+  role: Role,
+  caseId: string,
+  delivery: Delivery,
+) {
+  const allowed = visibleDocuments(s, role).filter((d) => d.caseId === caseId);
+  return delivery.documents.filter((snapshot) =>
+    allowed.some(
+      (d) =>
+        d.id === snapshot.id &&
+        (role !== "partner" || d.version === snapshot.version),
+    ),
+  );
+}
+
 export function unreadMessages(s: State, role: Role, caseId?: string) {
   const ids = new Set(visibleCases(s, role).map((c) => c.id));
   return s.messages.filter(
     (m) =>
       ids.has(m.caseId) &&
       (!caseId || m.caseId === caseId) &&
-      m.role !== role &&
-      !m.readBy.includes(role),
+      m.author !== actorKey(s, role) &&
+      !m.readBy.includes(actorKey(s, role)),
   );
 }
 export type AttentionKind =
@@ -2013,7 +2051,11 @@ export function attentionItems(s: State, role: Role): AttentionItem[] {
           .length,
         "documents",
       );
-    if (isClosed(c) && c.payment === "paid" && role !== "partner") {
+    if (
+      isClosed(c) &&
+      c.payment === "paid" &&
+      canAccessView(s, role, "settlements")
+    ) {
       const b = c.settlements.at(-1);
       if (
         role === "team" &&
@@ -2186,30 +2228,7 @@ export function transition(
   const person = s.people.find(
     (p) => p.id === (role === "team" ? s.operatorId : s.partnerId),
   );
-  const editorial = [
-    "edition",
-    "edition-draft",
-    "edition-review",
-    "publish",
-    "queue",
-    "dispatch",
-    "cancel-campaign",
-    "next-edition",
-  ];
-  const admin = [
-    "person-access",
-    "partner-access",
-    "client-create",
-    "staff-assign",
-  ];
-  if (
-    role === "team" &&
-    a.type !== "actor-select" &&
-    (!person?.enabled ||
-      (person.kind === "editor" && !editorial.includes(a.type)) ||
-      (person.kind === "operator" &&
-        (editorial.includes(a.type) || admin.includes(a.type))))
-  )
+  if (!canPerformAction(s, role, a))
     return {
       state: s,
       ok: false,

@@ -1,3 +1,4 @@
+import { canAccessView } from "./permissions";
 import { useState } from "react";
 import { canWork, settlementLocked, type Case } from "./model";
 import { useWorkspace, Button, Field, Form, value, roleNames } from "./ui";
@@ -118,14 +119,15 @@ export function CaseDecisions({ c }: { c: Case }) {
               "A equipa validou o fim da missão na demo. Os documentos e as conversas continuam disponíveis nos botões no topo do pedido.",
             )}
           </p>
-          {c.payment === "paid" && (
-            <Button secondary onClick={() => go("settlements", c.id)}>
-              {t(
-                "Consulter le bilan du dossier",
-                "Consultar balanço do pedido",
-              )}
-            </Button>
-          )}
+          {c.payment === "paid" &&
+            canAccessView(state, role, "settlements") && (
+              <Button secondary onClick={() => go("settlements", c.id)}>
+                {t(
+                  "Consulter le bilan du dossier",
+                  "Consultar balanço do pedido",
+                )}
+              </Button>
+            )}
         </div>
       )}
       {c.stage === "delivered" && !c.cancellation && (

@@ -138,6 +138,11 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
   const ui = await mount({
     hash: "#view=requests&role=team&case=DEMO-001&section=team",
   });
+  let confirmations = 0;
+  window.confirm = () => {
+    confirmations++;
+    return false;
+  };
   const form = [...document.querySelectorAll("textarea")].find(
     (x) => x.name === "note",
   );
@@ -153,6 +158,20 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
     document.querySelector('textarea[name="note"]').value,
     "Unsaved internal note",
   );
+  assert.equal(
+    confirmations,
+    0,
+    "Tabs keep the mounted form without prompting",
+  );
+  const original = location.href;
+  await ui.click("Documents", document.querySelector(".ws-subnavigation"));
+  assert.equal(confirmations, 1);
+  assert.equal(location.href, original);
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Unsaved internal note",
+  );
+  window.confirm = () => true;
   await ui.click("Documents", document.querySelector(".ws-subnavigation"));
   assert.equal(
     new URLSearchParams(location.hash.slice(1)).get("view"),
@@ -192,5 +211,155 @@ test("All four languages retain the current route on language switch and expose 
     document.querySelector("h1").textContent,
     /Anfragen|Vorgänge|Anträge/,
   );
+  await ui.close();
+});
+
+test("Cancelled Back preserves both the original history entry and unsaved form; accepted Back and Forward restore language", async () => {
+  const ui = await mount({ hash: "#view=overview&role=team" });
+  await ui.click("↗Dossiers", document.querySelector(".ws-sidebar"));
+  await ui.click("Travail de l’équipe");
+  const note = document.querySelector('textarea[name="note"]');
+  note.value = "Keep this internal note";
+  let confirmations = 0;
+  window.confirm = () => {
+    confirmations++;
+    return false;
+  };
+  await act(async () => {
+    history.back();
+    await settle();
+  });
+  assert.equal(confirmations, 0, "Same-case tabs do not discard the form");
+  const original = location.href;
+  await act(async () => {
+    history.back();
+    await settle();
+    await settle();
+  });
+  assert.equal(confirmations, 1);
+  assert.equal(location.href, original);
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Keep this internal note",
+  );
+  await ui.click("EN", document.querySelector(".ws-language"));
+  assert.equal(document.documentElement.lang, "en");
+  await act(async () => {
+    history.back();
+    await settle();
+    await settle();
+  });
+  assert.equal(location.pathname, "/en/espace.html");
+  assert.equal(document.documentElement.lang, "en");
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Keep this internal note",
+  );
+  window.confirm = () => true;
+  await act(async () => {
+    history.back();
+    await settle();
+  });
+  assert.equal(location.pathname, "/espace.html");
+  assert.equal(document.documentElement.lang, "fr");
+  assert.match(
+    document.querySelector("h1").textContent,
+    /À chaque dossier, sa prochaine étape/,
+  );
+  assert.match(document.title, /Maquette/);
+  await act(async () => {
+    history.forward();
+    await settle();
+  });
+  assert.equal(location.pathname, "/en/espace.html");
+  assert.equal(document.documentElement.lang, "en");
+  assert.match(document.querySelector("h1").textContent, /Requests|Cases/);
+  assert.equal(document.querySelector('textarea[name="note"]').value, "");
+  await ui.close();
+});
+
+test("Dirty forms also protect role, actor and case switches, while successful submission clears the guard", async () => {
+  const ui = await mount({
+    hash: "#view=requests&role=team&case=DEMO-001&section=team",
+  });
+  const note = document.querySelector('textarea[name="note"]');
+  note.value = "Save before switching";
+  let confirmations = 0;
+  window.confirm = () => {
+    confirmations++;
+    return false;
+  };
+  const change = async (select, value) => {
+    assert.ok(select);
+    await act(async () => {
+      select.value = value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      await settle();
+    });
+  };
+  const role = document.querySelector(".ws-sidebar select");
+  await change(role, "partner");
+  assert.equal(role.value, "team");
+  const actor = [...document.querySelectorAll("label")]
+    .find((x) => x.textContent.includes("Intervenant de démonstration"))
+    .querySelector("select");
+  await change(actor, "operator-2");
+  assert.equal(actor.value, "operator-1");
+  const second = [...document.querySelectorAll(".ws-case-list button")].find(
+    (x) => x.textContent.includes("DEMO-002"),
+  );
+  await act(async () => {
+    second.click();
+    await settle();
+  });
+  assert.equal(confirmations, 3);
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Save before switching",
+  );
+  await ui.submit(note.form);
+  await ui.click("Documents", document.querySelector(".ws-subnavigation"));
+  assert.equal(confirmations, 3, "Saved values do not trigger another prompt");
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("view"),
+    "documents",
+  );
+  await ui.close();
+});
+
+test("Restoring an operator session or opening a financial URL cannot open the restricted screen", async () => {
+  const saved = JSON.stringify({
+    version: 2,
+    base: null,
+    events: [
+      {
+        role: "team",
+        action: {
+          type: "staff-assign",
+          id: "DEMO-001",
+          operatorId: "operator-2",
+          partnerId: "partner-1",
+        },
+      },
+      { role: "team", action: { type: "actor-select", id: "operator-2" } },
+    ],
+  });
+  const ui = await mount({ hash: "#view=settlements&role=team", saved });
+  await ui.click("Reprendre la session sauvegardée");
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("view"),
+    "overview",
+  );
+  assert.equal(document.querySelector(".ws-settlement-layout"), null);
+  await act(async () => {
+    history.pushState({}, "", "#view=settlements&role=team");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await settle();
+  });
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("view"),
+    "overview",
+  );
+  assert.equal(document.querySelector(".ws-settlement-layout"), null);
   await ui.close();
 });

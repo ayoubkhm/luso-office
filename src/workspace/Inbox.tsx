@@ -2,6 +2,9 @@ import { exampleText } from "../locales/examples";
 import { useEffect, useRef, useState } from "react";
 import { attentionDestination } from "./caseRouting";
 import {
+  actorKey,
+  messageAuthor,
+  messageDraft,
   attentionItems,
   unreadMessages,
   visibleCases,
@@ -154,7 +157,7 @@ export function Messages() {
       (filter === "all" ||
         (filter === "unread"
           ? unreadMessages(state, role, c.id).length > 0
-          : Boolean(state.drafts[role][c.id]?.trim()))),
+          : Boolean(messageDraft(state, role, c.id).trim()))),
   );
   const current = cases.find((c) => c.id === selected) || cases[0];
   const thread = state.messages.filter((m) => m.caseId === current?.id);
@@ -164,7 +167,7 @@ export function Messages() {
     const el = threadRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [current?.id, thread.length]);
-  const draft = current ? state.drafts[role][current.id] || "" : "";
+  const draft = current ? messageDraft(state, role, current.id) : "";
   return (
     <div className="ws-inbox">
       <Panel
@@ -217,7 +220,7 @@ export function Messages() {
                   ? `${t(...roleNames[last.role])} : ${last.body.slice(0, 85)}${last.body.length > 85 ? "…" : ""}`
                   : t("Aucun échange pour l’instant", "Ainda sem mensagens")}
               </span>
-              {state.drafts[role][c.id]?.trim() && (
+              {messageDraft(state, role, c.id).trim() && (
                 <small className="ws-draft-tag">
                   {t("Brouillon conservé", "Rascunho guardado")}
                 </small>
@@ -300,16 +303,18 @@ export function Messages() {
           >
             {thread.map((m) => (
               <article
-                className={`ws-message ${m.role === role ? "mine" : ""}`}
+                className={`ws-message ${m.author === actorKey(state, role) ? "mine" : ""}`}
                 key={m.id}
               >
                 <div className="ws-detail-heading">
                   <strong>
-                    {t(...roleNames[m.role])} · {t("démo", "demo")}
+                    {exampleText(messageAuthor(state, m), lang)} ·{" "}
+                    {t(...roleNames[m.role])}
                   </strong>
-                  {m.role !== role && !m.readBy.includes(role) && (
-                    <Badge>{t("Non lu", "Não lida")}</Badge>
-                  )}
+                  {m.author !== actorKey(state, role) &&
+                    !m.readBy.includes(actorKey(state, role)) && (
+                      <Badge>{t("Non lu", "Não lida")}</Badge>
+                    )}
                 </div>
                 <p>{exampleText(m.body, lang)}</p>
               </article>
@@ -324,6 +329,7 @@ export function Messages() {
             )}
           </div>
           <Form
+            preservesDraft
             key={current.id}
             onSave={() => act({ type: "message", id: current.id, body: draft })}
           >
@@ -347,8 +353,8 @@ export function Messages() {
             <p className="ws-hint">
               {draft.length}/2000 ·{" "}
               {t(
-                "Brouillon propre à cette vue et à ce dossier, conservé jusqu’au rechargement.",
-                "Rascunho próprio desta vista e deste pedido, guardado até recarregar.",
+                "Brouillon propre à cette personne et à ce dossier, conservé pendant la session.",
+                "Rascunho próprio desta pessoa e deste pedido, guardado durante a sessão.",
               )}
             </p>
             <Button type="submit" disabled={!draft.trim()}>

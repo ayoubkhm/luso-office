@@ -1,3 +1,4 @@
+import { canAccessView } from "./permissions";
 import { translate } from "../locales";
 import type { Action, Role, State } from "./model";
 import { activityDestination, type CaseDestination } from "./caseRouting";
@@ -430,6 +431,8 @@ export function matchingActivity(
 ) {
   // The operational journal includes internal events and is team-only.
   if (role !== "team") return [];
+  const actor = state.people.find((p) => p.id === state.operatorId);
+  if (!actor?.enabled) return [];
   const norm = (value: string) =>
     value
       .normalize("NFD")
@@ -439,6 +442,14 @@ export function matchingActivity(
   return state.audit
     .filter(
       (event) =>
+        (actor.kind === "admin" ||
+          (canAccessView(state, role, event.category) &&
+            (actor.kind !== "operator" ||
+              state.cases.some(
+                (c) =>
+                  c.id === event.caseId &&
+                  (c.operatorId || "operator-1") === actor.id,
+              )))) &&
         (!filters.category ||
           filters.category === "all" ||
           event.category === filters.category) &&

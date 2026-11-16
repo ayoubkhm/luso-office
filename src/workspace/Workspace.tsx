@@ -1,3 +1,12 @@
+import { canAccessView } from "./permissions";
+import {
+  hasUnsavedFields,
+  historyCursor,
+  initializeHistory,
+  navigationEvent,
+  pushWorkspaceHistory,
+  replaceWorkspaceHistory,
+} from "./navigation";
 import { exampleText } from "../locales/examples";
 import { MarketChoice, type Currency } from "../MarketChoice";
 import { translate, languages, languageNames } from "../locales";
@@ -55,7 +64,6 @@ import {
   roleNames,
   icons,
   type View,
-  viewsForRole,
   navigationGroups,
   Button,
   Field,
@@ -74,7 +82,7 @@ import {
 } from "./Operations";
 import { useEffect, useRef, useState } from "react";
 import { services, plans, type Lang } from "../catalogue";
-import { href } from "../routes";
+import { href, route as pageRoute } from "../routes";
 import {
   initialState,
   attentionItems,
@@ -170,6 +178,16 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     [epoch, setEpoch] = useState(0);
   const [caseIntent, setCaseIntent] = useState<CaseIntent>();
   const navigationCounter = useRef(0);
+  const cursor = useRef<{ url: string; index: number } | undefined>(undefined);
+  const restoringCursor = useRef(false);
+  const confirmLeave = () =>
+    !hasUnsavedFields() ||
+    window.confirm(
+      t(
+        "Une saisie n’a pas été enregistrée. Quitter cet écran et abandonner cette saisie ?",
+        "Há dados por guardar. Sair deste ecrã e descartar esses dados?",
+      ),
+    );
   const log = useRef<SessionLog>({ version: 2, base: null, events: [] });
   const [savedSession, setSavedSession] = useState(false);
   const [saveEnabled, setSaveEnabled] = useState(false);
@@ -182,11 +200,12 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     if (!route.destination)
       requestAnimationFrame(() => heading.current?.focus());
     setRole(route.role);
-    setView(
-      viewsForActor(source, route.role).includes(route.view)
-        ? route.view
-        : viewsForActor(source, route.role)[0],
-    );
+    const target = canAccessView(source, route.role, route.view)
+      ? route.view
+      : viewsForActor(source, route.role)[0];
+    setView(target);
+    if (target !== route.view)
+      replaceWorkspaceHistory(routeHash(target, route.role));
     setSelected(c?.id || visibleCases(source, route.role)[0]?.id || "");
     setCaseIntent(
       c && route.destination
@@ -201,6 +220,8 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     );
   };
   useEffect(() => {
+    initializeHistory();
+    cursor.current = historyCursor();
     applyRoute(location.hash);
     try {
       setSavedSession(Boolean(localStorage.getItem(sessionKey)));
@@ -217,10 +238,41 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     setReady(true);
   }, []);
   useEffect(() => {
-    const back = () => applyRoute(location.hash);
+    const remember = () => {
+      cursor.current = historyCursor();
+    };
+    window.addEventListener(navigationEvent, remember);
+    return () => window.removeEventListener(navigationEvent, remember);
+  }, []);
+  useEffect(() => {
+    const back = () => {
+      if (restoringCursor.current) {
+        restoringCursor.current = false;
+        cursor.current = historyCursor();
+        return;
+      }
+      const target = readWorkspaceRoute(location.hash);
+      const cases = visibleCases(state, target.role);
+      const id =
+        cases.find((c) => c.id === target.id)?.id || cases[0]?.id || "";
+      const leavesForm =
+        target.role !== role || target.view !== view || id !== selected;
+      if (leavesForm && !confirmLeave()) {
+        const previous = cursor.current;
+        const delta = previous ? previous.index - historyCursor().index : 0;
+        if (delta) {
+          restoringCursor.current = true;
+          history.go(delta);
+        } else if (previous) replaceWorkspaceHistory(previous.url);
+        return;
+      }
+      cursor.current = historyCursor();
+      setLang(pageRoute(location.pathname, location.search).lang);
+      applyRoute(location.hash);
+    };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
-  }, [state]);
+  }, [state, role, view, selected, lang]);
   useEffect(() => {
     if (!ready || !saveEnabled) return;
     try {
@@ -242,15 +294,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   }, [state, saveEnabled, ready]);
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      const unsaved = Array.from(
-        document.querySelectorAll("form input, form textarea"),
-      ).some((node) => {
-        const input = node as HTMLInputElement | HTMLTextAreaElement;
-        return input instanceof HTMLInputElement &&
-          ["checkbox", "radio"].includes(input.type)
-          ? input.checked !== input.defaultChecked
-          : input.value !== input.defaultValue;
-      });
+      const unsaved = hasUnsavedFields();
       if (unsaved || (log.current.events.length && !saveEnabled)) {
         e.preventDefault();
         e.returnValue = "";
@@ -275,6 +319,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     }
   };
   const resumeSave = () => {
+    if (!confirmLeave()) return;
     try {
       const restored = restoreSession(localStorage.getItem(sessionKey) || "");
       log.current = restored.log;
@@ -295,9 +340,10 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   };
 
   const select = (id: string) => {
+    if (id !== selected && !confirmLeave()) return;
     setSelected(id);
     setCaseIntent(undefined);
-    history.pushState(null, "", routeHash(view, role, id));
+    pushWorkspaceHistory(routeHash(view, role, id));
   };
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
   const t = (fr: string, pt: string) => translate(fr, pt, lang);
@@ -306,30 +352,47 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     document.title =
       "O meu Portugal — " + t("Maquette LusoOffice", "Protótipo LusoOffice");
     document.documentElement.lang = lang;
-    if (ready)
-      history.replaceState(
-        null,
-        "",
-        href("workspace", lang, location.search + location.hash),
+    if (ready) {
+      const query = new URLSearchParams(location.search);
+      query.delete("lang");
+      replaceWorkspaceHistory(
+        href(
+          "workspace",
+          lang,
+          (query.size ? `?${query}` : "") + location.hash,
+        ),
       );
+    }
   }, [lang, ready]);
   const go = (
     v: View,
     id?: string,
     destination?: CaseDestination,
     asRole: Role = role,
+    source = state,
+    discardConfirmed = false,
   ) => {
-    history.pushState(null, "", routeHash(v, asRole, id, destination));
+    if (!canAccessView(source, asRole, v)) return;
+    if (
+      !discardConfirmed &&
+      (v !== view ||
+        asRole !== role ||
+        (id !== undefined && id !== selected)) &&
+      !confirmLeave()
+    )
+      return;
+    pushWorkspaceHistory(routeHash(v, asRole, id, destination));
+    setRole(asRole);
     setView(v);
     if (id) setSelected(id);
     const c = id
-      ? visibleCases(state, role).find((c) => c.id === id)
+      ? visibleCases(source, asRole).find((c) => c.id === id)
       : undefined;
     setCaseIntent(
       v === "requests" && c && destination
         ? {
             caseId: c.id,
-            role,
+            role: asRole,
             token: ++navigationCounter.current,
             context: caseNavigationContext(c),
             destination,
@@ -341,6 +404,8 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     if (!destination) requestAnimationFrame(() => heading.current?.focus());
   };
   const act = (a: Action) => {
+    if (["actor-select", "client-select"].includes(a.type) && !confirmLeave())
+      return false;
     const result = transition(state, role, a);
     setActionError(result.ok ? "" : t(...result.error!));
     const event = result.ok ? result.state.audit.at(-1) : undefined;
@@ -375,7 +440,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
         setView(target);
         setSelected(visibleCases(result.state, role)[0]?.id || "");
         setCaseIntent(undefined);
-        history.pushState(null, "", routeHash(target, role));
+        pushWorkspaceHistory(routeHash(target, role));
       }
       if (
         scenario &&
@@ -387,16 +452,15 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   };
   const views = viewsForActor(state, role);
   const openStep = (step: DemoStep) => {
-    setRole(step.role);
     const accessible = visibleCases(state, step.role);
     const id =
       accessible.find((c) => c.id === step.caseId)?.id ||
       accessible[0]?.id ||
       "";
-    setSelected(id);
     go(step.view, id, undefined, step.role);
   };
   const startScenario = (id: ScenarioId) => {
+    if (!confirmLeave()) return;
     const chosen = demoScenarios.find((s) => s.id === id)!;
     const next = scenarioState(id);
     log.current = { version: 2, base: id, events: [] };
@@ -416,6 +480,8 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       chosen.steps[0].caseId,
       undefined,
       chosen.steps[0].role,
+      next,
+      true,
     );
   };
   return (
@@ -469,7 +535,14 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 setEpoch((x) => x + 1);
                 setReset(false);
                 setSelected("DEMO-001");
-                go("overview");
+                go(
+                  "overview",
+                  "DEMO-001",
+                  undefined,
+                  role,
+                  initialState(),
+                  true,
+                );
               }}
             >
               {t("Revenir au début", "Voltar ao início")}
@@ -565,13 +638,11 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 value={role}
                 onChange={(e) => {
                   const r = e.target.value as Role;
-                  setRole(r);
                   const accessible = visibleCases(state, r);
                   const id =
                     accessible.find((c) => c.id === selected)?.id ||
                     accessible[0]?.id ||
                     "";
-                  setSelected(id);
                   go(
                     viewsForActor(state, r).includes(view)
                       ? view
@@ -685,37 +756,41 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               />
             )}
             <div key={`${role}-${epoch}`}>
-              {view === "guide" && (
-                <DemoGuide
-                  start={startScenario}
-                  active={scenario}
-                  completed={completed}
-                  openStep={openStep}
-                />
+              {views.includes(view) && (
+                <>
+                  {view === "guide" && (
+                    <DemoGuide
+                      start={startScenario}
+                      active={scenario}
+                      completed={completed}
+                      openStep={openStep}
+                    />
+                  )}
+                  {view === "overview" && <Overview />}
+                  {view === "requests" && (
+                    <Requests
+                      handoff={handoff}
+                      consumed={() => {
+                        setHandoff(null);
+                        try {
+                          sessionStorage.removeItem(handoffKey);
+                        } catch {}
+                      }}
+                    />
+                  )}
+                  {view === "tasks" && <Tasks />}
+                  {view === "properties" && <Properties />}
+                  {view === "documents" && <Documents key={selected} />}
+                  {view === "messages" && <Messages />}
+                  {view === "billing" && <Billing />}
+                  {view === "settlements" && <Settlements />}
+                  {view === "profile" && <Profile />}
+                  {view === "newsletter" && (
+                    <Newsletter key={state.archives.length} />
+                  )}
+                  {view === "admin" && <Administration />}
+                </>
               )}
-              {view === "overview" && <Overview />}
-              {view === "requests" && (
-                <Requests
-                  handoff={handoff}
-                  consumed={() => {
-                    setHandoff(null);
-                    try {
-                      sessionStorage.removeItem(handoffKey);
-                    } catch {}
-                  }}
-                />
-              )}
-              {view === "tasks" && <Tasks />}
-              {view === "properties" && <Properties />}
-              {view === "documents" && <Documents key={selected} />}
-              {view === "messages" && <Messages />}
-              {view === "billing" && <Billing />}
-              {view === "settlements" && <Settlements />}
-              {view === "profile" && <Profile />}
-              {view === "newsletter" && (
-                <Newsletter key={state.archives.length} />
-              )}
-              {view === "admin" && <Administration />}
             </div>
             <footer className="ws-footer">
               <strong>

@@ -861,7 +861,7 @@ test("Read state is role-specific, scoped to a visible thread and never consumes
   assert.equal(unreadMessages(s, "partner").length, 3);
 });
 
-test("Drafts stay separate by role and dossier, survive failed sends and clear only after a successful message", () => {
+test("Drafts stay separate by named actor and dossier, survive failed sends and clear only after a successful message", () => {
   let s = initialState();
   const audit = s.audit.length;
   s = apply(s, "member", {
@@ -891,26 +891,22 @@ test("Drafts stay separate by role and dossier, survive failed sends and clear o
     id: "DEMO-001",
     body: "x".repeat(2001),
   });
-  assert.equal(s.drafts.member["DEMO-001"], "Brouillon A\nà conserver");
+  assert.equal(s.drafts["member:demo"]["DEMO-001"], "Brouillon A\nà conserver");
   s = apply(s, "member", {
     type: "message",
     id: "DEMO-001",
-    body: s.drafts.member["DEMO-001"],
+    body: s.drafts["member:demo"]["DEMO-001"],
   });
-  assert.equal(s.drafts.member["DEMO-001"], "");
-  assert.equal(s.drafts.member["DEMO-002"], "Brouillon B");
-  assert.equal(s.drafts.team["DEMO-001"], "Brouillon équipe");
+  assert.equal(s.drafts["member:demo"]["DEMO-001"], "");
+  assert.equal(s.drafts["member:demo"]["DEMO-002"], "Brouillon B");
+  assert.equal(s.drafts["team:operator-1"]["DEMO-001"], "Brouillon équipe");
   s = apply(s, "team", { type: "assign", id: "DEMO-001", assigned: false });
   rejected(s, "partner", {
     type: "message-draft",
     id: "DEMO-001",
     body: "Interdit",
   });
-  assert.deepEqual(initialState().drafts, {
-    member: {},
-    team: {},
-    partner: {},
-  });
+  assert.deepEqual(initialState().drafts, {});
 });
 
 test("Attention distinguishes pieces to provide from pieces awaiting team review and updates when decisions change", () => {

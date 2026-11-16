@@ -1,3 +1,4 @@
+import { canAccessView } from "./permissions";
 import { useState } from "react";
 import {
   isClosed,
@@ -108,7 +109,7 @@ export function Settlements() {
         : c.settlements.at(-1)?.status !== "settled"),
   );
   const current = cases.find((c) => c.id === selected) || cases[0];
-  if (role === "partner") return null;
+  if (!canAccessView(state, role, "settlements")) return null;
   return (
     <>
       <p className="ws-intro">

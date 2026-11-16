@@ -5,6 +5,13 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   initialState,
+  messageDraft,
+  unreadMessages,
+  messageAuthor,
+  attentionItems,
+  matchingActivity,
+  Settlements,
+  CaseDecisions,
   transition,
   visibleCases,
   visibleDocuments,
@@ -470,4 +477,207 @@ test("Newsletter audience and subscription expiry follow all fictitious clients 
   s = apply(s, "member", { type: "client-select", id: other });
   assert.equal(s.subscription.active, false);
   assert.equal(s.subscription.timeline.at(-1).event, "overdue");
+});
+
+test("Drafts and read receipts belong to named actors, including after reassignment and session replay", () => {
+  let s = initialState();
+  const events = [];
+  const run = (role, action) => {
+    events.push({ role, action });
+    s = apply(s, role, action);
+  };
+  run("partner", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "PRIVATE_JOAO",
+  });
+  run("partner", {
+    type: "message-read",
+    id: "DEMO-001",
+    through: s.messages.at(-1).id,
+  });
+  assert.equal(unreadMessages(s, "partner").length, 0);
+  run("team", { type: "message", id: "DEMO-001", body: "From Camille" });
+  run("team", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "PRIVATE_CAMILLE",
+  });
+  run("team", {
+    type: "staff-assign",
+    id: "DEMO-001",
+    operatorId: "operator-2",
+    partnerId: "partner-2",
+  });
+  run("partner", { type: "actor-select", id: "partner-2" });
+  assert.equal(messageDraft(s, "partner", "DEMO-001"), "");
+  assert.equal(unreadMessages(s, "partner", "DEMO-001").length, 2);
+  run("team", { type: "actor-select", id: "operator-2" });
+  assert.equal(messageDraft(s, "team", "DEMO-001"), "");
+  assert.equal(unreadMessages(s, "team", "DEMO-001").length, 2);
+  assert.match(messageAuthor(s, s.messages.at(-1)), /Camille/);
+  run("partner", { type: "message-draft", id: "DEMO-001", body: "SOFIA_ONLY" });
+  const restored = restoreSession(
+    JSON.stringify({ version: 2, base: null, events }),
+  ).state;
+  assert.equal(messageDraft(restored, "partner", "DEMO-001"), "SOFIA_ONLY");
+  assert.equal(messageDraft(restored, "team", "DEMO-001"), "");
+  run("team", { type: "actor-select", id: "operator-1" });
+  run("team", {
+    type: "staff-assign",
+    id: "DEMO-001",
+    operatorId: "operator-1",
+    partnerId: "partner-1",
+  });
+  run("partner", { type: "actor-select", id: "partner-1" });
+  assert.equal(messageDraft(s, "partner", "DEMO-001"), "PRIVATE_JOAO");
+  assert.equal(messageDraft(s, "team", "DEMO-001"), "PRIVATE_CAMILLE");
+  run("member", {
+    type: "message-draft",
+    id: "DEMO-001",
+    body: "PRIVATE_CLIENT",
+  });
+  run("member", {
+    type: "client-create",
+    name: "Another client",
+    country: "UK",
+  });
+  assert.equal(messageDraft(s, "member", "DEMO-001"), "");
+});
+
+function deliveredCase() {
+  let s = apply(initialState(), "partner", {
+    type: "task-update",
+    id: "task-1",
+    status: "done",
+    note: "Done",
+  });
+  return apply(s, "team", {
+    type: "stage",
+    id: "DEMO-001",
+    stage: "delivered",
+    summary: "Visit report",
+    documents: ["doc-1", "doc-2"],
+  });
+}
+
+test("Delivery attachments, including archived versions, obey current partner grants and document versions", () => {
+  let s = deliveredCase();
+  const markup = (role) =>
+    element(Deliveries, s, role, "fr", { c: s.cases[0] });
+  assert.match(markup("team"), /Autorisation/);
+  assert.doesNotMatch(markup("partner"), /Autorisation/);
+  assert.match(markup("partner"), /Liste de visite/);
+  s = apply(s, "member", {
+    type: "correction",
+    id: "DEMO-001",
+    reason: "More detail",
+  });
+  for (const task of s.tasks.filter(
+    (t) => t.caseId === "DEMO-001" && t.status !== "done",
+  ))
+    s = apply(s, "team", {
+      type: "task-update",
+      id: task.id,
+      status: "done",
+      note: "Corrected",
+    });
+  s = apply(s, "team", {
+    type: "stage",
+    id: "DEMO-001",
+    stage: "delivered",
+    summary: "Revised report",
+    documents: [],
+  });
+  s = apply(s, "team", {
+    type: "staff-assign",
+    id: "DEMO-001",
+    operatorId: "operator-2",
+    partnerId: "partner-2",
+  });
+  s = apply(s, "partner", { type: "actor-select", id: "partner-2" });
+  assert.doesNotMatch(markup("partner"), /Autorisation|Liste de visite/);
+  s = apply(s, "team", { type: "share", id: "doc-1", shared: true });
+  assert.match(markup("partner"), /Liste de visite/);
+  // Sharing a newer version must not expose a historical attachment snapshot.
+  s = {
+    ...s,
+    documents: s.documents.map((d) =>
+      d.id === "doc-1"
+        ? {
+            ...d,
+            version: d.version + 1,
+            name: "New shared version",
+            shared: true,
+          }
+        : d,
+    ),
+  };
+  assert.doesNotMatch(markup("partner"), /Liste de visite/);
+  assert.match(markup("member"), /Autorisation/);
+  s = apply(s, "team", { type: "partner-access", enabled: false });
+  assert.doesNotMatch(markup("partner"), /Autorisation|Liste de visite/);
+});
+
+test("Operator financial access is blocked in actions, shortcuts, screens, alerts and the activity journal", () => {
+  let s = deliveredCase();
+  s = apply(s, "team", {
+    type: "staff-assign",
+    id: "DEMO-001",
+    operatorId: "operator-2",
+    partnerId: "partner-1",
+  });
+  s = apply(s, "member", {
+    type: "delivery-accept",
+    id: "DEMO-001",
+    version: 1,
+  });
+  s = apply(s, "team", { type: "stage", id: "DEMO-001", stage: "completed" });
+  const proposal = {
+    type: "settlement-propose",
+    id: "DEMO-001",
+    coordination: 30,
+    official: 0,
+    thirdParty: 0,
+    explanation: "Final costs",
+  };
+  const admin = s;
+  s = apply(s, "team", { type: "actor-select", id: "operator-2" });
+  reject(s, "team", proposal, /réservée/);
+  assert.ok(!viewsForActor(s, "team").includes("settlements"));
+  assert.equal(element(Settlements, s, "team"), "");
+  assert.doesNotMatch(
+    element(CaseDecisions, s, "team", "fr", { c: s.cases[0] }),
+    /Consulter le bilan/,
+  );
+  assert.ok(
+    !attentionItems(s, "team").some((item) => item.target === "settlements"),
+  );
+  s = apply(admin, "team", proposal);
+  const response = {
+    type: "settlement-respond",
+    id: "DEMO-001",
+    version: 1,
+    approve: true,
+    reason: "",
+  };
+  const operator = apply(s, "team", { type: "actor-select", id: "operator-2" });
+  reject(operator, "team", response, /réservée/);
+  assert.ok(
+    !matchingActivity(operator, "team", {}, "fr").some(
+      (event) => event.category === "settlements",
+    ),
+  );
+  s = apply(s, "member", response);
+  s = apply(s, "team", { type: "actor-select", id: "operator-2" });
+  const refund = {
+    type: "settlement-payment",
+    id: "DEMO-001",
+    version: 1,
+    result: "pending",
+  };
+  reject(s, "team", refund, /réservée/);
+  s = apply(s, "team", { type: "actor-select", id: "operator-1" });
+  s = apply(s, "team", refund);
+  assert.equal(s.cases[0].settlements.at(-1).status, "pending");
 });

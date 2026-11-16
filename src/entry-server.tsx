@@ -48,3 +48,6 @@ export { translate, languages, translations } from "./locales";
 export { exampleText } from "./locales/examples";
 
 export { Workspace } from "./workspace/Workspace";
+
+export { Settlements } from "./workspace/Settlements";
+export { CaseDecisions } from "./workspace/Lifecycle";

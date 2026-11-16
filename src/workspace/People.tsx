@@ -1,15 +1,7 @@
 import { exampleText } from "../locales/examples";
 import { Button, Field, Form, Panel, useWorkspace, value } from "./ui";
 import type { Case, Role, State } from "./model";
-import { viewsForRole, type View } from "./ui";
-export function viewsForActor(state: State, role: Role): View[] {
-  if (role !== "team") return viewsForRole(role);
-  const person = state.people.find((p) => p.id === state.operatorId);
-  if (person?.kind === "editor") return ["newsletter"];
-  if (person?.kind === "operator")
-    return ["overview", "requests", "tasks", "documents", "messages"];
-  return viewsForRole(role);
-}
+export { viewsForActor } from "./permissions";
 export function PeopleSelectors() {
   const { state, role, t, act, lang } = useWorkspace();
   return (

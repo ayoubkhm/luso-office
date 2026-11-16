@@ -278,5 +278,17 @@
   "Acceptez la dernière proposition avant de préparer la provision ; une tentative doit être en attente avant de confirmer son résultat.": [
     "Accept the latest proposal before preparing the advance payment; an attempt must be pending before its result can be confirmed.",
     "Nehmen Sie das aktuelle Angebot vor der Vorauszahlung an. Ein Zahlungsversuch muss ausstehen, bevor sein Ergebnis bestätigt werden kann."
+  ],
+  "Aucune pièce jointe accessible dans cette vue.": [
+    "No attachments are accessible in this view.",
+    "In dieser Ansicht sind keine Anhänge zugänglich."
+  ],
+  "Une saisie n’a pas été enregistrée. Quitter cet écran et abandonner cette saisie ?": [
+    "Some changes have not been saved. Leave this screen and discard those changes?",
+    "Einige Eingaben wurden nicht gespeichert. Diese Ansicht verlassen und die Eingaben verwerfen?"
+  ],
+  "Brouillon propre à cette personne et à ce dossier, conservé pendant la session.": [
+    "Draft for this person and this case, kept during the session.",
+    "Entwurf für diese Person und diesen Vorgang, während der Sitzung gespeichert."
   ]
 }
