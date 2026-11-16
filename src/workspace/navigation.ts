@@ -46,10 +46,41 @@ export function rememberForm(form: HTMLFormElement) {
 export function hasFormBaseline(form: HTMLFormElement) {
   return baselines.has(form);
 }
-export function hasUnsavedFields() {
-  return Array.from(
-    document.querySelectorAll<HTMLFormElement>(".workspace form"),
-  ).some(
-    (form) => baselines.has(form) && baselines.get(form) !== snapshot(form),
+export function hasUnsavedFields(
+  scope: ParentNode = document,
+  ignore?: Element,
+) {
+  const forms =
+    (scope as HTMLElement).tagName === "FORM"
+      ? [scope as HTMLFormElement]
+      : Array.from(scope.querySelectorAll<HTMLFormElement>("form"));
+  return forms.some((form) => {
+    const baseline = baselines.get(form);
+    if (baseline === undefined) return false;
+    const current = snapshot(form);
+    if (!ignore || !form.contains(ignore)) return baseline !== current;
+    // A destination selector has already changed when its event runs. It is
+    // not itself a draft; compare the other fields before deciding to warn.
+    const index = Array.from(
+      form.querySelectorAll("input, textarea, select"),
+    ).indexOf(ignore);
+    const values = JSON.parse(current);
+    if (index >= 0) values[index] = JSON.parse(baseline)[index];
+    return baseline !== JSON.stringify(values);
+  });
+}
+export function confirmDiscardChanges(
+  t: (fr: string, pt: string) => string,
+  scope?: ParentNode,
+  ignore?: Element,
+) {
+  return (
+    !hasUnsavedFields(scope, ignore) ||
+    window.confirm(
+      t(
+        "Une saisie n’a pas été enregistrée. Quitter cet écran et abandonner cette saisie ?",
+        "Há dados por guardar. Sair deste ecrã e descartar esses dados?",
+      ),
+    )
   );
 }

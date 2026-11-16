@@ -7,6 +7,7 @@
   "Ajustement de la proposition demandé",
   "Attribution de la tâche mise à jour",
   "Aucune pièce jointe accessible dans cette vue.",
+  "Aucune prestation chiffrée pour ce client.",
   "Bien ajouté",
   "Bilan approuvé",
   "Bilan proposé",
@@ -16,6 +17,7 @@
   "Choisissez des intervenants actifs autorisés à traiter ce dossier.",
   "Choisissez un client disponible dans le sélecteur de démonstration.",
   "Choisissez une date valide, égale ou postérieure à la date simulée.",
+  "Client concerné",
   "Client de démonstration sélectionné",
   "Client fictif créé",
   "Compte et adhésion",
@@ -73,5 +75,6 @@
   "overview",
   "published",
   "Édition enregistrée",
+  "Émetteur / NIPC / adresse / TVA : TBD. Aucun numéro de facture émis.",
   "Étape du dossier mise à jour"
 ]

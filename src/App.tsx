@@ -1,3 +1,4 @@
+import { CountrySelect } from "./CountrySelect";
 import { MarketChoice, type Currency } from "./MarketChoice";
 import { translate, languages, languageNames } from "./locales";
 import { handoffKey } from "./workspace/session";
@@ -1758,27 +1759,11 @@ function RequestModal({
             </div>
             <label>
               {t("Pays de résidence", "País de residência")}
-              <select name="country" defaultValue={draft?.country || ""}>
-                <option value="">
-                  {t("Choisir un pays", "Escolher um país")}
-                </option>
-                {[
-                  L("France", "França"),
-                  L("Portugal", "Portugal"),
-                  L("Allemagne", "Alemanha"),
-                  L("Suisse", "Suíça"),
-                  L("Royaume-Uni", "Reino Unido"),
-                  L("États-Unis", "Estados Unidos"),
-                  L("Belgique", "Bélgica"),
-                  L("Luxembourg", "Luxemburgo"),
-                  L("Canada", "Canadá"),
-                  L("Autre pays", "Outro país"),
-                ].map((c) => (
-                  <option key={c.fr} value={c[lang]}>
-                    {c[lang]}
-                  </option>
-                ))}
-              </select>
+              <CountrySelect
+                name="country"
+                lang={lang}
+                defaultValue={draft?.country || ""}
+              />
             </label>
             <label>
               {t("Sujet à aborder", "Assunto a abordar")}

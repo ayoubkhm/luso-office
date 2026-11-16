@@ -74,7 +74,7 @@ Ouvrir `/espace.html`, `/pt/espace.html`, `/en/espace.html` ou `/de/espace.html`
 
 Par défaut la session reste en mémoire. « Session de démonstration » permet d’activer une sauvegarde locale, de la reprendre après rechargement ou de l’effacer. Le stockage contient les saisies d’exemple ; il ne doit pas recevoir de données réelles. La restauration valide puis rejoue les actions ; une sauvegarde incompatible ou endommagée est refusée. Les formulaires non soumis ne sont pas tous sauvegardés ; les notes restent conservées entre les onglets d’un même dossier, et les brouillons de messages et du journal suivent la session. Une confirmation protège les formulaires modifiés avant un changement de rubrique, dossier, rôle ou intervenant et lors de Retour/Suivant ; la refuser conserve le formulaire et son entrée d’historique. Les onglets d’un même dossier conservent leur saisie sans confirmation. Le navigateur avertit aussi avant de fermer ou recharger une session non sauvegardée ou des champs modifiés.
 
-Validation actuelle : build et **89 tests réussis**, dont 12 contrôles des corrections des audits et 7 tests d’interaction React dans un DOM simulé. Les tests vérifient notamment remise/validation/correction, clients distincts, profils nommés, échéances, sauvegardes invalides, routes, langues, transfert de préparation, reprise explicite et Retour navigateur. L’audit des dépendances ne signale aucune vulnérabilité après mise à jour de Vite vers 7.3.8. Ces contrôles ne remplacent pas une revue visuelle : Chrome reste inaccessible via le pilotage automatisé, donc mobile, mise en page et navigation clavier complète restent à valider dans un navigateur réel.
+Validation actuelle : build et **95 tests réussis**, dont 12 contrôles des corrections des audits et 13 tests d’interaction React dans un DOM simulé. Les tests vérifient notamment remise/validation/correction, clients distincts, profils nommés, échéances, sauvegardes invalides, routes, langues, transfert de préparation, reprise explicite et Retour navigateur. L’audit des dépendances ne signale aucune vulnérabilité après mise à jour de Vite vers 7.3.8. Ces contrôles ne remplacent pas une revue visuelle : Chrome reste inaccessible via le pilotage automatisé, donc mobile, mise en page et navigation clavier complète restent à valider dans un navigateur réel.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -94,6 +94,16 @@ La barre latérale donne un accès direct aux rubriques autorisées, avec un com
 Sur grand écran, la navigation reste accessible au défilement, avec une hauteur limitée à la fenêtre. Sous 760 px, elle devient un menu dépliable ; Échap le ferme et rend le focus au bouton. Une navigation refusée conserve le menu ouvert et la saisie. Les tests DOM vérifient les accès directs, le compteur, la fermeture et le focus ; ils ne valident pas le rendu responsive. La revue visuelle reste à faire : l’accès automatisé à Chrome échoue et le contrôle natif n’a pas permis de maintenir l’onglet de travail actif.
 
 ### Corrections de l’audit — version courante
+
+Les cinq anomalies du dernier audit sont corrigées :
+
+- Les formulaires d’édition du profil et du bien conservent leurs valeurs après sauvegarde ; un second enregistrement ne rétablit plus les anciens choix. Le message de succès disparaît lorsqu’un champ est modifié.
+- Dans Demandes, Documents et Tâches, les changements de dossier, fermetures de demandes et filtres qui retirent des formulaires passent par la protection des saisies. Une destination choisie dans un formulaire n’est pas considérée à elle seule comme un brouillon ; refuser le changement conserve les autres champs. Les recherches documentaires protègent les corrections sans demander d’abandonner un dépôt qui reste à l’écran.
+- Les liens directs du menu enregistrent le dossier courant dans l’historique. Le choix d’un dossier dans Documents met aussi ce contexte à jour pour Retour/Suivant.
+- Le sélecteur de pays commun utilise des codes stables. Les anciens libellés FR/PT/EN/DE sont reconnus lors de la création ou du rejeu d’un client ; une valeur inconnue est conservée explicitement, sans être remplacée par France. Les écrans et récapitulatifs affichent les libellés localisés.
+- La facturation équipe affiche le nom du client concerné et uniquement ses prestations chiffrées. Un client sans prestation a un état vide explicite.
+
+Six tests d’interaction supplémentaires reproduisent ces parcours, y compris deux sauvegardes consécutives, refus et acceptation de l’abandon, tâches, pays historiques et client sans prestation. Compilation et 95 tests réussis ; les vérifications DOM ne constituent pas une validation visuelle sur navigateur réel.
 
 Le dernier audit est couvert par six tests de régression supplémentaires :
 

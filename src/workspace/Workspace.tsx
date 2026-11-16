@@ -1,7 +1,10 @@
+import { CountrySelect } from "../CountrySelect";
+import { countryLabel } from "../countries";
 import { WorkspaceNavigation } from "./WorkspaceNavigation";
 import { canAccessView } from "./permissions";
 import {
   hasUnsavedFields,
+  confirmDiscardChanges,
   historyCursor,
   initializeHistory,
   navigationEvent,
@@ -61,6 +64,7 @@ import { CaseSituation, CaseDecisions } from "./Lifecycle";
 import {
   WorkspaceContext,
   useWorkspace,
+  useDiscardChanges,
   labels,
   roleNames,
   type View,
@@ -179,14 +183,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   const navigationCounter = useRef(0);
   const cursor = useRef<{ url: string; index: number } | undefined>(undefined);
   const restoringCursor = useRef(false);
-  const confirmLeave = () =>
-    !hasUnsavedFields() ||
-    window.confirm(
-      t(
-        "Une saisie n’a pas été enregistrée. Quitter cet écran et abandonner cette saisie ?",
-        "Há dados por guardar. Sair deste ecrã e descartar esses dados?",
-      ),
-    );
+  const confirmLeave = () => confirmDiscardChanges(t);
   const log = useRef<SessionLog>({ version: 2, base: null, events: [] });
   const [savedSession, setSavedSession] = useState(false);
   const [saveEnabled, setSaveEnabled] = useState(false);
@@ -338,11 +335,12 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     }
   };
 
-  const select = (id: string) => {
-    if (id !== selected && !confirmLeave()) return;
+  const select = (id: string, discardConfirmed = false) => {
+    if (!discardConfirmed && id !== selected && !confirmLeave()) return false;
     setSelected(id);
     setCaseIntent(undefined);
     pushWorkspaceHistory(routeHash(view, role, id));
+    return true;
   };
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
   const t = (fr: string, pt: string) => translate(fr, pt, lang);
@@ -380,13 +378,16 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       !confirmLeave()
     )
       return false;
-    pushWorkspaceHistory(routeHash(v, asRole, id, destination));
+    const accessible = visibleCases(source, asRole);
+    const nextId =
+      accessible.find((c) => c.id === (id ?? selected))?.id ||
+      accessible[0]?.id ||
+      "";
+    pushWorkspaceHistory(routeHash(v, asRole, nextId, destination));
     setRole(asRole);
     setView(v);
-    if (id) setSelected(id);
-    const c = id
-      ? visibleCases(source, asRole).find((c) => c.id === id)
-      : undefined;
+    setSelected(nextId);
+    const c = accessible.find((c) => c.id === nextId);
     setCaseIntent(
       v === "requests" && c && destination
         ? {
@@ -634,7 +635,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               )}
             </h2>
             <p>
-              {handoff.name} · {handoff.country}
+              {handoff.name} · {countryLabel(handoff.country, lang)}
             </p>
             <p>{handoff.description}</p>
             <p>
@@ -880,6 +881,7 @@ function Requests({
 }) {
   const { state, role, lang, t, act, selected, select, caseIntent } =
     useWorkspace();
+  const discard = useDiscardChanges();
   const cases = visibleCases(state, role);
   const [filter, setFilter] = useState("all"),
     [create, setCreate] = useState(Boolean(handoff)),
@@ -890,6 +892,17 @@ function Requests({
   }, [state.cases.length, caseIntent?.token]);
   const shown = matchingCases(state, role, query, filter, lang);
   const current = shown.find((c) => c.id === selected) || shown[0];
+  const changeFilters = (nextQuery: string, nextFilter: string) => {
+    const next = matchingCases(state, role, nextQuery, nextFilter, lang);
+    const nextCase = next.find((c) => c.id === selected) || next[0];
+    if (
+      nextCase?.id !== current?.id &&
+      !discard(document.querySelector(".ws-case-detail") || undefined)
+    )
+      return;
+    setQuery(nextQuery);
+    setFilter(nextFilter);
+  };
   return (
     <>
       {role === "member" && <ClientForm />}
@@ -898,7 +911,7 @@ function Requests({
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => changeFilters(e.target.value, filter)}
             placeholder={t(
               "Service, numéro, bien…",
               "Serviço, número, imóvel…",
@@ -906,7 +919,10 @@ function Requests({
           />
         </Field>
         <Field label={t("État du dossier", "Estado do pedido")}>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <select
+            value={filter}
+            onChange={(e) => changeFilters(query, e.target.value)}
+          >
             <option value="all">{t("Tous", "Todos")}</option>
             <option value="cancellation">
               {t("Annulation à examiner", "Cancelamento em análise")}
@@ -919,7 +935,11 @@ function Requests({
           </select>
         </Field>
         {role === "member" && (
-          <Button onClick={() => setCreate(!create)}>
+          <Button
+            onClick={() => {
+              if (!create || discard()) setCreate(!create);
+            }}
+          >
             {t(
               create ? "Fermer le formulaire" : "Nouvelle demande démo",
               create ? "Fechar formulário" : "Novo pedido demo",
@@ -951,6 +971,7 @@ function Requests({
                 setQuery("");
                 select(
                   `DEMO-${String(state.cases.length + 1).padStart(3, "0")}`,
+                  true,
                 );
               }
               return ok;
@@ -1045,8 +1066,7 @@ function Requests({
                 <Button
                   secondary
                   onClick={() => {
-                    setQuery("");
-                    setFilter("all");
+                    changeFilters("", "all");
                   }}
                 >
                   {t("Effacer les filtres", "Limpar filtros")}
@@ -1342,6 +1362,9 @@ export function Billing() {
   const { state, role, t, lang, act, go } = useWorkspace();
   const money = useMoney();
   const sub = state.subscription;
+  const invoices = visibleCases(state, role).filter(
+    (c) => c.owner === state.activeClient && c.quote > 0,
+  );
   const [plan, setPlan] = useState(sub.pending?.plan ?? sub.plan),
     [period, setPeriod] = useState(sub.pending?.period ?? sub.period),
     [confirm, setConfirm] = useState(false);
@@ -1354,6 +1377,12 @@ export function Billing() {
   if (role === "partner") return null;
   return (
     <>
+      <p className="ws-intro">
+        <strong>
+          {t("Client concerné", "Cliente em questão")} :{" "}
+          {exampleText(state.profile.name, lang)}
+        </strong>
+      </p>
       <SubscriptionCalendar />
       <p className="ws-intro">
         {t(
@@ -1574,85 +1603,95 @@ export function Billing() {
             "Exemplos sem valor fiscal. Uma confirmação de pagamento não substitui uma fatura; a emissão numerada e as notas de crédito serão ligadas à faturação.",
           )}
         </p>
-        {visibleCases(state, role)
-          .filter((c) => c.quote > 0)
-          .map((c) => (
-            <div className="ws-invoice" key={c.id}>
-              <div>
-                <small>{c.id} · DEMO</small>
-                <strong>{serviceName(c.service, lang)}</strong>
-              </div>
-              <strong>{money(total(c))}</strong>
-              <Badge
-                good={
-                  c.settlements.length
-                    ? c.settlements.at(-1)?.status === "settled"
-                    : c.payment === "paid"
-                }
-              >
-                {c.settlements.at(-1)
-                  ? t(...settlementLabels[c.settlements.at(-1)!.status])
-                  : t(
-                      c.stage === "review"
-                        ? "Proposition en révision"
-                        : c.stage === "quote"
-                          ? "Proposition non acceptée"
-                          : c.stage === "cancelled" && c.payment === "paid"
-                            ? "Annulée · bilan à préparer"
-                            : c.stage === "cancelled"
-                              ? "Annulée · aucune provision encaissée"
-                              : c.payment === "paid"
-                                ? "Provision simulée réglée"
-                                : "Provision à suivre",
-                      c.stage === "review"
-                        ? "Proposta em revisão"
-                        : c.stage === "quote"
-                          ? "Proposta não aprovada"
-                          : c.stage === "cancelled" && c.payment === "paid"
-                            ? "Cancelado · balanço por preparar"
-                            : c.stage === "cancelled"
-                              ? "Cancelado · sem provisão recebida"
-                              : c.payment === "paid"
-                                ? "Provisão simulada paga"
-                                : "Provisão a acompanhar",
-                    )}
-              </Badge>
-              <Button
-                secondary
-                onClick={() => go("requests", c.id, { section: "proposal" })}
-              >
-                {t("Voir le détail", "Ver detalhe")}
-              </Button>
-              {isClosed(c) && c.payment === "paid" && (
-                <Button secondary onClick={() => go("settlements", c.id)}>
-                  {t("Ouvrir le bilan", "Abrir balanço")}
-                </Button>
-              )}
-              <details>
-                <summary>
-                  {t(
-                    "Aperçu de pièce de démonstration",
-                    "Pré-visualizar documento demo",
-                  )}
-                </summary>
-                <div className="ws-sample">
-                  <strong>
-                    DEMO — {t("Sans valeur fiscale", "Sem valor fiscal")}
-                  </strong>
-                  <p>
-                    {t(
-                      "Émetteur / NIPC / adresse / TVA : TBD. Client : compte démo. Aucun numéro de facture émis.",
-                      "Emitente / NIPC / morada / IVA: TBD. Cliente: conta demo. Sem número de fatura emitido.",
-                    )}
-                  </p>
-                  <p>
-                    {t("Prestation", "Serviço")} :{" "}
-                    {serviceName(c.service, lang)} · {money(total(c))}
-                  </p>
-                </div>
-              </details>
+        {!invoices.length && (
+          <p className="ws-empty">
+            {t(
+              "Aucune prestation chiffrée pour ce client.",
+              "Nenhum serviço orçamentado para este cliente.",
+            )}
+          </p>
+        )}
+        {invoices.map((c) => (
+          <div className="ws-invoice" key={c.id}>
+            <div>
+              <small>{c.id} · DEMO</small>
+              <strong>{serviceName(c.service, lang)}</strong>
             </div>
-          ))}
+            <strong>{money(total(c))}</strong>
+            <Badge
+              good={
+                c.settlements.length
+                  ? c.settlements.at(-1)?.status === "settled"
+                  : c.payment === "paid"
+              }
+            >
+              {c.settlements.at(-1)
+                ? t(...settlementLabels[c.settlements.at(-1)!.status])
+                : t(
+                    c.stage === "review"
+                      ? "Proposition en révision"
+                      : c.stage === "quote"
+                        ? "Proposition non acceptée"
+                        : c.stage === "cancelled" && c.payment === "paid"
+                          ? "Annulée · bilan à préparer"
+                          : c.stage === "cancelled"
+                            ? "Annulée · aucune provision encaissée"
+                            : c.payment === "paid"
+                              ? "Provision simulée réglée"
+                              : "Provision à suivre",
+                    c.stage === "review"
+                      ? "Proposta em revisão"
+                      : c.stage === "quote"
+                        ? "Proposta não aprovada"
+                        : c.stage === "cancelled" && c.payment === "paid"
+                          ? "Cancelado · balanço por preparar"
+                          : c.stage === "cancelled"
+                            ? "Cancelado · sem provisão recebida"
+                            : c.payment === "paid"
+                              ? "Provisão simulada paga"
+                              : "Provisão a acompanhar",
+                  )}
+            </Badge>
+            <Button
+              secondary
+              onClick={() => go("requests", c.id, { section: "proposal" })}
+            >
+              {t("Voir le détail", "Ver detalhe")}
+            </Button>
+            {isClosed(c) && c.payment === "paid" && (
+              <Button secondary onClick={() => go("settlements", c.id)}>
+                {t("Ouvrir le bilan", "Abrir balanço")}
+              </Button>
+            )}
+            <details>
+              <summary>
+                {t(
+                  "Aperçu de pièce de démonstration",
+                  "Pré-visualizar documento demo",
+                )}
+              </summary>
+              <div className="ws-sample">
+                <p>
+                  {t("Client concerné", "Cliente em questão")} :{" "}
+                  {exampleText(state.profile.name, lang)}
+                </p>
+                <strong>
+                  DEMO — {t("Sans valeur fiscale", "Sem valor fiscal")}
+                </strong>
+                <p>
+                  {t(
+                    "Émetteur / NIPC / adresse / TVA : TBD. Aucun numéro de facture émis.",
+                    "Emitente / NIPC / morada / IVA: TBD. Sem número de fatura emitido.",
+                  )}
+                </p>
+                <p>
+                  {t("Prestation", "Serviço")} : {serviceName(c.service, lang)}{" "}
+                  · {money(total(c))}
+                </p>
+              </div>
+            </details>
+          </div>
+        ))}
       </Panel>
     </>
   );
@@ -1663,6 +1702,7 @@ function Profile() {
     <div className="ws-two">
       <Panel title={t("Profil et préférences", "Perfil e preferências")}>
         <Form
+          resetOnSuccess={false}
           onSave={(d) => {
             return act({
               type: "profile",
@@ -1690,21 +1730,11 @@ function Profile() {
             />
           </Field>
           <Field label={t("Pays de résidence", "País de residência")}>
-            <select name="country" defaultValue={state.profile.country}>
-              {[
-                "France",
-                "Portugal",
-                "United States",
-                "Luxembourg",
-                "Belgique / België",
-                "Deutschland",
-                "United Kingdom",
-                "Schweiz / Suisse",
-                "Autre / Outro",
-              ].map((x) => (
-                <option key={x}>{x}</option>
-              ))}
-            </select>
+            <CountrySelect
+              name="country"
+              lang={lang}
+              defaultValue={state.profile.country}
+            />
           </Field>
           <Field
             label={t("Langue de correspondance", "Idioma de correspondência")}

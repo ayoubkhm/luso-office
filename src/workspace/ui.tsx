@@ -1,4 +1,8 @@
-import { hasFormBaseline, rememberForm } from "./navigation";
+import {
+  confirmDiscardChanges,
+  hasFormBaseline,
+  rememberForm,
+} from "./navigation";
 import { translate, languages, languageNames } from "../locales";
 import {
   createContext,
@@ -29,11 +33,16 @@ export type Context = {
   caseIntent?: CaseIntent;
   error?: string;
   selected: string;
-  select: (id: string) => void;
+  select: (id: string, discardConfirmed?: boolean) => boolean | void;
   t: (fr: string, pt: string) => string;
 };
 export const WorkspaceContext = createContext<Context>(null!);
 export const useWorkspace = () => useContext(WorkspaceContext);
+export function useDiscardChanges() {
+  const { t } = useWorkspace();
+  return (scope?: ParentNode, ignore?: Element) =>
+    confirmDiscardChanges(t, scope, ignore);
+}
 export const labels: Record<View, [string, string]> = {
   settlements: ["Bilans des dossiers", "Balanços dos pedidos"],
   guide: ["Parcours guidés", "Percursos guiados"],
@@ -134,11 +143,13 @@ export function Form({
   onSave,
   className = "",
   preservesDraft = false,
+  resetOnSuccess = true,
 }: {
   children: ReactNode;
   onSave: (d: FormData) => boolean | void;
   className?: string;
   preservesDraft?: boolean;
+  resetOnSuccess?: boolean;
 }) {
   const { t, error } = useWorkspace();
   const [result, setResult] = useState<boolean | null>(null);
@@ -156,6 +167,7 @@ export function Form({
   return (
     <form
       ref={ref}
+      onChange={() => setResult(null)}
       className={`ws-form ${className}`}
       onSubmit={(e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -163,7 +175,7 @@ export function Form({
         const saved = onSave(new FormData(form));
         if (saved !== undefined) setResult(saved);
         if (saved === true) {
-          form.reset();
+          if (resetOnSuccess) form.reset();
           rememberForm(form);
           submitted.current = true;
         }

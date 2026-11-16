@@ -440,3 +440,255 @@ test("Direct navigation exposes unread messages and the disclosure respects canc
   assert.equal(document.activeElement, document.querySelector("h1"));
   await ui.close();
 });
+
+const selectValue = async (select, value) => {
+  assert.ok(select);
+  await act(async () => {
+    select.value = value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    await settle();
+  });
+};
+const labelledSelect = (text) =>
+  [...document.querySelectorAll("label")]
+    .find((label) => label.textContent.includes(text))
+    ?.querySelector("select");
+const navigation = () => document.querySelector(".ws-navigation");
+
+test("Saving and saving again preserves profile choices, including when returning to the screen", async () => {
+  const ui = await mount({ hash: "#view=profile&role=member" });
+  let warnings = 0;
+  window.confirm = () => {
+    warnings++;
+    return false;
+  };
+  await ui.click("Sauvegarder mes exemples sur cet appareil");
+  await selectValue(document.querySelector('select[name="country"]'), "PT");
+  await selectValue(document.querySelector('select[name="language"]'), "de");
+  await selectValue(document.querySelector('select[name="currency"]'), "USD");
+  const values = () =>
+    ["country", "language", "currency"].map(
+      (name) => document.querySelector(`select[name="${name}"]`).value,
+    );
+  const save = () =>
+    ui.submit(document.querySelector('select[name="country"]').form);
+  await save();
+  assert.deepEqual(values(), ["PT", "de", "USD"]);
+  await save();
+  assert.deepEqual(values(), ["PT", "de", "USD"]);
+  const profiles = JSON.parse(localStorage.getItem(key)).events.filter(
+    (e) => e.action.type === "profile",
+  );
+  assert.equal(profiles.length, 2);
+  for (const { action } of profiles)
+    assert.deepEqual(
+      [
+        action.profile.country,
+        action.profile.language,
+        action.profile.currency,
+      ],
+      ["PT", "de", "USD"],
+    );
+  await ui.click("Documents", navigation());
+  await ui.click("Mon compte", navigation());
+  assert.deepEqual(values(), ["PT", "de", "USD"]);
+  assert.equal(warnings, 0);
+  await ui.close();
+});
+
+test("Document and request drafts survive refused internal changes and are discarded only after acceptance", async () => {
+  let ui = await mount({ hash: "#view=documents&role=member&case=DEMO-001" });
+  let warnings = 0;
+  window.confirm = () => {
+    warnings++;
+    return false;
+  };
+  document.querySelector('input[name="name"]').value = "Document in progress";
+  await selectValue(labelledSelect("Filtrer par dossier"), "DEMO-002");
+  assert.equal(warnings, 1);
+  assert.equal(labelledSelect("Filtrer par dossier").value, "DEMO-001");
+  assert.equal(
+    document.querySelector('input[name="name"]').value,
+    "Document in progress",
+  );
+  window.confirm = () => true;
+  await selectValue(labelledSelect("Filtrer par dossier"), "DEMO-002");
+  assert.equal(document.querySelector('input[name="name"]').value, "");
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("case"),
+    "DEMO-002",
+  );
+  await ui.close();
+
+  ui = await mount({ hash: "#view=requests&role=member" });
+  window.confirm = () => false;
+  await ui.click("Nouvelle demande démo");
+  document.querySelector('textarea[name="description"]').value =
+    "Request in progress";
+  await ui.click("Fermer le formulaire");
+  assert.equal(
+    document.querySelector('textarea[name="description"]').value,
+    "Request in progress",
+  );
+  window.confirm = () => true;
+  await ui.click("Fermer le formulaire");
+  assert.equal(document.querySelector('textarea[name="description"]'), null);
+  await ui.click("Nouvelle demande démo");
+  assert.equal(
+    document.querySelector('textarea[name="description"]').value,
+    "",
+  );
+  // Successful creation must not ask the user to discard the very form saved.
+  window.confirm = () => {
+    throw new Error("Unexpected discard prompt after saving");
+  };
+  document.querySelector('textarea[name="description"]').value =
+    "Submitted example";
+  await ui.submit(document.querySelector('textarea[name="description"]').form);
+  assert.match(
+    document.querySelector(".ws-case-detail").textContent,
+    /Submitted example/,
+  );
+  await ui.close();
+});
+
+test("Case and task selectors protect notes and task drafts before replacing their forms", async () => {
+  let ui = await mount({
+    hash: "#view=requests&role=team&case=DEMO-001&section=team",
+  });
+  window.confirm = () => false;
+  document.querySelector('textarea[name="note"]').value = "Keep case note";
+  await selectValue(labelledSelect("État du dossier"), "quote");
+  assert.equal(labelledSelect("État du dossier").value, "all");
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Keep case note",
+  );
+  await ui.close();
+  ui = await mount({ hash: "#view=tasks&role=team&case=DEMO-001" });
+  let warnings = 0;
+  window.confirm = () => {
+    warnings++;
+    return false;
+  };
+  document.querySelector('.ws-add-task input[name="title"]').value =
+    "Task draft";
+  await selectValue(document.querySelector(".ws-add-task select"), "DEMO-002");
+  assert.equal(warnings, 1);
+  assert.equal(
+    document.querySelector('.ws-add-task input[name="title"]').value,
+    "Task draft",
+  );
+  assert.equal(document.querySelector(".ws-add-task select").value, "DEMO-001");
+  window.confirm = () => true;
+  await selectValue(document.querySelector(".ws-add-task select"), "DEMO-002");
+  assert.equal(
+    document.querySelector('.ws-add-task input[name="title"]').value,
+    "",
+  );
+  window.confirm = () => {
+    throw new Error("An unchanged form is not a draft");
+  };
+  await selectValue(document.querySelector(".ws-add-task select"), "DEMO-001");
+  await ui.close();
+});
+
+test("Direct navigation, Back and Forward keep the selected case, including changes from Documents", async () => {
+  const ui = await mount({ hash: "#view=requests&role=member&case=DEMO-002" });
+  await ui.click("Documents", navigation());
+  assert.equal(labelledSelect("Filtrer par dossier").value, "DEMO-002");
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("case"),
+    "DEMO-002",
+  );
+  await ui.click("Mon compte", navigation());
+  await act(async () => {
+    history.back();
+    await settle();
+  });
+  assert.equal(labelledSelect("Filtrer par dossier").value, "DEMO-002");
+  await act(async () => {
+    history.forward();
+    await settle();
+  });
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("case"),
+    "DEMO-002",
+  );
+  await ui.click("Documents", navigation());
+  await selectValue(labelledSelect("Filtrer par dossier"), "DEMO-001");
+  await ui.click("Mon compte", navigation());
+  await act(async () => {
+    history.back();
+    await settle();
+  });
+  assert.equal(labelledSelect("Filtrer par dossier").value, "DEMO-001");
+  await ui.close();
+});
+
+test("Legacy translated countries from public preparations remain correct when displayed and saved", async () => {
+  for (const [country, expected] of [
+    ["Allemagne", "DE"],
+    ["Reino Unido", "GB"],
+    ["Canada", "CA"],
+    ["Custom country", "Custom country"],
+  ]) {
+    const ui = await mount({
+      hash: "#view=requests&role=member",
+      prepared: {
+        version: 1,
+        service: "maison-inoccupee",
+        description: "Visit",
+        name: "Client example",
+        country,
+        currency: "EUR",
+      },
+    });
+    await ui.submit(
+      document.querySelector('textarea[name="description"]').form,
+    );
+    await ui.click("Mon compte", navigation());
+    assert.equal(
+      document.querySelector('select[name="country"]').value,
+      expected,
+      country,
+    );
+    await ui.submit(document.querySelector('select[name="country"]').form);
+    assert.equal(
+      document.querySelector('select[name="country"]').value,
+      expected,
+    );
+    await ui.close();
+  }
+});
+
+test("Team billing shows only the selected client’s quoted cases and identifies that client", async () => {
+  const saved = JSON.stringify({
+    version: 2,
+    base: null,
+    events: [
+      {
+        role: "team",
+        action: { type: "client-create", name: "Client B", country: "PT" },
+      },
+    ],
+  });
+  const ui = await mount({ hash: "#view=billing&role=team", saved });
+  await ui.click("Reprendre la session sauvegardée");
+  assert.match(
+    document.querySelector(".ws-main").textContent,
+    /Client concerné : Client B/,
+  );
+  assert.equal(document.querySelectorAll(".ws-invoice").length, 0);
+  assert.match(
+    document.querySelector(".ws-main").textContent,
+    /Aucune prestation chiffrée pour ce client/,
+  );
+  await selectValue(labelledSelect("Client fictif exploré"), "demo");
+  assert.equal(document.querySelectorAll(".ws-invoice").length, 2);
+  assert.match(
+    document.querySelector(".ws-main").textContent,
+    /Client concerné : Compte démo/,
+  );
+  await ui.close();
+});

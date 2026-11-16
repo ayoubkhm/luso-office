@@ -1,12 +1,23 @@
 import { exampleText } from "../locales/examples";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { canWork, visibleCases, type Document } from "./model";
 import { matchingDocuments, documentReviewLabels } from "./documentBoard";
 import { CaseRequirements, DocumentReview } from "./Operations";
-import { useWorkspace, Panel, Field, Button, Form, Badge, value } from "./ui";
+import {
+  useWorkspace,
+  useDiscardChanges,
+  Panel,
+  Field,
+  Button,
+  Form,
+  Badge,
+  value,
+} from "./ui";
 
 export function Documents() {
-  const { state, role, lang, t, selected } = useWorkspace();
+  const { state, role, lang, t, selected, select } = useWorkspace();
+  const discard = useDiscardChanges();
+  const list = useRef<HTMLDivElement>(null);
   const cases = visibleCases(state, role);
   const initial = cases.some((c) => c.id === selected) ? selected : "all";
   const [filter, setFilter] = useState(initial);
@@ -43,6 +54,8 @@ export function Documents() {
           <select
             value={filter}
             onChange={(e) => {
+              if (!discard()) return;
+              if (e.target.value !== "all") select(e.target.value, true);
               setFilter(e.target.value);
               clearSearch();
             }}
@@ -61,7 +74,9 @@ export function Documents() {
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              if (discard(list.current || undefined)) setQuery(e.target.value);
+            }}
             placeholder={t(
               "Nom, dossier, bien ou pièce demandée…",
               "Nome, pedido, imóvel ou documento pedido…",
@@ -75,7 +90,10 @@ export function Documents() {
             <Field label={t("Vérification", "Verificação")}>
               <select
                 value={review}
-                onChange={(e) => setReview(e.target.value)}
+                onChange={(e) => {
+                  if (discard(list.current || undefined))
+                    setReview(e.target.value);
+                }}
               >
                 <option value="all">
                   {t("Tous les états", "Todos os estados")}
@@ -90,7 +108,10 @@ export function Documents() {
             <Field label={t("Original", "Original")}>
               <select
                 value={custody}
-                onChange={(e) => setCustody(e.target.value)}
+                onChange={(e) => {
+                  if (discard(list.current || undefined))
+                    setCustody(e.target.value);
+                }}
               >
                 <option value="all">{t("Tous", "Todos")}</option>
                 <option value="received">
@@ -106,7 +127,10 @@ export function Documents() {
               <Field label={t("Partage partenaire", "Partilha com parceiro")}>
                 <select
                   value={sharing}
-                  onChange={(e) => setSharing(e.target.value)}
+                  onChange={(e) => {
+                    if (discard(list.current || undefined))
+                      setSharing(e.target.value);
+                  }}
                 >
                   <option value="all">{t("Tous", "Todos")}</option>
                   <option value="shared">{t("Autorisé", "Autorizada")}</option>
@@ -123,7 +147,12 @@ export function Documents() {
               {t("pièce(s) trouvée(s)", "documento(s) encontrado(s)")}
             </p>
             {filtered && (
-              <Button secondary onClick={clearSearch}>
+              <Button
+                secondary
+                onClick={() => {
+                  if (discard(list.current || undefined)) clearSearch();
+                }}
+              >
                 {t(
                   "Effacer la recherche et les filtres",
                   "Limpar pesquisa e filtros",
@@ -131,21 +160,23 @@ export function Documents() {
               </Button>
             )}
           </div>
-          {shown.map((d) => (
-            <DocumentCard key={d.id} d={d} />
-          ))}
-          {!shown.length && (
-            <p className="ws-empty">
-              {t(
-                role === "partner"
-                  ? "Aucune pièce partagée ne correspond à cette vue. Vérifiez le dossier et les filtres."
-                  : "Aucune pièce accessible ne correspond à cette vue. Vérifiez le dossier et les filtres ; les pièces encore à fournir figurent dans la liste des pièces attendues.",
-                role === "partner"
-                  ? "Nenhum documento partilhado corresponde a esta vista. Verifique o pedido e os filtros."
-                  : "Nenhum documento acessível corresponde a esta vista. Verifique o pedido e os filtros; os documentos por entregar constam da lista de documentos necessários.",
-              )}
-            </p>
-          )}
+          <div ref={list}>
+            {shown.map((d) => (
+              <DocumentCard key={d.id} d={d} />
+            ))}
+            {!shown.length && (
+              <p className="ws-empty">
+                {t(
+                  role === "partner"
+                    ? "Aucune pièce partagée ne correspond à cette vue. Vérifiez le dossier et les filtres."
+                    : "Aucune pièce accessible ne correspond à cette vue. Vérifiez le dossier et les filtres ; les pièces encore à fournir figurent dans la liste des pièces attendues.",
+                  role === "partner"
+                    ? "Nenhum documento partilhado corresponde a esta vista. Verifique o pedido e os filtros."
+                    : "Nenhum documento acessível corresponde a esta vista. Verifique o pedido e os filtros; os documentos por entregar constam da lista de documentos necessários.",
+                )}
+              </p>
+            )}
+          </div>
         </Panel>
         <div>
           {current && role !== "partner" && (
@@ -189,6 +220,7 @@ function DocumentDeposit({
   onCreated: (id: string) => void;
 }) {
   const { state, role, t, act, lang } = useWorkspace();
+  const discard = useDiscardChanges();
   const cases = visibleCases(state, role).filter(
     (c) => canWork(c) && (!caseId || c.id === caseId),
   );
@@ -224,7 +256,10 @@ function DocumentDeposit({
             <select
               value={id}
               disabled={Boolean(caseId)}
-              onChange={(e) => setId(e.target.value)}
+              onChange={(e) => {
+                if (discard(e.currentTarget.form || undefined, e.currentTarget))
+                  setId(e.target.value);
+              }}
             >
               {cases.map((c) => (
                 <option key={c.id} value={c.id}>

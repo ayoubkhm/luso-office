@@ -1,3 +1,5 @@
+import { CountrySelect } from "../CountrySelect";
+import { countryLabel } from "../countries";
 import { exampleText } from "../locales/examples";
 import { Button, Field, Form, Panel, useWorkspace, value } from "./ui";
 import type { Case, Role, State } from "./model";
@@ -101,7 +103,7 @@ export function ClientForm() {
           <input name="name" required maxLength={80} />
         </Field>
         <Field label={t("Pays", "País")}>
-          <input name="country" required maxLength={80} />
+          <CountrySelect name="country" required lang={lang} />
         </Field>
         <Button type="submit">
           {t("Créer ce client fictif", "Criar este cliente fictício")}
@@ -187,7 +189,7 @@ export function PeopleDesk() {
             <article key={a.id}>
               <h3>{exampleText(a.profile.name, lang)}</h3>
               <p>
-                {a.profile.country} ·{" "}
+                {countryLabel(a.profile.country, lang)} ·{" "}
                 {t(
                   a.subscription.active
                     ? "Adhésion active"

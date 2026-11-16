@@ -1,3 +1,4 @@
+import { countryLabel } from "./countries";
 import { translate, languages, languageNames } from "./locales";
 import type { Lang } from "./catalogue";
 export const pageNames = [
@@ -98,7 +99,7 @@ export function requestText(d: RequestDraft, lang: Lang) {
     "",
     `${translate("Nom", "Nome", lang)} : ${d.name}`,
     `E-mail : ${d.email || "—"}`,
-    `${translate("Pays de résidence", "País de residência", lang)} : ${d.country || "—"}`,
+    `${translate("Pays de résidence", "País de residência", lang)} : ${countryLabel(d.country, lang) || "—"}`,
     `${translate("Sujet", "Assunto", lang)} : ${d.subject}`,
     "",
     d.message,

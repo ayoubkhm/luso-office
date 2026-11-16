@@ -1,3 +1,4 @@
+import { useDiscardChanges } from "./ui";
 import { exampleText } from "../locales/examples";
 import { documentReviewLabels } from "./documentBoard";
 import {
@@ -7,7 +8,7 @@ import {
   taskTiming,
   type TaskTiming,
 } from "./taskBoard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWorkspace, Button, Panel, Field, Form, Badge, value } from "./ui";
 import {
   canWork,
@@ -42,6 +43,8 @@ export function Tasks({
   navigationToken?: number;
 }) {
   const { state, role, lang, t, selected } = useWorkspace();
+  const discard = useDiscardChanges();
+  const list = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<string>(initialFilter);
   const [query, setQuery] = useState("");
   const [dossier, setDossier] = useState("all");
@@ -75,10 +78,10 @@ export function Tasks({
   }, [navigationToken]);
   const filtered = Boolean(
     query ||
-      dossier !== "all" ||
-      assignee !== "all" ||
-      timing !== "all" ||
-      filter !== "open",
+    dossier !== "all" ||
+    assignee !== "all" ||
+    timing !== "all" ||
+    filter !== "open",
   );
   const dayLabel = new Intl.DateTimeFormat(lang, {
     dateStyle: "medium",
@@ -124,6 +127,7 @@ export function Tasks({
             key={key}
             aria-pressed={filter === "open" && timing === key}
             onClick={() => {
+              if (!discard(list.current || undefined)) return;
               setFilter("open");
               setTiming(timing === key && filter === "open" ? "all" : key);
             }}
@@ -138,7 +142,9 @@ export function Tasks({
           <input
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              if (discard(list.current || undefined)) setQuery(e.target.value);
+            }}
             placeholder={t(
               "Tâche, dossier, service ou bien…",
               "Tarefa, pedido, serviço ou imóvel…",
@@ -149,7 +155,9 @@ export function Tasks({
           <Field label={t("Dossier", "Pedido")}>
             <select
               value={dossier}
-              onChange={(e) => setDossier(e.target.value)}
+              onChange={(e) => {
+                if (discard()) setDossier(e.target.value);
+              }}
             >
               <option value="all">
                 {t("Tous les dossiers", "Todos os pedidos")}
@@ -166,7 +174,10 @@ export function Tasks({
           <Field label={t("Responsable", "Responsável")}>
             <select
               value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
+              onChange={(e) => {
+                if (discard(list.current || undefined))
+                  setAssignee(e.target.value);
+              }}
             >
               <option value="all">{t("Tous", "Todos")}</option>
               <option value="team">{t("Équipe", "Equipa")}</option>
@@ -178,7 +189,9 @@ export function Tasks({
           <select
             value={timing}
             disabled={["done", "paused"].includes(filter)}
-            onChange={(e) => setTiming(e.target.value)}
+            onChange={(e) => {
+              if (discard(list.current || undefined)) setTiming(e.target.value);
+            }}
           >
             <option value="all">
               {t("Toutes les dates", "Todas as datas")}
@@ -220,6 +233,7 @@ export function Tasks({
             key={f}
             aria-pressed={filter === f}
             onClick={() => {
+              if (!discard(list.current || undefined)) return;
               setFilter(f);
               setTiming("all");
             }}
@@ -237,12 +251,17 @@ export function Tasks({
           )}
         </p>
         {filtered && (
-          <Button secondary onClick={clear}>
+          <Button
+            secondary
+            onClick={() => {
+              if (discard()) clear();
+            }}
+          >
             {t("Effacer les filtres", "Limpar filtros")}
           </Button>
         )}
       </div>
-      <div className="ws-task-grid">
+      <div className="ws-task-grid" ref={list}>
         {tasks.map((task) => (
           <TaskCard
             task={task}
@@ -287,6 +306,7 @@ function TaskCreate({
   const cases = visibleCases(state, role).filter(
     (c) => canWork(c) && (!lockedCase || c.id === caseId),
   );
+  const discard = useDiscardChanges();
   const [id, setId] = useState(
     cases.find((c) => c.id === caseId)?.id || cases[0]?.id || "",
   );
@@ -315,7 +335,10 @@ function TaskCreate({
           <select
             value={id}
             disabled={lockedCase}
-            onChange={(e) => setId(e.target.value)}
+            onChange={(e) => {
+              if (discard(e.currentTarget.form || undefined, e.currentTarget))
+                setId(e.target.value);
+            }}
           >
             {cases.map((c) => (
               <option key={c.id}>{c.id}</option>
@@ -732,6 +755,7 @@ export function PropertyEditor({ id }: { id: string }) {
         {t("Modifier la fiche du bien", "Editar ficha do imóvel")}
       </summary>
       <Form
+        resetOnSuccess={false}
         onSave={(d) => {
           act({
             type: "property-edit",

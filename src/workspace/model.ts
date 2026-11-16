@@ -1,3 +1,4 @@
+import { countryCode } from "../countries";
 import { canAccessView, canPerformAction } from "./permissions";
 import { nextRenewal, validDay } from "./calendar";
 import { failureReason } from "./failureReason";
@@ -405,7 +406,7 @@ export const initialState = (): State => ({
   },
   profile: {
     name: "Compte démo / Conta demo",
-    country: "France",
+    country: "FR",
     language: "fr",
     consent: true,
   },
@@ -772,7 +773,7 @@ function applyTransition(
         activeClient: id,
         profile: {
           name: a.name.trim(),
-          country: a.country,
+          country: countryCode(a.country),
           language: s.profile.language,
           consent: false,
         },
@@ -1753,7 +1754,14 @@ function applyTransition(
       break;
     case "profile":
       if (role !== "member" || !a.profile.name.trim()) return reject;
-      next = { ...s, profile: { ...a.profile, name: a.profile.name.trim() } };
+      next = {
+        ...s,
+        profile: {
+          ...a.profile,
+          country: countryCode(a.profile.country),
+          name: a.profile.name.trim(),
+        },
+      };
       break;
     case "invite": {
       const email = a.email.trim().toLowerCase();

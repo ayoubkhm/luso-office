@@ -298,5 +298,17 @@
   "Menu de l’espace": [
     "Workspace menu",
     "Bereichsmenü"
+  ],
+  "Client concerné": [
+    "Selected client",
+    "Ausgewählter Kunde"
+  ],
+  "Aucune prestation chiffrée pour ce client.": [
+    "No quoted services for this client.",
+    "Für diesen Kunden liegen keine bezifferten Leistungen vor."
+  ],
+  "Émetteur / NIPC / adresse / TVA : TBD. Aucun numéro de facture émis.": [
+    "Issuer / NIPC / address / VAT: TBD. No invoice number issued.",
+    "Aussteller / NIPC / Adresse / MwSt.: TBD. Keine Rechnungsnummer ausgestellt."
   ]
 }
