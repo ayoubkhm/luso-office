@@ -159,8 +159,8 @@ export function requestText(d: RequestDraft, lang: Lang) {
     d.message,
     "",
     translate(
-      "Aucune demande n’a été envoyée. Conservez ce document pour votre premier échange. Coordonnées de contact : TBD.",
-      "Nenhum pedido foi enviado. Guarde este documento para a primeira conversa. Contactos: TBD.",
+      "Aucune demande n’a été envoyée. Conservez ce document pour votre échange avec LusoOffice.",
+      "Nenhum pedido foi enviado. Guarde este documento para a sua conversa com a LusoOffice.",
       lang,
     ),
   ].join("\n");

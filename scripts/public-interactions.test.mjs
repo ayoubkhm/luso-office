@@ -329,10 +329,7 @@ test("Page metadata is distinct in all languages and partnership preparation is 
     assert.match(summary, /CHF/);
   }
   const ui = await mount("journal");
-  assert.match(
-    document.querySelector(".sample-label").textContent,
-    /non publié/,
-  );
+  assert.match(document.querySelector(".sample-label").textContent, /À lire/);
   assert.equal(
     document.querySelector(".journal-sample article > div").lang,
     "pt",
@@ -554,12 +551,16 @@ test("The preview and actual download retain contact details, currency and every
   }
 });
 
-test("Insurance is presented as a future topic through an authorised partner in all public languages, without adding a priced service", async () => {
+test("Insurance enquiries refer to authorised professionals in all public languages without inventing a priced service", async () => {
   const terms = {
-    fr: ["assurances", "partenaire habilité", "aucune offre"],
-    pt: ["seguros", "parceiro habilitado", "não está disponível"],
-    en: ["Insurance", "authorised partner", "no insurance offer"],
-    de: ["Versicherungen", "zugelassenen Partner", "kein Versicherungsangebot"],
+    fr: ["assurance", "professionnel habilité", "Décrivez votre situation"],
+    pt: ["seguro", "profissional habilitado", "Descreva a sua situação"],
+    en: ["insurance", "authorised professional", "Describe your situation"],
+    de: [
+      "Versicherung",
+      "zugelassene Fachperson",
+      "Beschreiben Sie Ihre Situation",
+    ],
   };
   for (const lang of ["fr", "pt", "en", "de"]) {
     const prefix = lang === "fr" ? "" : lang + "/";
@@ -569,5 +570,80 @@ test("Insurance is presented as a future topic through an authorised partner in 
     for (const term of terms[lang])
       assert.ok(future.includes(term), `${lang}: ${term}`);
     assert.equal(d.querySelectorAll(".service-row").length, 28);
+  }
+});
+
+test("Public pages present the brand without workshop notices, placeholder copy or links into fictional accounts", async () => {
+  const forbidden =
+    /version de présentation|versão de apresentação|presentation version|maquette|protótipo|prototype|Prototyp|démonstration|demonstração|demonstration|en conception|en préparation|being developed|se construit|está a ser criada|TBD|proposition de plan|proposta de plano/iu;
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const prefix = lang === "fr" ? "" : lang + "/";
+    for (const page of [
+      "index",
+      "services",
+      "adhesion",
+      "business",
+      "a-propos",
+      "journal",
+    ]) {
+      const d = new JSDOM(await readFile(`dist/${prefix}${page}.html`, "utf8"))
+        .window.document;
+      assert.equal(d.querySelector(".preview-bar"), null);
+      assert.doesNotMatch(d.body.textContent, forbidden, `${lang}/${page}`);
+      assert.doesNotMatch(
+        d.querySelector('meta[name="description"]').content,
+        forbidden,
+      );
+      assert.equal(
+        d.querySelector('a[href*="espace.html"]'),
+        null,
+        "Public navigation never enters the internal workshop",
+      );
+      assert.ok(d.querySelector(".account-entry"));
+      if (page === "adhesion") {
+        assert.deepEqual(
+          [...d.querySelectorAll(".plan h2")].map((e) => e.textContent),
+          ["Member", "Family"],
+        );
+        assert.equal(d.querySelector(".premium-preview"), null);
+      }
+    }
+  }
+});
+
+test("Account access explains the real limit only on request, without login fields or fictional success, and offers a truthful contact flow", async () => {
+  const limits = {
+    fr: "La connexion aux comptes n’est pas encore activée",
+    pt: "O acesso às contas ainda não está ativo",
+    en: "Account sign-in is not yet enabled",
+    de: "Die Kontoanmeldung ist noch nicht aktiviert",
+  };
+  const unsent = {
+    fr: "aucun message n’a été transmis",
+    pt: "nenhuma mensagem foi transmitida",
+    en: "no message has been transmitted",
+    de: "keine Nachricht übermittelt",
+  };
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const ui = await mount("membership", lang);
+    assert.equal(document.querySelector(".modal"), null);
+    await ui.click(".portal-section .account-entry");
+    assert.ok(
+      document.querySelector(".modal").textContent.includes(limits[lang]),
+    );
+    assert.equal(document.querySelector('input[type="password"]'), null);
+    await ui.click(".modal .button.primary");
+    assert.ok(document.querySelector(".modal form"));
+    fill("name", "Brand review");
+    fill("message", "My property in Portugal");
+    await choose('[name="subject"]', "visite-rapport");
+    await ui.submit();
+    assert.ok(
+      document.querySelector(".modal").textContent.includes(unsent[lang]),
+    );
+    assert.equal(document.querySelector('a[href*="espace.html"]'), null);
+    assert.equal(sessionStorage.getItem("lusooffice-demo-request"), null);
+    assert.ok(document.querySelector(".market-choice + button"));
+    await ui.close();
   }
 });

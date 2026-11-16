@@ -11,7 +11,6 @@ import { About } from "./About";
 import { CountrySelect } from "./CountrySelect";
 import { MarketChoice, type Currency } from "./MarketChoice";
 import { translate, languages, languageNames } from "./locales";
-import { handoffKey, readHandoff } from "./requestHandoff";
 import {
   Fragment,
   createContext,
@@ -120,7 +119,7 @@ function Button({
   const { t, open } = useSite();
   return (
     <button className="button primary" onClick={() => open(subject)}>
-      {children || t("Préparer mon échange", "Preparar a conversa")}
+      {children || t("Parlons de votre besoin", "Fale-nos do que precisa")}
     </button>
   );
 }
@@ -139,7 +138,7 @@ const PageIntro = ({
     <div className="intro-copy">{children}</div>
   </section>
 );
-function DraftNotice() {
+function PriceNote() {
   const { lang } = useSite();
   return (
     <p className="notice">
@@ -271,19 +270,13 @@ function Cta() {
           </h2>
           <p>
             {t(
-              "Un sujet suffit pour commencer. Préparez les éléments de votre premier échange.",
-              "Um assunto é suficiente para começar. Prepare os elementos da primeira conversa.",
+              "Une maison, une démarche, un retour : dites-nous ce qui vous amène.",
+              "Uma casa, uma diligência, um regresso: conte-nos o que precisa.",
             )}
           </p>
         </div>
         <div>
           <Button />
-          <small>
-            {t(
-              "Récapitulatif local, sans envoi de données.",
-              "Resumo local, sem envio de dados.",
-            )}
-          </small>
         </div>
       </div>
     </section>
@@ -305,7 +298,8 @@ export function App({
       subject: string;
       period?: RequestDraft["period"];
     } | null>(null),
-    [privacy, setPrivacy] = useState(false);
+    [privacy, setPrivacy] = useState(false),
+    [access, setAccess] = useState(false);
   const requestDrafts = useRef<Record<string, RememberedRequest>>({});
   const [anchor, setAnchor] = useState("");
   const [publicSearch, setPublicSearch] = useState(search);
@@ -364,12 +358,6 @@ export function App({
       <a className="skip-link" href="#main">
         {t("Aller au contenu", "Ir para o conteúdo")}
       </a>
-      <div className="preview-bar">
-        {t(
-          "Version de présentation — services et conditions en cours de validation.",
-          "Versão de apresentação — serviços e condições em validação.",
-        )}
-      </div>
       <header className="site-header">
         <div className="header-inner wrap">
           <a
@@ -454,11 +442,17 @@ export function App({
               {label}
             </a>
           ))}
-          <a href={link("workspace")}>
-            O meu Portugal · {t("maquette", "protótipo")}
-          </a>
+          <button
+            className="account-entry"
+            onClick={() => {
+              setMenu(false);
+              setAccess(true);
+            }}
+          >
+            {copy.accountAccess}
+          </button>
           <button onClick={() => open()}>
-            {t("Préparer mon échange", "Preparar a conversa")}
+            {t("Parlons de votre besoin", "Fale-nos do que precisa")}
           </button>
         </nav>
       </header>
@@ -612,8 +606,8 @@ export function App({
               <div>
                 <p>
                   {t(
-                    "Le rendez-vous mensuel envisagé pour les adhérents",
-                    "O encontro mensal previsto para os aderentes",
+                    "Votre rendez-vous avec le Portugal",
+                    "O seu encontro com Portugal",
                   )}
                 </p>
                 <h2 lang="pt">Portugal — Tão longe e tão perto</h2>
@@ -636,8 +630,8 @@ export function App({
             >
               <p>
                 {t(
-                  "Maison, démarches, famille, retour ou activité professionnelle : explorez les 28 prestations envisagées et préparez votre premier échange.",
-                  "Casa, assuntos administrativos, família, regresso ou atividade profissional: explore os 28 serviços previstos e prepare a primeira conversa.",
+                  "Maison, démarches, famille, retour ou activité professionnelle : trouvez la prestation adaptée à votre situation.",
+                  "Casa, diligências, família, regresso ou atividade profissional: encontre o serviço adequado à sua situação.",
                 )}
               </p>
             </PageIntro>
@@ -645,7 +639,7 @@ export function App({
               className="catalogue wrap"
               aria-label={t("Catalogue des services", "Catálogo de serviços")}
             >
-              <DraftNotice />
+              <PriceNote />
               <ServiceChoice lang={lang} />
               <Catalogue
                 lang={lang}
@@ -656,14 +650,14 @@ export function App({
             <section className="section wrap future-topics">
               <h2>
                 {t(
-                  "D’autres sujets à préparer ensemble.",
-                  "Outros assuntos a preparar em conjunto.",
+                  "Votre besoin ne figure pas dans le catalogue ?",
+                  "Não encontra o que precisa no catálogo?",
                 )}
               </h2>
               <p>
                 {t(
-                  "Nationalité portugaise, NIF, retraites, permis de conduire, traductions, études ou véhicule : ces thèmes sont à l’étude. Leur prise en charge et leurs conditions restent à confirmer.",
-                  "Nacionalidade portuguesa, NIF, pensões, cartas de condução, traduções, estudos ou veículo: estes temas estão em estudo. O âmbito e as condições estão por confirmar.",
+                  "Nationalité portugaise, NIF, retraite, permis de conduire, traductions, études ou véhicule : décrivez votre situation pour définir l’accompagnement et les professionnels à solliciter.",
+                  "Nacionalidade portuguesa, NIF, reforma, carta de condução, traduções, estudos ou veículo: descreva a situação para definir o acompanhamento e os profissionais a contactar.",
                 )}
               </p>
               <p>{copy.insuranceExploration}</p>
@@ -692,21 +686,21 @@ export function App({
               </a>
             </PageIntro>
             <section className="wrap plans-section">
-              <DraftNotice />
+              <PriceNote />
               <Membership lang={lang} onChoose={open} />
             </section>
             <section className="section wrap benefit-layout">
               <div>
                 <h2>
                   {t(
-                    "Ce que l’adhésion\na vocation à apporter.",
-                    "O que a adesão\npretende oferecer.",
+                    "Les avantages de votre adhésion.",
+                    "As vantagens da sua adesão.",
                   )}
                 </h2>
                 <p className="muted">
                   {t(
-                    "Des avantages communs sont prévus. Le niveau d’orientation et les limites de chaque plan restent à définir.",
-                    "Estão previstas vantagens comuns. O nível de orientação e os limites de cada plano estão por definir.",
+                    "Des tarifs adhérent, un lien régulier avec le Portugal et un accompagnement adapté à votre situation.",
+                    "Preços de aderente, uma ligação regular a Portugal e acompanhamento adaptado à sua situação.",
                   )}
                 </p>
               </div>
@@ -717,16 +711,16 @@ export function App({
                     "Acesso aos preços de aderente nos serviços",
                   ),
                   L(
-                    "Orientation et accompagnement selon le plan défini",
-                    "Orientação e acompanhamento conforme o plano definido",
+                    "Orientation pour organiser vos démarches",
+                    "Orientação para organizar as suas diligências",
                   ),
                   L(
                     "Newsletter mensuelle « Portugal — Tão longe e tão perto »",
                     "Newsletter mensal « Portugal — Tão longe e tão perto »",
                   ),
                   L(
-                    "Carte physique numérotée envisagée",
-                    "Cartão físico numerado previsto",
+                    "Une adhésion individuelle ou familiale",
+                    "Uma adesão individual ou familiar",
                   ),
                 ].map((x) => (
                   <li key={x.fr}>
@@ -739,31 +733,14 @@ export function App({
             <section className="portal-section">
               <div className="wrap portal-layout">
                 <div>
-                  <span className="status-pill">
-                    {t(
-                      "Espace en conception · explorer la maquette",
-                      "Área em conceção · explorar o protótipo",
-                    )}
-                  </span>
                   <h2 lang="pt">O meu Portugal</h2>
-                  <a className="button primary" href={link("workspace")}>
-                    {t(
-                      "Explorer l’espace de démonstration",
-                      "Explorar a área de demonstração",
-                    )}
-                  </a>
-                  <p>
-                    {t(
-                      "À terme, un même espace pour votre adhésion, vos demandes, vos biens, vos documents et vos échanges.",
-                      "No futuro, um só espaço para a adesão, os pedidos, os imóveis, os documentos e os contactos.",
-                    )}
-                  </p>
-                  <p>
-                    {t(
-                      "L’accès au compte, les paiements et le suivi des dossiers seront développés dans une phase dédiée.",
-                      "O acesso à conta, os pagamentos e o acompanhamento dos processos serão desenvolvidos numa fase própria.",
-                    )}
-                  </p>
+                  <p>{copy.portalIntro}</p>
+                  <button
+                    className="button primary account-entry"
+                    onClick={() => setAccess(true)}
+                  >
+                    {copy.accountAccess}
+                  </button>
                 </div>
                 <ul className="portal-list">
                   {[
@@ -824,8 +801,8 @@ export function App({
                 </h2>
                 <p>
                   {t(
-                    "Intervention envisagée d’un comptable partenaire, selon une prestation et des honoraires propres.",
-                    "Intervenção prevista de um contabilista parceiro, com serviço e honorários próprios.",
+                    "Les questions comptables et fiscales relèvent d’un comptable, avec une mission et des honoraires distincts.",
+                    "As questões contabilísticas e fiscais cabem a um contabilista, com missão e honorários distintos.",
                   )}
                 </p>
               </article>
@@ -834,8 +811,8 @@ export function App({
                 <h2>{t("Projet et financement", "Projeto e financiamento")}</h2>
                 <p>
                   {t(
-                    "Appui envisagé d’un consultant. Ses missions et qualifications sont à confirmer avant présentation d’une offre spécialisée.",
-                    "Apoio previsto de um consultor. As funções e habilitações estão por confirmar antes da apresentação de uma oferta especializada.",
+                    "Les études de viabilité et les dossiers de financement nécessitent l’intervention de spécialistes selon la nature du projet.",
+                    "Os estudos de viabilidade e os processos de financiamento requerem especialistas conforme a natureza do projeto.",
                   )}
                 </p>
               </article>
@@ -847,8 +824,8 @@ export function App({
                 </h2>
                 <p>
                   {t(
-                    "Ces axes de travail sont à développer avec les partenaires. Les prestations spécialisées font l’objet de propositions distinctes.",
-                    "Estes eixos serão desenvolvidos com os parceiros. Os serviços especializados têm propostas separadas.",
+                    "Chaque projet commence par un cadrage. La coordination LusoOffice et les prestations spécialisées font l’objet de propositions distinctes.",
+                    "Cada projeto começa pela definição do âmbito. A coordenação LusoOffice e os serviços especializados têm propostas distintas.",
                   )}
                 </p>
               </div>
@@ -863,7 +840,7 @@ export function App({
                     "O acompanhamento operacional.",
                   )}
                 </h2>
-                <DraftNotice />
+                <PriceNote />
                 {services
                   .filter((s) => s.area === "business")
                   .map((s) => (
@@ -915,8 +892,8 @@ export function App({
                 </h2>
                 <p>
                   {t(
-                    "Une newsletter mensuelle en portugais, conçue pour 3 à 5 minutes de lecture. L’édition complète est prévue pour les adhérents, avec un extrait public.",
-                    "Uma newsletter mensal em português, pensada para 3 a 5 minutos de leitura. A edição completa está prevista para os aderentes, com um excerto público.",
+                    "Une lecture en portugais pour garder le lien : des sujets pratiques, des repères et une question à explorer, en 3 à 5 minutes.",
+                    "Uma leitura em português para manter a ligação: temas práticos, referências e uma questão para explorar, em 3 a 5 minutos.",
                   )}
                 </p>
               </div>
@@ -964,10 +941,7 @@ export function App({
               <div className="wrap cultural-layout">
                 <div>
                   <p className="overline">
-                    {t(
-                      "Projet culturel à développer",
-                      "Projeto cultural a desenvolver",
-                    )}
+                    {t("La culture se transmet", "A cultura transmite-se")}
                   </p>
                   <h2 lang="pt">Coffret da Lis</h2>
                   <p>
@@ -978,8 +952,8 @@ export function App({
                   </p>
                   <p className="muted">
                     {t(
-                      "Écoles, contenus, autorisations et production restent à organiser. Aucun coffret n’est proposé à la vente.",
-                      "Escolas, conteúdos, autorizações e produção estão por organizar. Não há coffrets à venda.",
+                      "Vous représentez une école de portugais ? Échangeons sur la participation des élèves, leurs textes et leurs illustrations.",
+                      "Representa uma escola de português? Vamos conversar sobre a participação dos alunos, os seus textos e ilustrações.",
                     )}
                   </p>
                   <Button subject="partnership">{copy.contribute}</Button>
@@ -1011,9 +985,15 @@ export function App({
             <p lang="pt">Ligamos Portugal aos Portugueses no Mundo</p>
           </div>
           <nav aria-label={t("Liens de pied de page", "Ligações do rodapé")}>
-            <a href={link("workspace")}>
-              O meu Portugal · {t("maquette", "protótipo")}
-            </a>
+            <button
+              className="account-entry"
+              onClick={() => {
+                setMenu(false);
+                setAccess(true);
+              }}
+            >
+              {copy.accountAccess}
+            </button>
             {nav.map(([p, label]) => (
               <a key={p} href={link(p)}>
                 {label}
@@ -1023,12 +1003,7 @@ export function App({
           </nav>
         </div>
         <div className="wrap footer-bottom">
-          <p>
-            {t(
-              "Version de présentation. Aucun paiement ni envoi de demande.",
-              "Versão de apresentação. Sem pagamentos nem envio de pedidos.",
-            )}
-          </p>
+          <p>LusoOffice</p>
           <button onClick={() => setPrivacy(true)}>
             {t("Confidentialité", "Privacidade")}
           </button>
@@ -1046,18 +1021,31 @@ export function App({
           onClose={() => setRequest(null)}
         />
       )}
+      {access && (
+        <Modal
+          title={copy.accountAccess}
+          lang={lang}
+          onClose={() => setAccess(false)}
+        >
+          <p>{copy.accountUnavailable}</p>
+          <button
+            className="button primary full"
+            onClick={() => {
+              setAccess(false);
+              open();
+            }}
+          >
+            {copy.accountContact}
+          </button>
+        </Modal>
+      )}
       {privacy && (
         <Modal
           title={t("Confidentialité", "Privacidade")}
           lang={lang}
           onClose={() => setPrivacy(false)}
         >
-          <p>
-            {t(
-              "Les informations servent à préparer votre exemple. Le transfert vers la démo utilise le stockage de cet onglet ; la sauvegarde sur cet appareil est facultative et peut être effacée dans « Session de démonstration ». Aucun envoi ni outil publicitaire. Le fichier téléchargé reste sur votre appareil jusqu’à sa suppression.",
-              "As informações servem para preparar o exemplo. A transferência para a demo usa o armazenamento deste separador; a gravação neste dispositivo é facultativa e pode ser apagada em « Sessão de demonstração ». Sem envio nem ferramentas publicitárias. O ficheiro descarregado permanece no dispositivo até o eliminar.",
-            )}
-          </p>
+          <p>{copy.privacyText}</p>
         </Modal>
       )}
     </SiteContext.Provider>
@@ -1206,7 +1194,6 @@ function Membership({
 }) {
   const [annual, setAnnual] = useState(true);
   const copy = publicCopy[lang];
-  const premium = plans.find((plan) => plan.id === "Premium")!;
   return (
     <>
       <div
@@ -1233,11 +1220,6 @@ function Membership({
               className={`plan ${p.id === "Family" ? "family-plan" : ""}`}
               key={p.id}
             >
-              <p className="plan-state">
-                {p.id === "Premium"
-                  ? translate("Plan à l’étude", "Plano em estudo", lang)
-                  : translate("Proposition de plan", "Proposta de plano", lang)}
-              </p>
               <h2>{p.id}</h2>
               <p className="plan-people">{p.people[lang]}</p>
               <p className="plan-amount">
@@ -1256,8 +1238,8 @@ function Membership({
               </p>
               <small>
                 {translate(
-                  "Montant indicatif, conditions et TVA à valider.",
-                  "Valor indicativo, condições e IVA a validar.",
+                  "Tarif indicatif. Conditions détaillées avant adhésion.",
+                  "Preço indicativo. Condições detalhadas antes da adesão.",
                   lang,
                 )}
               </small>
@@ -1278,39 +1260,18 @@ function Membership({
                 onClick={() => onChoose(p.id, annual ? "annual" : "monthly")}
               >
                 {translate(
-                  "Parler de ce plan",
-                  "Conversar sobre este plano",
+                  "Choisir cette formule",
+                  "Escolher esta modalidade",
                   lang,
                 )}
               </button>
             </article>
           ))}
       </div>
-      <details className="premium-preview">
-        <summary>{copy.premiumTitle}</summary>
-        <p>{copy.premiumNote}</p>
-        <p>
-          {publicCopy[lang].indicativePrice} :{" "}
-          {new Intl.NumberFormat(lang, {
-            style: "currency",
-            currency: "EUR",
-          }).format(annual ? premium.annual : premium.monthly)}{" "}
-          /{" "}
-          {annual
-            ? translate("an", "ano", lang)
-            : translate("mois", "mês", lang)}
-        </p>
-        <button
-          className="button secondary"
-          onClick={() => onChoose("Premium", annual ? "annual" : "monthly")}
-        >
-          {translate("Parler de ce plan", "Conversar sobre este plano", lang)}
-        </button>
-      </details>
       <p className="plan-disclaimer">
         {translate(
-          "L’annuel et le mensuel sont deux modalités distinctes. Échéances, renouvellement, bénéficiaires et limites d’accompagnement restent à préciser. Les services sont toujours facturés séparément.",
-          "Anual e mensal são duas modalidades distintas. Pagamentos, renovação, beneficiários e limites de acompanhamento estão por definir. Os serviços são sempre cobrados separadamente.",
+          "Choisissez une formule mensuelle ou annuelle. Les prestations sont facturées séparément ; les conditions de l’adhésion sont précisées avant tout engagement.",
+          "Escolha uma modalidade mensal ou anual. Os serviços são cobrados separadamente; as condições de adesão são especificadas antes de qualquer compromisso.",
           lang,
         )}
       </p>
@@ -1326,8 +1287,8 @@ function Faq({ lang }: { lang: Lang }) {
         "É preciso aderir para pedir um serviço?",
       ),
       L(
-        "Non. Les prestations ponctuelles sont accessibles aux non-adhérents. L’adhésion donne accès à des avantages et à des tarifs propres, selon les conditions qui seront validées.",
-        "Não. Os serviços pontuais estão disponíveis para não aderentes. A adesão dá acesso a vantagens e preços próprios, conforme as condições a validar.",
+        "Non. Vous pouvez choisir une prestation ponctuelle sans adhérer. L’adhésion donne accès aux tarifs adhérent.",
+        "Não. Pode escolher um serviço pontual sem aderir. A adesão dá acesso aos preços de aderente.",
       ),
     ],
     [
@@ -1336,15 +1297,15 @@ function Faq({ lang }: { lang: Lang }) {
         "Os serviços estão incluídos na adesão?",
       ),
       L(
-        "Non. Visites, démarches et interventions sont facturées séparément. Les avantages et le niveau d’orientation de chaque plan sont encore à préciser.",
-        "Não. Visitas, diligências e intervenções são cobradas separadamente. As vantagens e o nível de orientação de cada plano estão por definir.",
+        "Non. Les visites, démarches et interventions sont choisies et facturées séparément de l’adhésion.",
+        "Não. As visitas, diligências e intervenções são escolhidas e cobradas separadamente da adesão.",
       ),
     ],
     [
-      L("Les prix sont-ils définitifs ?", "Os preços são definitivos?"),
+      L("Comment le prix est-il confirmé ?", "Como é confirmado o preço?"),
       L(
-        "Les montants présentés sont des propositions de travail en euros. TVA, frais, déplacements, périmètres et unités de facturation doivent être validés avant toute commercialisation.",
-        "Os valores apresentados são propostas de trabalho em euros. IVA, despesas, deslocações, âmbitos e unidades de cobrança devem ser validados antes da comercialização.",
+        "Les tarifs du catalogue sont indicatifs. Le périmètre, la TVA, les déplacements et les frais externes sont détaillés dans la proposition, avant votre accord.",
+        "Os preços do catálogo são indicativos. O âmbito, o IVA, as deslocações e as despesas externas são detalhados na proposta, antes da sua aprovação.",
       ),
     ],
     [
@@ -1353,18 +1314,18 @@ function Faq({ lang }: { lang: Lang }) {
         "Que despesas devem ser distinguidas?",
       ),
       L(
-        "L’accompagnement LusoOffice, les frais officiels et les honoraires des professionnels extérieurs doivent être identifiés séparément. Les modalités de provision et de régularisation restent à définir.",
-        "O acompanhamento LusoOffice, as taxas oficiais e os honorários de profissionais externos devem ser identificados separadamente. As condições de provisão e acerto estão por definir.",
+        "La prestation LusoOffice, les frais officiels et les honoraires des professionnels extérieurs sont distingués dans la proposition.",
+        "O serviço LusoOffice, as taxas oficiais e os honorários dos profissionais externos são discriminados na proposta.",
       ),
     ],
     [
       L(
-        "Puis-je déjà souscrire ou envoyer une demande ?",
-        "Já posso aderir ou enviar um pedido?",
+        "Que faut-il préciser lors du premier échange ?",
+        "O que devo indicar na primeira conversa?",
       ),
       L(
-        "Cette version permet de découvrir l’offre et de préparer un récapitulatif local. Aucun paiement, compte client ou envoi de demande n’est activé.",
-        "Esta versão permite conhecer a oferta e preparar um resumo local. Não estão ativos pagamentos, contas de cliente ou envio de pedidos.",
+        "Votre besoin, la commune concernée, les démarches déjà entreprises et votre calendrier. Ces informations permettent de cadrer la mission.",
+        "A necessidade, o concelho, as diligências já realizadas e o calendário. Estas informações ajudam a definir a missão.",
       ),
     ],
   ];
@@ -1540,7 +1501,6 @@ function RequestModal({
       remembered?.draft || null,
     ),
     [editing, setEditing] = useState(true);
-  const [handoffError, setHandoffError] = useState("");
   const [currency, setCurrency] = useState<Currency>(
     remembered?.currency || "EUR",
   );
@@ -1552,10 +1512,12 @@ function RequestModal({
   const initialSubject = requestSubject(initial);
   const options = [
     ...services.map((s) => ({ value: s.id, label: s.name[lang] })),
-    ...plans.map((p) => ({
-      value: `plan-${p.id}`,
-      label: t("Adhésion", "Adesão") + " " + p.id,
-    })),
+    ...plans
+      .filter((p) => p.id !== "Premium")
+      .map((p) => ({
+        value: `plan-${p.id}`,
+        label: t("Adhésion", "Adesão") + " " + p.id,
+      })),
     {
       value: "partnership",
       label: t("Partenariat ou association", "Parceria ou associação"),
@@ -1666,8 +1628,8 @@ function RequestModal({
         <>
           <p className="modal-intro">
             {t(
-              "Ce formulaire prépare un document à télécharger. Aucune demande n’est envoyée et aucune souscription n’est créée.",
-              "Este formulário prepara um documento para descarregar. Não envia pedidos nem cria adesões.",
+              "Décrivez votre besoin et votre calendrier. Vous pourrez vérifier vos informations avant de poursuivre.",
+              "Descreva a necessidade e o calendário. Poderá verificar as informações antes de continuar.",
             )}
           </p>
           {remembered && (
@@ -1803,7 +1765,10 @@ function RequestModal({
               )}
             </p>
             <button type="submit" className="button primary full">
-              {t("Créer mon récapitulatif", "Criar o meu resumo")}
+              {t(
+                "Vérifier mes informations",
+                "Verificar as minhas informações",
+              )}
             </button>
           </form>
         </>
@@ -1811,8 +1776,8 @@ function RequestModal({
         <>
           <p className="modal-intro">
             {t(
-              "Aucune information n’a été envoyée. Conservez ce document pour votre futur échange avec LusoOffice.",
-              "Nenhuma informação foi enviada. Guarde este documento para a futura conversa com a LusoOffice.",
+              "Votre récapitulatif est prêt à être téléchargé. L’envoi en ligne n’est pas encore activé ; aucun message n’a été transmis.",
+              "O resumo está pronto para descarregar. O envio online ainda não está ativo; nenhuma mensagem foi transmitida.",
             )}
           </p>
           <dl className="request-summary">
@@ -1829,52 +1794,6 @@ function RequestModal({
             <dt>{t("Situation", "Situação")}</dt>
             <dd>{draft?.message}</dd>
           </dl>
-          {services.some((s) => s.id === subject) && (
-            <>
-              <button
-                className="button primary full"
-                onClick={() => {
-                  try {
-                    const handoff = JSON.stringify({
-                      version: 1,
-                      service: subject,
-                      description: draft?.message || "",
-                      name: draft?.name || "",
-                      country: draft?.country || "",
-                      currency,
-                    });
-                    if (!readHandoff(handoff)) {
-                      setHandoffError(copy.invalidTransfer);
-                      return;
-                    }
-                    sessionStorage.setItem(handoffKey, handoff);
-                    location.assign(
-                      href("workspace", lang, "#view=requests&role=member"),
-                    );
-                  } catch {
-                    setHandoffError(
-                      t(
-                        "Le navigateur ne permet pas ce transfert local. Téléchargez votre récapitulatif.",
-                        "O navegador não permite esta transferência local. Descarregue o resumo.",
-                      ),
-                    );
-                  }
-                }}
-              >
-                {t(
-                  "Continuer dans la démo O meu Portugal",
-                  "Continuar na demo O meu Portugal",
-                )}
-              </button>
-              <p>
-                {t(
-                  "Transfert local de cet exemple uniquement, sans envoi à l’équipe.",
-                  "Transferência local deste exemplo, sem envio à equipa.",
-                )}
-              </p>
-              {handoffError && <p role="alert">{handoffError}</p>}
-            </>
-          )}
           <MarketChoice lang={lang} value={currency} onChange={setCurrency} />
           <button className="button primary full" onClick={download}>
             <Icon name="download" />

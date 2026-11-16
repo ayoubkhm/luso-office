@@ -312,5 +312,149 @@
   "Émetteur / NIPC / adresse / TVA : TBD. Aucun numéro de facture émis.": [
     "Issuer / NIPC / address / VAT: TBD. No invoice number issued.",
     "Aussteller / NIPC / Adresse / MwSt.: TBD. Keine Rechnungsnummer ausgestellt."
+  ],
+  "Parlons de votre besoin": [
+    "Tell us what you need",
+    "Sprechen wir über Ihr Anliegen"
+  ],
+  "Une maison, une démarche, un retour : dites-nous ce qui vous amène.": [
+    "A home, paperwork or a return: tell us what brings you here.",
+    "Ein Haus, Unterlagen oder eine Rückkehr: Erzählen Sie uns von Ihrem Anliegen."
+  ],
+  "Votre rendez-vous avec le Portugal": [
+    "Your connection to Portugal",
+    "Ihre Verbindung zu Portugal"
+  ],
+  "Maison, démarches, famille, retour ou activité professionnelle : trouvez la prestation adaptée à votre situation.": [
+    "Home, paperwork, family, returning or business: find the service that fits your situation.",
+    "Haus, Unterlagen, Familie, Rückkehr oder Beruf: Finden Sie die passende Leistung für Ihre Situation."
+  ],
+  "Votre besoin ne figure pas dans le catalogue ?": [
+    "Can’t find your need in the catalogue?",
+    "Ihr Anliegen steht nicht im Katalog?"
+  ],
+  "Nationalité portugaise, NIF, retraite, permis de conduire, traductions, études ou véhicule : décrivez votre situation pour définir l’accompagnement et les professionnels à solliciter.": [
+    "Portuguese nationality, NIF, retirement, driving licences, translations, studies or a vehicle: describe your situation to identify the support and professionals needed.",
+    "Portugiesische Staatsangehörigkeit, NIF, Rente, Führerschein, Übersetzungen, Studium oder Fahrzeug: Beschreiben Sie Ihre Situation, um die Begleitung und die benötigten Fachleute zu bestimmen."
+  ],
+  "Les avantages de votre adhésion.": [
+    "Your membership benefits.",
+    "Die Vorteile Ihrer Mitgliedschaft."
+  ],
+  "Des tarifs adhérent, un lien régulier avec le Portugal et un accompagnement adapté à votre situation.": [
+    "Member prices, a regular connection to Portugal and support tailored to your situation.",
+    "Mitgliederpreise, eine regelmäßige Verbindung zu Portugal und Begleitung passend zu Ihrer Situation."
+  ],
+  "Orientation pour organiser vos démarches": [
+    "Guidance to organise your next steps",
+    "Orientierung für Ihre nächsten Schritte"
+  ],
+  "Une adhésion individuelle ou familiale": [
+    "Individual or family membership",
+    "Eine Mitgliedschaft für Sie oder Ihre Familie"
+  ],
+  "Les questions comptables et fiscales relèvent d’un comptable, avec une mission et des honoraires distincts.": [
+    "Accounting and tax matters are handled by an accountant under a separate assignment and fee agreement.",
+    "Buchhalterische und steuerliche Fragen übernimmt ein Buchhalter im Rahmen eines gesonderten Auftrags und Honorars."
+  ],
+  "Les études de viabilité et les dossiers de financement nécessitent l’intervention de spécialistes selon la nature du projet.": [
+    "Feasibility studies and funding applications require specialists suited to the project.",
+    "Machbarkeitsstudien und Finanzierungsanträge erfordern Fachleute passend zum jeweiligen Vorhaben."
+  ],
+  "Chaque projet commence par un cadrage. La coordination LusoOffice et les prestations spécialisées font l’objet de propositions distinctes.": [
+    "Every project starts with an agreed scope. LusoOffice coordination and specialist services are proposed separately.",
+    "Jedes Vorhaben beginnt mit der Klärung des Umfangs. Die Koordination durch LusoOffice und Fachleistungen werden getrennt angeboten."
+  ],
+  "Une lecture en portugais pour garder le lien : des sujets pratiques, des repères et une question à explorer, en 3 à 5 minutes.": [
+    "A Portuguese read to stay connected: practical topics, useful pointers and a question to explore in 3 to 5 minutes.",
+    "Eine Lektüre auf Portugiesisch, die verbindet: praktische Themen, Orientierung und eine Frage zum Nachdenken in 3 bis 5 Minuten."
+  ],
+  "La culture se transmet": [
+    "Culture is passed on",
+    "Kultur wird weitergegeben"
+  ],
+  "Vous représentez une école de portugais ? Échangeons sur la participation des élèves, leurs textes et leurs illustrations.": [
+    "Do you represent a Portuguese school? Let’s discuss pupils’ contributions, writing and illustrations.",
+    "Vertreten Sie eine portugiesische Schule? Sprechen wir über Beiträge, Texte und Illustrationen der Schülerinnen und Schüler."
+  ],
+  "Tarif indicatif. Conditions détaillées avant adhésion.": [
+    "Indicative price. Full terms provided before joining.",
+    "Richtpreis. Ausführliche Bedingungen vor dem Beitritt."
+  ],
+  "Choisir cette formule": [
+    "Choose this plan",
+    "Dieses Modell wählen"
+  ],
+  "Choisissez une formule mensuelle ou annuelle. Les prestations sont facturées séparément ; les conditions de l’adhésion sont précisées avant tout engagement.": [
+    "Choose monthly or annual membership. Services are billed separately; membership terms are set out before any commitment.",
+    "Wählen Sie eine monatliche oder jährliche Mitgliedschaft. Leistungen werden separat berechnet; die Bedingungen werden vor jeder Verpflichtung erläutert."
+  ],
+  "Non. Vous pouvez choisir une prestation ponctuelle sans adhérer. L’adhésion donne accès aux tarifs adhérent.": [
+    "No. You can choose a one-off service without joining. Membership gives access to member prices.",
+    "Nein. Sie können eine einzelne Leistung ohne Mitgliedschaft wählen. Mitglieder erhalten Mitgliederpreise."
+  ],
+  "Non. Les visites, démarches et interventions sont choisies et facturées séparément de l’adhésion.": [
+    "No. Visits, administrative support and other services are chosen and charged separately from membership.",
+    "Nein. Besuche, organisatorische Unterstützung und weitere Leistungen werden unabhängig von der Mitgliedschaft gewählt und berechnet."
+  ],
+  "Comment le prix est-il confirmé ?": [
+    "How is the price confirmed?",
+    "Wie wird der Preis bestätigt?"
+  ],
+  "Les tarifs du catalogue sont indicatifs. Le périmètre, la TVA, les déplacements et les frais externes sont détaillés dans la proposition, avant votre accord.": [
+    "Catalogue prices are indicative. The scope, VAT, travel and external costs are detailed in the proposal before you agree.",
+    "Die Katalogpreise sind Richtpreise. Umfang, Mehrwertsteuer, Anfahrten und externe Kosten werden im Angebot vor Ihrer Zustimmung aufgeschlüsselt."
+  ],
+  "La prestation LusoOffice, les frais officiels et les honoraires des professionnels extérieurs sont distingués dans la proposition.": [
+    "LusoOffice services, official fees and external professionals’ fees are itemised in the proposal.",
+    "Leistungen von LusoOffice, amtliche Gebühren und Honorare externer Fachleute werden im Angebot getrennt ausgewiesen."
+  ],
+  "Que faut-il préciser lors du premier échange ?": [
+    "What should I include in the first conversation?",
+    "Welche Angaben sind für das erste Gespräch hilfreich?"
+  ],
+  "Votre besoin, la commune concernée, les démarches déjà entreprises et votre calendrier. Ces informations permettent de cadrer la mission.": [
+    "Your needs, the location, steps already taken and your timeline. These details help define the assignment.",
+    "Ihr Anliegen, der Ort, bereits unternommene Schritte und Ihr Zeitplan. Diese Angaben helfen, den Auftrag abzugrenzen."
+  ],
+  "Décrivez votre besoin et votre calendrier. Vous pourrez vérifier vos informations avant de poursuivre.": [
+    "Describe your needs and timeline. You can review your information before continuing.",
+    "Beschreiben Sie Ihr Anliegen und Ihren Zeitplan. Sie können Ihre Angaben prüfen, bevor Sie fortfahren."
+  ],
+  "Vérifier mes informations": [
+    "Review my information",
+    "Meine Angaben prüfen"
+  ],
+  "Votre récapitulatif est prêt à être téléchargé. L’envoi en ligne n’est pas encore activé ; aucun message n’a été transmis.": [
+    "Your summary is ready to download. Online sending is not yet enabled; no message has been transmitted.",
+    "Ihre Zusammenfassung steht zum Herunterladen bereit. Der Onlineversand ist noch nicht aktiviert; es wurde keine Nachricht übermittelt."
+  ],
+  "Aucune demande n’a été envoyée. Conservez ce document pour votre échange avec LusoOffice.": [
+    "No request has been sent. Keep this document for your conversation with LusoOffice.",
+    "Es wurde keine Anfrage gesendet. Bewahren Sie dieses Dokument für Ihr Gespräch mit LusoOffice auf."
+  ],
+  "Volume et nombre de sujets convenus avant la mission. Classement et numérisation sont des prestations distinctes.": [
+    "Volume and number of topics agreed before the assignment. Filing and digitisation are separate services.",
+    "Umfang und Anzahl der Themen werden vor dem Auftrag vereinbart. Ordnung und Digitalisierung sind gesonderte Leistungen."
+  ],
+  "Entretien initial, plan de tâches, liste documentaire et suivi à distance.": [
+    "Initial meeting, task plan, document checklist and remote follow-up.",
+    "Erstgespräch, Aufgabenplan, Dokumentenliste und Begleitung aus der Ferne."
+  ],
+  "Le nombre de réunions, les heures et la durée sont convenus avant la mission. Les démarches sur place font l’objet de prestations distinctes.": [
+    "The number of meetings, hours and duration are agreed before the assignment. On-site tasks are separate services.",
+    "Anzahl der Gespräche, Stunden und Dauer werden vor dem Auftrag vereinbart. Aufgaben vor Ort sind gesonderte Leistungen."
+  ],
+  "Par pack, selon le périmètre convenu": [
+    "Per package, according to the agreed scope",
+    "Pro Paket, nach vereinbartem Umfang"
+  ],
+  "Le contenu Essential, complété par la coordination des rendez-vous, des fournisseurs et des tâches d’installation.": [
+    "The Essential scope, plus coordination of appointments, suppliers and practical tasks for settling in.",
+    "Der Umfang von Essential, ergänzt um die Koordination von Terminen, Anbietern und Aufgaben beim Einleben."
+  ],
+  "Le nombre de démarches, les heures, la durée, les déplacements et les prestations externes sont détaillés dans la proposition.": [
+    "Tasks, hours, duration, travel and external services are detailed in the proposal.",
+    "Aufgaben, Stunden, Dauer, Anfahrten und externe Leistungen werden im Angebot aufgeschlüsselt."
   ]
 }

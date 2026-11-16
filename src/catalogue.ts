@@ -359,8 +359,8 @@ export const services: Service[] = [
       "Documentos classificados, índice e lista de elementos em falta.",
     ),
     limits: L(
-      "Volume et nombre de sujets à définir. Distinguer le classement de la numérisation pour éviter les doublons.",
-      "Volume e número de assuntos a definir. Distinguir organização de digitalização para evitar duplicações.",
+      "Volume et nombre de sujets convenus avant la mission. Classement et numérisation sont des prestations distinctes.",
+      "Volume e número de assuntos acordados antes da missão. A organização e a digitalização são serviços distintos.",
     ),
     unit: L("Par dossier défini", "Por dossier definido"),
     prices: [95, 65],
@@ -528,14 +528,17 @@ export const services: Service[] = [
       "Estruturar a preparação do regresso com um plano adaptado e acompanhamento à distância.",
     ),
     result: L(
-      "Entretien initial, plan de tâches, liste documentaire et suivi à distance envisagés.",
-      "Sessão inicial, plano de tarefas, lista documental e acompanhamento remoto previstos.",
+      "Entretien initial, plan de tâches, liste documentaire et suivi à distance.",
+      "Sessão inicial, plano de tarefas, lista documental e acompanhamento à distância.",
     ),
     limits: L(
-      "Pack en préparation : réunions, heures et durée à fixer. Aucune démarche sur place incluse dans cette proposition.",
-      "Pack em preparação: reuniões, horas e duração por definir. Sem diligências presenciais incluídas nesta proposta.",
+      "Le nombre de réunions, les heures et la durée sont convenus avant la mission. Les démarches sur place font l’objet de prestations distinctes.",
+      "O número de reuniões, as horas e a duração são acordados antes da missão. As diligências presenciais constituem serviços distintos.",
     ),
-    unit: L("Par pack, contenu à valider", "Por pack, conteúdo a validar"),
+    unit: L(
+      "Par pack, selon le périmètre convenu",
+      "Por pack, conforme o âmbito acordado",
+    ),
     prices: [390, 290],
   },
   {
@@ -547,14 +550,17 @@ export const services: Service[] = [
       "Acrescentar à preparação do regresso a coordenação prática da instalação.",
     ),
     result: L(
-      "Contenu Essential et coordination envisagée des rendez-vous, fournisseurs et tâches d’installation.",
-      "Conteúdo Essential e coordenação prevista de agendamentos, fornecedores e tarefas de instalação.",
+      "Le contenu Essential, complété par la coordination des rendez-vous, des fournisseurs et des tâches d’installation.",
+      "O conteúdo Essential, complementado pela coordenação de agendamentos, fornecedores e tarefas de instalação.",
     ),
     limits: L(
-      "Pack en préparation : nombre de démarches, heures et durée à fixer. Déplacements et prestations externes à préciser.",
-      "Pack em preparação: número de procedimentos, horas e duração por definir. Deslocações e serviços externos a esclarecer.",
+      "Le nombre de démarches, les heures, la durée, les déplacements et les prestations externes sont détaillés dans la proposition.",
+      "O número de diligências, as horas, a duração, as deslocações e os serviços externos são detalhados na proposta.",
     ),
-    unit: L("Par pack, contenu à valider", "Por pack, conteúdo a validar"),
+    unit: L(
+      "Par pack, selon le périmètre convenu",
+      "Por pack, conforme o âmbito acordado",
+    ),
     prices: [750, 590],
   },
   {

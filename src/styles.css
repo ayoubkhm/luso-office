@@ -676,12 +676,14 @@ select {
   justify-content: flex-end;
   max-width: 620px;
 }
-.footer-top nav a {
+.footer-top nav a,
+.footer-top nav .account-entry {
   font-size: 0.85rem;
   padding: 10px 0;
   min-height: 44px;
 }
-.footer-top nav a:hover {
+.footer-top nav a:hover,
+.footer-top nav .account-entry:hover {
   color: var(--blue);
 }
 .footer-bottom {
@@ -1056,13 +1058,16 @@ select {
 }
 .portal-section h2 {
   font-size: 3rem;
-  margin-top: 20px;
+  margin-top: 0;
 }
 .portal-section p {
   max-width: 650px;
   color: #c8d6e8;
   margin-top: 22px;
   font-size: 0.95rem;
+}
+.portal-section .account-entry {
+  margin-top: 24px;
 }
 .portal-list {
   list-style: none;

@@ -109,7 +109,6 @@ export function About({
             <button className="button primary" onClick={() => onContact()}>
               {copy.contactAction}
             </button>
-            <p className="about-contact-note">{copy.localNotice}</p>
           </div>
         </div>
       </section>

@@ -87,7 +87,7 @@ test("Local summary explicitly describes no transmission and preserves user cont
     const output = requestText(draft, lang);
     assert.ok(output.includes(draft.message));
     assert.ok(output.includes("Family"));
-    assert.ok(output.includes("TBD"));
+    assert.ok(!output.includes("TBD"));
     assert.ok(output.includes("E-mail : —"));
     assert.match(
       output,

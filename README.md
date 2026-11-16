@@ -2,6 +2,12 @@
 
 Vitrine React / TypeScript pour les Portugais et lusodescendants vivant à l’étranger. LusoOffice remplace Perto de Casa ; le dépôt GitHub conserve son identifiant historique.
 
+## Direction de la vitrine
+
+La vitrine présente LusoOffice dans sa voix de marque, comme un site destiné aux clients. Les bandeaux de présentation, les mentions de maquette et les commentaires de développement ont été retirés. Cette direction prévaut sur les notes historiques ci-dessous ; voir `AGENTS.md`.
+
+Les limites techniques apparaissent au moment où elles concernent l’utilisateur : l’accès au compte ouvre une information sur la connexion non activée ; le contact permet de vérifier puis télécharger les informations sans prétendre envoyer un message. L’atelier `espace.html` reste accessible directement pour le travail interne, sans lien depuis la vitrine. Aucun service externe, paiement ou envoi réel n’a été activé.
+
 ## Lancer et vérifier
 
 ```sh
@@ -18,11 +24,11 @@ Le build génère 28 pages HTML en français, portugais, anglais et allemand dan
 ## Pages
 
 - `index.html` : cinq domaines, adhésion ou service ponctuel, histoire et newsletter.
-- `services.html` : 28 fiches bilingues, recherche, filtre par domaine, contenu, livrable, limites, unité et prix indicatifs.
-- `adhesion.html` : propositions Member / Family / Premium, paiement mensuel ou annuel, avantages et FAQ. Premium reste à l’étude.
-- `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, sept axes à développer.
-- `a-propos.html` : mission, origine familiale, méthode d’accompagnement envisagée, liens avec la diaspora et préparation du contact. Les projets internationaux et associatifs sont regroupés dans un volet secondaire.
-- `journal.html` : format de la newsletter « Portugal — Tão longe e tão perto » et projet Coffret da Lis, sans édition ni produit fictif.
+- `services.html` : 28 fiches en quatre langues, recherche, filtre par domaine, contenu, livrable, limites, unité et prix indicatifs.
+- `adhesion.html` : Member et Family, périodicité mensuelle ou annuelle, tarifs indicatifs, avantages et FAQ. Premium reste hors de la vitrine.
+- `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, neuf thèmes de projet.
+- `a-propos.html` : mission, origine familiale, méthode d’accompagnement, liens avec la diaspora et préparation du contact. Les projets internationaux et associatifs sont regroupés dans un volet secondaire.
+- `journal.html` : journal « Portugal — Tão longe e tão perto », un article à lire et projet Coffret da Lis, sans inventer de date d’édition, d’archive ou de produit en vente.
 - `espace.html` : atelier interactif « O meu Portugal », vues client, équipe et partenaire, avec sauvegarde locale facultative des exemples.
 - `/pt/`, `/en/`, `/de/` : mêmes pages en portugais, anglais et allemand. Le choix de langue conserve les filtres du catalogue ; dans l’espace, il conserve la session et la route courantes.
 - `tarifs.html` : ancienne URL redirigée vers l’adhésion.
@@ -31,9 +37,9 @@ Le build génère 28 pages HTML en français, portugais, anglais et allemand dan
 
 La structure et les données sont tirées des deux fichiers fournis par Hélèna, conservés hors du dépôt public dans `../documents/luso-office/2026-11-15-recaps-chatgpt/` : compilation du 8 novembre 2026 et conversation du 22 octobre 2026. Les fichiers privés et leurs liens de bibliothèque ne sont pas inclus dans l’application.
 
-Catalogue de base : Maison 8, Documents 6, Famille 5, Retour 5, Business 4. Chaque fiche distingue résultat, limites et tarification. La définition des interventions, des unités, du temps, du volume, des déplacements, de la TVA et des frais de tiers reste à valider. Les chevauchements relevés dans les sources sont signalés dans les limites concernées. Les thèmes supplémentaires (nationalité, NIF, pensions, etc.) sont présentés comme à l’étude, pas comme des services déjà commercialisés.
+Catalogue de base : Maison 8, Documents 6, Famille 5, Retour 5, Business 4. Chaque fiche distingue résultat, limites et tarification. La définition des interventions, des unités, du temps, du volume, des déplacements, de la TVA et des frais de tiers reste à valider. Les chevauchements relevés dans les sources sont signalés dans les limites concernées. Les thèmes supplémentaires (nationalité, NIF, pensions, etc.) invitent à décrire un besoin pour en définir le périmètre, sans créer de prestation chiffrée supplémentaire.
 
-Les montants affichés sont uniquement les propositions en euros des documents : Member 29,90 €/mois ou 299 €/an ; Family 49,90 €/mois ou 499 €/an ; Premium 99,90 €/mois ou 999 €/an. Leur statut indicatif est visible. Aucune conversion de devise ou offre de marché non confirmée n’est inventée. L’adhésion et les services sont facturés séparément dans le modèle prévu ; l’accès aux prestations sans adhésion est explicite. Aucun quota ou délai garanti n’a été ajouté.
+Les montants affichés sont issus des propositions en euros des documents : Member 29,90 €/mois ou 299 €/an ; Family 49,90 €/mois ou 499 €/an. Leur statut indicatif est visible. Premium reste dans les données de travail mais ne figure plus sur la vitrine ni dans son formulaire. Aucune conversion de devise ou offre de marché non confirmée n’est inventée. L’adhésion et les services sont facturés séparément dans le modèle prévu ; l’accès aux prestations sans adhésion est explicite. Aucun quota ou délai garanti n’a été ajouté.
 
 L’histoire de la fondatrice fille d’émigrants en France est issue de la compilation. Sa présentation personnelle, les coordonnées, les zones portugaises et l’identité juridique restent TBD conformément à l’instruction de l’utilisateur. Paris/Londres sont en recherche, Francfort/Genève proposées, Fall River retenue pour la recherche aux États-Unis ; aucun bureau n’est présenté comme ouvert. Les partenaires ne sont pas présentés comme contractualisés. Aucune donnée commerciale d’une autre marque n’est réutilisée.
 
