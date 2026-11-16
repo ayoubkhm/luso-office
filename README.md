@@ -8,6 +8,12 @@ La vitrine présente LusoOffice dans sa voix de marque, comme un site destiné a
 
 Les limites techniques apparaissent au moment où elles concernent l’utilisateur : l’accès au compte ouvre une information sur la connexion non activée ; le contact permet de vérifier puis télécharger les informations sans prétendre envoyer un message. L’atelier `espace.html` reste accessible directement pour le travail interne, sans lien depuis la vitrine. Aucun service externe, paiement ou envoi réel n’a été activé.
 
+## Langue d’arrivée
+
+Une URL publique sans préfixe choisit la langue dans cet ordre : choix manuel mémorisé (`lusooffice.language` dans localStorage), première langue prise en charge dans les préférences du navigateur, puis portugais. Les variantes régionales, comme pt-BR ou fr-CA, sont reconnues. Aucun pays, adresse IP ou service de géolocalisation n’est utilisé.
+
+Les liens explicites `/fr/`, `/pt/`, `/en/`, `/de/` et l’ancien paramètre `?lang=` conservent leur langue. Seul un choix dans le sélecteur est mémorisé ; ouvrir un lien traduit ne remplace pas cette préférence. La redirection conserve page, filtres et ancre, sans ajouter d’étape à l’historique. Sans stockage, les URLs explicites restent utilisables ; sans JavaScript, les entrées neutres affichent le portugais. L’atelier interne garde sa navigation distincte.
+
 ## Lancer et vérifier
 
 ```sh
@@ -19,7 +25,7 @@ npm test
 npm run preview
 ```
 
-Le build génère 28 pages HTML en français, portugais, anglais et allemand dans `dist/`, avec leurs ressources optimisées, et quatre redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
+Le build génère 28 pages HTML en français, portugais, anglais et allemand dans `dist/`, avec leurs ressources optimisées, ainsi que six pages d’entrée neutres en portugais et cinq redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
 
 ## Pages
 
@@ -30,7 +36,7 @@ Le build génère 28 pages HTML en français, portugais, anglais et allemand dan
 - `a-propos.html` : mission, origine familiale, méthode d’accompagnement, liens avec la diaspora et préparation du contact. Les projets internationaux et associatifs sont regroupés dans un volet secondaire.
 - `journal.html` : journal « Portugal — Tão longe e tão perto », un article à lire et projet Coffret da Lis, sans inventer de date d’édition, d’archive ou de produit en vente.
 - `espace.html` : atelier interactif « O meu Portugal », vues client, équipe et partenaire, avec sauvegarde locale facultative des exemples.
-- `/pt/`, `/en/`, `/de/` : mêmes pages en portugais, anglais et allemand. Le choix de langue conserve les filtres du catalogue ; dans l’espace, il conserve la session et la route courantes.
+- `/fr/`, `/pt/`, `/en/`, `/de/` : pages publiques en français, portugais, anglais et allemand. Le choix de langue conserve les filtres du catalogue ; dans l’espace, il conserve la session et la route courantes.
 - `tarifs.html` : ancienne URL redirigée vers l’adhésion.
 
 ## Sources et statut commercial

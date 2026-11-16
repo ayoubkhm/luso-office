@@ -60,7 +60,7 @@ async function mount(page = "home", lang = "fr", suffix = "") {
     journal: "journal",
   }[page];
   const dom = new JSDOM('<div id="root"></div>', {
-    url: `http://localhost/${lang === "fr" ? "" : lang + "/"}${filename}.html${suffix}`,
+    url: `http://localhost/${lang + "/"}${filename}.html${suffix}`,
     pretendToBeVisual: true,
   });
   globals(dom.window);
@@ -296,7 +296,7 @@ test("Each public locale uses its own result count and language links preserve l
 
 test("Page metadata is distinct in all languages and partnership preparation is attached to the cultural invitation", async () => {
   for (const lang of ["fr", "pt", "en", "de"]) {
-    const prefix = lang === "fr" ? "" : lang + "/";
+    const prefix = lang + "/";
     const descriptions = [];
     for (const file of [
       "index",
@@ -442,7 +442,7 @@ test("Search returns the same services after switching language, including accen
 
 test("Business includes incentives and internationalisation in all four languages, linked to an existing scoping service", async () => {
   for (const lang of ["fr", "pt", "en", "de"]) {
-    const prefix = lang === "fr" ? "" : lang + "/";
+    const prefix = lang + "/";
     const d = new JSDOM(await readFile(`dist/${prefix}business.html`, "utf8"))
       .window.document;
     const topics = [...d.querySelectorAll(".business-paths article")];
@@ -563,7 +563,7 @@ test("Insurance enquiries refer to authorised professionals in all public langua
     ],
   };
   for (const lang of ["fr", "pt", "en", "de"]) {
-    const prefix = lang === "fr" ? "" : lang + "/";
+    const prefix = lang + "/";
     const d = new JSDOM(await readFile(`dist/${prefix}services.html`, "utf8"))
       .window.document;
     const future = d.querySelector(".future-topics").textContent;
@@ -577,7 +577,7 @@ test("Public pages present the brand without workshop notices, placeholder copy 
   const forbidden =
     /version de présentation|versão de apresentação|presentation version|maquette|protótipo|prototype|Prototyp|démonstration|demonstração|demonstration|en conception|en préparation|being developed|se construit|está a ser criada|TBD|proposition de plan|proposta de plano/iu;
   for (const lang of ["fr", "pt", "en", "de"]) {
-    const prefix = lang === "fr" ? "" : lang + "/";
+    const prefix = lang + "/";
     for (const page of [
       "index",
       "services",
@@ -644,6 +644,23 @@ test("Account access explains the real limit only on request, without login fiel
     assert.equal(document.querySelector('a[href*="espace.html"]'), null);
     assert.equal(sessionStorage.getItem("lusooffice-demo-request"), null);
     assert.ok(document.querySelector(".market-choice + button"));
+    await ui.close();
+  }
+});
+
+test("A manual language selection is remembered, while visiting an explicit locale leaves the preference unchanged", async () => {
+  const ui = await mount("services", "fr", "?area=maison#visite-rapport");
+  try {
+    assert.equal(localStorage.getItem("lusooffice.language"), null);
+    const en = document.querySelector('.language-switch a[lang="en"]');
+    // Prevent jsdom navigation after React handles the modified click.
+    document.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    await act(async () => en.dispatchEvent(new MouseEvent("click", {
+      bubbles: true, cancelable: true, ctrlKey: true,
+    })));
+    assert.equal(localStorage.getItem("lusooffice.language"), "en");
+    assert.equal(en.getAttribute("href"), "/en/services.html?area=maison#visite-rapport");
+  } finally {
     await ui.close();
   }
 });

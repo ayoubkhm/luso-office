@@ -33,14 +33,14 @@ export function route(path: string, search = ""): { page: Page; lang: Lang } {
     page,
     lang:
       languages.find(
-        (l) => l !== "fr" && (path === `/${l}` || path.startsWith(`/${l}/`)),
+        (l) => path === `/${l}` || path.startsWith(`/${l}/`),
       ) ||
       languages.find((l) => l === new URLSearchParams(search).get("lang")) ||
       "fr",
   };
 }
 export const href = (page: Page, lang: Lang, search = "") =>
-  `${lang === "fr" ? "/" : `/${lang}/`}${files[page]}${search}`;
+  `${page === "workspace" && lang === "fr" ? "/" : `/${lang}/`}${files[page]}${search}`;
 const baseTitles = {
   workspace: {
     fr: "O meu Portugal — Maquette LusoOffice",

@@ -5,6 +5,7 @@ import {
   JournalSample,
   JournalAccess,
 } from "./PublicGuides";
+import { rememberLanguage } from "./languagePreference";
 import { publicCopy } from "./publicCopy";
 import { requestMessageLimit } from "./requestLimits";
 import { About } from "./About";
@@ -391,6 +392,7 @@ export function App({
                   key={l}
                   href={languageHref(page, l, publicSearch, anchor)}
                   onClick={(e) => {
+                    rememberLanguage(l);
                     // Preserve the live filters and the current section in every language.
                     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
                       return;
@@ -398,6 +400,9 @@ export function App({
                     location.assign(
                       languageHref(page, l, location.search, location.hash),
                     );
+                  }}
+                  onAuxClick={(e) => {
+                    if (e.button === 1) rememberLanguage(l);
                   }}
                   lang={l}
                   aria-label={languageNames[l]}

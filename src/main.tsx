@@ -1,16 +1,20 @@
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { route } from "./routes";
+import { languageHref, route } from "./routes";
 import { publicCopy } from "./publicCopy";
 import "./styles.css";
+import { entryLanguageRedirect, readLanguagePreference } from "./languagePreference";
+const languageRedirect = entryLanguageRedirect(
+  location.pathname,
+  location.search,
+  location.hash,
+  readLanguagePreference(),
+  navigator.languages?.length ? navigator.languages : [navigator.language],
+);
 const current = route(location.pathname, location.search);
-if (location.pathname.endsWith("/tarifs.html"))
-  location.replace(
-    (current.lang === "fr" ? "/" : `/${current.lang}/`) +
-      "adhesion.html" +
-      location.search +
-      location.hash,
-  );
+if (languageRedirect) location.replace(languageRedirect);
+else if (location.pathname.endsWith("/tarifs.html"))
+  location.replace(languageHref("membership", current.lang, location.search, location.hash));
 else if (current.page === "workspace") {
   const container = document.getElementById("root")!;
   const status = document.createElement("p");
