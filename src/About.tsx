@@ -1,3 +1,4 @@
+import { sitePath } from "./sitePath";
 import type { Lang } from "./locales";
 import { href } from "./routes";
 import { aboutCopy } from "./aboutCopy";
@@ -39,8 +40,8 @@ export function About({
         </div>
         <figure className="about-signature">
           <img
-            src="/assets/azulejos-640.webp"
-            srcSet="/assets/azulejos-640.webp 640w, /assets/azulejos-960.webp 960w"
+            src={sitePath("/assets/azulejos-640.webp")}
+            srcSet={`${sitePath("/assets/azulejos-640.webp")}  640w, ${sitePath("/assets/azulejos-960.webp")}  960w`}
             sizes="(max-width: 760px) 100vw, 40vw"
             width="960"
             height="640"

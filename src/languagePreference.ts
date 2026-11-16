@@ -1,3 +1,4 @@
+import { localPath } from "./sitePath";
 import { languages, type Lang } from "./locales";
 import { files, languageHref, route } from "./routes";
 
@@ -41,6 +42,7 @@ export function entryLanguageRedirect(
   saved: unknown,
   browserLanguages: readonly string[],
 ): string | null {
+  path = localPath(path);
   // A language-specific link always wins over local/browser preferences.
   if (languages.some((lang) => path === `/${lang}` || path.startsWith(`/${lang}/`)))
     return null;

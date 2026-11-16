@@ -1,3 +1,4 @@
+import { localPath, sitePath } from "./sitePath";
 import { publicCopy } from "./publicCopy";
 import type { Currency } from "./MarketChoice";
 import { aboutCopy } from "./aboutCopy";
@@ -24,6 +25,7 @@ export const files: Record<Page, string> = {
   workspace: "espace.html",
 };
 export function route(path: string, search = ""): { page: Page; lang: Lang } {
+  path = localPath(path);
   const file = path.split("/").filter(Boolean).at(-1) || "index.html";
   const page =
     file === "tarifs.html"
@@ -40,7 +42,7 @@ export function route(path: string, search = ""): { page: Page; lang: Lang } {
   };
 }
 export const href = (page: Page, lang: Lang, search = "") =>
-  `${page === "workspace" && lang === "fr" ? "/" : `/${lang}/`}${files[page]}${search}`;
+  sitePath(`${page === "workspace" && lang === "fr" ? "/" : `/${lang}/`}${files[page]}${search}`);
 const baseTitles = {
   workspace: {
     fr: "O meu Portugal — Maquette LusoOffice",

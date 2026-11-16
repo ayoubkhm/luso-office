@@ -1,3 +1,4 @@
+import { sitePath } from "./sitePath";
 import {
   ServiceChoice,
   BusinessTopics,
@@ -492,8 +493,8 @@ export function App({
               </div>
               <div className="hero-art">
                 <img
-                  src="/assets/azulejos-960.webp"
-                  srcSet="/assets/azulejos-640.webp 640w, /assets/azulejos-960.webp 960w, /assets/azulejos-1536.webp 1536w"
+                  src={sitePath("/assets/azulejos-960.webp")}
+                  srcSet={`${sitePath("/assets/azulejos-640.webp")}  640w, ${sitePath("/assets/azulejos-960.webp")}  960w, ${sitePath("/assets/azulejos-1536.webp")}  1536w`}
                   sizes="(max-width:760px) 100vw, 48vw"
                   width="1536"
                   height="1024"
@@ -880,7 +881,7 @@ export function App({
               </div>
               <div className="journal-tile" aria-hidden="true">
                 <img
-                  src="/assets/azulejos-960.webp"
+                  src={sitePath("/assets/azulejos-960.webp")}
                   alt=""
                   width="960"
                   height="640"

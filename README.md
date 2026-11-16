@@ -1,6 +1,6 @@
 # LusoOffice
 
-Vitrine React / TypeScript pour les Portugais et lusodescendants vivant à l’étranger. LusoOffice remplace Perto de Casa ; le dépôt GitHub conserve son identifiant historique.
+Vitrine React / TypeScript pour les Portugais et lusodescendants vivant à l’étranger. Le dépôt GitHub porte le nom `luso-office`.
 
 ## Direction de la vitrine
 
@@ -26,6 +26,20 @@ npm run preview
 ```
 
 Le build génère 28 pages HTML en français, portugais, anglais et allemand dans `dist/`, avec leurs ressources optimisées, ainsi que six pages d’entrée neutres en portugais et cinq redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
+
+## Présentation sur GitHub Pages
+
+Adresse publique : https://ayoubkhm.github.io/luso-office/ ; lien français direct : https://ayoubkhm.github.io/luso-office/fr/index.html.
+
+GitHub Pages publie les fichiers statiques de la branche `gh-pages`. Le code source reste sur `codex/luso-office-demo-followup`. Pour préparer une publication :
+
+```sh
+npm run build && npm test
+SITE_BASE_PATH=/luso-office/ SITE_ORIGIN=https://ayoubkhm.github.io npm run build
+node scripts/check-pages.mjs
+```
+
+Copier ensuite uniquement le contenu de `dist/` dans la branche `gh-pages`, ajouter `.nojekyll`, committer et pousser cette branche. Ne pas publier les sources privées ou les dépendances. Sans ces paramètres, le développement local conserve ses chemins à la racine. Les métadonnées `noindex` sont conservées pour ce partage temporaire.
 
 ## Pages
 

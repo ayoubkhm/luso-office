@@ -6,7 +6,10 @@ import {
   pageDescription,
   href,
   render,
+  sitePath,
+  localPath,
 } from "../.ssr/entry-server.js";
+const origin = process.env.SITE_ORIGIN || "https://lusooffice.com";
 const template = await readFile("dist/index.html", "utf8");
 const manifest = JSON.parse(await readFile("dist/.vite/manifest.json", "utf8"));
 const workspaceStyles = manifest["src/workspace/Workspace.tsx"].css || [];
@@ -15,8 +18,8 @@ const esc = (s) =>
 for (const lang of ["fr", "pt", "en", "de"]) {
   await mkdir(`dist/${lang}`, { recursive: true });
   for (const page of pageNames) {
-    const canonical = "https://lusooffice.com" + href(page, lang);
-    const meta = `<meta name="description" content="${esc(pageDescription(page, lang))}"/><link rel="canonical" href="${canonical}"/><link rel="alternate" hreflang="fr" href="https://lusooffice.com${href(page, "fr")}"/><link rel="alternate" hreflang="pt" href="https://lusooffice.com${href(page, "pt")}"/><link rel="alternate" hreflang="en" href="https://lusooffice.com${href(page, "en")}"/><link rel="alternate" hreflang="de" href="https://lusooffice.com${href(page, "de")}"/><link rel="alternate" hreflang="x-default" href="https://lusooffice.com${"/" + files[page]}"/><meta property="og:site_name" content="LusoOffice"/><meta property="og:title" content="${esc(titles[page][lang])}"/><meta property="og:description" content="${esc(pageDescription(page, lang))}"/><meta property="og:type" content="website"/><meta property="og:locale" content="${{ fr: "fr_FR", pt: "pt_PT", en: "en_GB", de: "de_DE" }[lang]}"/><meta property="og:url" content="${canonical}"/><meta name="twitter:card" content="summary"/>`;
+    const canonical = origin + href(page, lang);
+    const meta = `<meta name="description" content="${esc(pageDescription(page, lang))}"/><link rel="canonical" href="${canonical}"/><link rel="alternate" hreflang="fr" href="${origin}${href(page, "fr")}"/><link rel="alternate" hreflang="pt" href="${origin}${href(page, "pt")}"/><link rel="alternate" hreflang="en" href="${origin}${href(page, "en")}"/><link rel="alternate" hreflang="de" href="${origin}${href(page, "de")}"/><link rel="alternate" hreflang="x-default" href="${origin}${sitePath(files[page])}"/><meta property="og:site_name" content="LusoOffice"/><meta property="og:title" content="${esc(titles[page][lang])}"/><meta property="og:description" content="${esc(pageDescription(page, lang))}"/><meta property="og:type" content="website"/><meta property="og:locale" content="${{ fr: "fr_FR", pt: "pt_PT", en: "en_GB", de: "de_DE" }[lang]}"/><meta property="og:url" content="${canonical}"/><meta name="twitter:card" content="summary"/>`;
     const content = template
       .replace('<html lang="fr">', `<html lang="${lang}">`)
       .replace(
@@ -28,12 +31,12 @@ for (const lang of ["fr", "pt", "en", "de"]) {
         meta +
           (page === "workspace"
             ? workspaceStyles
-                .map((file) => `<link rel="stylesheet" href="/${file}">`)
+                .map((file) => `<link rel="stylesheet" href="${sitePath(file)}">`)
                 .join("")
             : ""),
       )
       .replace("<!--page-content-->", render(page, lang));
-    await writeFile("dist" + href(page, lang), content);
+    await writeFile("dist" + localPath(href(page, lang)), content);
     if (lang === "pt" && page !== "workspace")
       await writeFile("dist/" + files[page], content);
   }
