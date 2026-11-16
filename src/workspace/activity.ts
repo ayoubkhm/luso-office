@@ -1,3 +1,4 @@
+import { translate } from "../locales";
 import type { Action, Role, State } from "./model";
 import { activityDestination, type CaseDestination } from "./caseRouting";
 
@@ -28,6 +29,37 @@ export interface ActivityEvent {
 // into the activity feed. This is a session sequence, not a dated audit record.
 const definitions: Record<Action["type"], [ActivityCategory, string, string]> =
   {
+    "demo-date": [
+      "billing",
+      "Date de démonstration avancée",
+      "Data de demonstração avançada",
+    ],
+    "client-create": ["admin", "Client fictif créé", "Cliente fictício criado"],
+    "client-select": [
+      "admin",
+      "Client de démonstration sélectionné",
+      "Cliente de demonstração selecionado",
+    ],
+    "actor-select": [
+      "admin",
+      "Profil de démonstration sélectionné",
+      "Perfil de demonstração selecionado",
+    ],
+    "staff-assign": [
+      "requests",
+      "Responsables du dossier modifiés",
+      "Responsáveis do pedido alterados",
+    ],
+    "person-access": [
+      "admin",
+      "Accès du collaborateur modifié",
+      "Acesso do colaborador alterado",
+    ],
+    "delivery-accept": [
+      "requests",
+      "Livrable validé par le client",
+      "Entrega validada pelo cliente",
+    ],
     request: ["requests", "Demande créée", "Pedido criado"],
     stage: [
       "requests",
@@ -394,7 +426,7 @@ export function matchingActivity(
     actor?: string;
     caseId?: string;
   },
-  lang: "fr" | "pt",
+  lang: import("../locales").Lang,
 ) {
   // The operational journal includes internal events and is team-only.
   if (role !== "team") return [];
@@ -417,7 +449,7 @@ export function matchingActivity(
           filters.caseId === "all" ||
           event.caseId === filters.caseId) &&
         norm(
-          `${event.title[lang === "fr" ? 0 : 1]} ${event.caseId ?? ""}`,
+          `${translate(...event.title, lang)} ${event.caseId ?? ""}`,
         ).includes(norm(filters.query ?? "")),
     )
     .slice()

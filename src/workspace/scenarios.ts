@@ -242,6 +242,17 @@ export const demoScenarios: DemoScenario[] = [
         done: (s) => s.cases[0].history.includes("delivered"),
       },
       {
+        title: ["Valider le livrable", "Validar a entrega"],
+        instruction: [
+          "Relisez le compte rendu, cochez la relecture et validez cette version.",
+          "Leia o relatório, assinale a revisão e valide esta versão.",
+        ],
+        role: "member",
+        view: "requests",
+        caseId: "DEMO-001",
+        done: (s) => s.cases[0].deliveries?.at(-1)?.status === "accepted",
+      },
+      {
         title: ["Contrôler et clôturer", "Verificar e concluir"],
         instruction: [
           "Validez la clôture du dossier. L’accueil de l’équipe rappellera ensuite l’original encore à restituer.",
@@ -376,7 +387,14 @@ export function scenarioState(id: ScenarioId): State {
       status: "done",
       note: "Compte rendu fictif terminé / Relatório fictício concluído",
     });
-    apply("partner", { type: "stage", id: "DEMO-001", stage: "delivered" });
+    apply("partner", {
+      type: "stage",
+      id: "DEMO-001",
+      stage: "delivered",
+      summary:
+        "Visite fictive terminée ; aucun incident signalé dans cet exemple.",
+    });
+    apply("member", { type: "delivery-accept", id: "DEMO-001", version: 1 });
     apply("team", { type: "stage", id: "DEMO-001", stage: "completed" });
   }
   if (id === "mission")

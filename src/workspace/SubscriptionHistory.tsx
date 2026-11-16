@@ -1,3 +1,4 @@
+import { translate, languages, languageNames } from "../locales";
 import { useState } from "react";
 import type { SubscriptionAttempt } from "./model";
 import type { Lang } from "../catalogue";
@@ -12,7 +13,7 @@ const statuses: Record<SubscriptionAttempt["status"], [string, string]> = {
   ],
 };
 export function subscriptionSummary(a: SubscriptionAttempt, lang: Lang) {
-  const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
+  const t = (fr: string, pt: string) => translate(fr, pt, lang);
   const period = (value: SubscriptionAttempt["period"]) =>
     value === "annual" ? t("annuel", "anual") : t("mensuel", "mensal");
   return [

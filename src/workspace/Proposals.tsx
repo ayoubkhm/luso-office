@@ -1,3 +1,4 @@
+import { exampleText } from "../locales/examples";
 import { useState } from "react";
 import { canWork, type Case, type Proposal } from "./model";
 import {
@@ -18,7 +19,7 @@ const statuses: Record<Proposal["status"], [string, string]> = {
   accepted: ["Accord simulé enregistré", "Aprovação simulada registada"],
 };
 function ProposalAmounts({ p }: { p: Proposal }) {
-  const { t } = useWorkspace();
+  const { t, lang } = useWorkspace();
   const money = useMoney();
   return (
     <dl>
@@ -49,7 +50,7 @@ function ProposalAmounts({ p }: { p: Proposal }) {
   );
 }
 export function Proposals({ c }: { c: Case }) {
-  const { role, t, act } = useWorkspace();
+  const { role, t, act, lang } = useWorkspace();
   const money = useMoney();
   const [confirm, setConfirm] = useState(false);
   const [reviewed, setReviewed] = useState(false);
@@ -86,7 +87,7 @@ export function Proposals({ c }: { c: Case }) {
           <h4>
             {t("Ce que couvre la proposition", "O que abrange a proposta")}
           </h4>
-          <p className="ws-proposal-copy">{latest.scope}</p>
+          <p className="ws-proposal-copy">{exampleText(latest.scope, lang)}</p>
           <h4>
             {t(
               "Hors périmètre et points à confirmer",
@@ -94,7 +95,7 @@ export function Proposals({ c }: { c: Case }) {
             )}
           </h4>
           <p className="ws-proposal-copy">
-            {latest.exclusions ||
+            {exampleText(latest.exclusions, lang) ||
               t("À préciser avec l’équipe.", "A definir com a equipa.")}
           </p>
           <ProposalAmounts p={latest} />
@@ -265,7 +266,7 @@ export function Proposals({ c }: { c: Case }) {
               required
               rows={4}
               maxLength={4000}
-              defaultValue={latest?.scope || ""}
+              defaultValue={exampleText(latest?.scope || "", lang)}
             />
           </Field>
           <Field
@@ -278,7 +279,7 @@ export function Proposals({ c }: { c: Case }) {
               name="exclusions"
               rows={3}
               maxLength={2000}
-              defaultValue={latest?.exclusions || ""}
+              defaultValue={exampleText(latest?.exclusions || "", lang)}
             />
           </Field>
           <div className="ws-three">
@@ -334,9 +335,9 @@ export function Proposals({ c }: { c: Case }) {
                   </strong>
                   <Badge>{t(...statuses[p.status])}</Badge>
                 </div>
-                <p className="ws-proposal-copy">{p.scope}</p>
+                <p className="ws-proposal-copy">{exampleText(p.scope, lang)}</p>
                 <p className="ws-proposal-copy ws-hint">
-                  {p.exclusions ||
+                  {exampleText(p.exclusions, lang) ||
                     t(
                       "Points à confirmer non précisés.",
                       "Pontos a confirmar não especificados.",

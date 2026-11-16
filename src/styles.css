@@ -2047,3 +2047,9 @@ textarea {
     transition: none !important;
   }
 }
+
+.market-choice {margin: 18px 0; text-align: left;}
+.market-choice label {display: grid; gap: 8px; font-size: 14px; font-weight: 600;}
+.market-choice select {min-height: 44px; padding: 10px 12px; border: 1px solid #9eb3cf; background: white; color: #092245; border-radius: 5px; width: 100%;}
+.market-choice p {font-size: 13px; line-height: 1.6; color: #4b6078; margin-top: 10px;}
+.language-switch {flex-wrap: wrap;}

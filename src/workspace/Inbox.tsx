@@ -1,3 +1,4 @@
+import { exampleText } from "../locales/examples";
 import { useEffect, useRef, useState } from "react";
 import { attentionDestination } from "./caseRouting";
 import {
@@ -310,7 +311,7 @@ export function Messages() {
                     <Badge>{t("Non lu", "Não lida")}</Badge>
                   )}
                 </div>
-                <p>{m.body}</p>
+                <p>{exampleText(m.body, lang)}</p>
               </article>
             ))}
             {!thread.length && (

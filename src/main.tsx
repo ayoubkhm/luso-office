@@ -5,7 +5,7 @@ import "./styles.css";
 const current = route(location.pathname, location.search);
 if (location.pathname.endsWith("/tarifs.html"))
   location.replace(
-    (current.lang === "pt" ? "/pt/" : "/") +
+    (current.lang === "fr" ? "/" : `/${current.lang}/`) +
       "adhesion.html" +
       location.search +
       location.hash,

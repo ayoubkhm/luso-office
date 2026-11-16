@@ -1,3 +1,4 @@
+import { translate, languages, languageNames } from "./locales";
 import type { Lang } from "./catalogue";
 export const pageNames = [
   "home",
@@ -27,14 +28,16 @@ export function route(path: string, search = ""): { page: Page; lang: Lang } {
   return {
     page,
     lang:
-      path.startsWith("/pt") || new URLSearchParams(search).get("lang") === "pt"
-        ? "pt"
-        : "fr",
+      languages.find(
+        (l) => l !== "fr" && (path === `/${l}` || path.startsWith(`/${l}/`)),
+      ) ||
+      languages.find((l) => l === new URLSearchParams(search).get("lang")) ||
+      "fr",
   };
 }
 export const href = (page: Page, lang: Lang, search = "") =>
-  `${lang === "pt" ? "/pt/" : "/"}${files[page]}${search}`;
-export const titles: Record<Page, Record<Lang, string>> = {
+  `${lang === "fr" ? "/" : `/${lang}/`}${files[page]}${search}`;
+const baseTitles = {
   workspace: {
     fr: "O meu Portugal — Maquette LusoOffice",
     pt: "O meu Portugal — Protótipo LusoOffice",
@@ -58,10 +61,24 @@ export const titles: Record<Page, Record<Lang, string>> = {
     pt: "Portugal — Tão longe e tão perto | LusoOffice",
   },
 };
-export const descriptions = {
+export const titles = Object.fromEntries(
+  Object.entries(baseTitles).map(([page, text]) => [
+    page,
+    Object.fromEntries(
+      languages.map((lang) => [lang, translate(text.fr, text.pt, lang)]),
+    ),
+  ]),
+) as Record<Page, Record<Lang, string>>;
+const baseDescriptions = {
   fr: "Un relais au Portugal pour la diaspora : maison, documents, famille, retour et projets professionnels. Découvrez les services et le principe de l’adhésion.",
   pt: "Um apoio em Portugal para a diáspora: casa, documentos, família, regresso e projetos profissionais. Conheça os serviços e o princípio da adesão.",
 };
+export const descriptions = Object.fromEntries(
+  languages.map((lang) => [
+    lang,
+    translate(baseDescriptions.fr, baseDescriptions.pt, lang),
+  ]),
+) as Record<Lang, string>;
 export interface RequestDraft {
   name: string;
   email: string;
@@ -73,17 +90,23 @@ export function requestText(d: RequestDraft, lang: Lang) {
   const fr = lang === "fr";
   return [
     "LusoOffice",
-    fr ? "Préparation de mon échange" : "Preparação da minha conversa",
+    translate(
+      "Préparation de mon échange",
+      "Preparação da minha conversa",
+      lang,
+    ),
     "",
-    `${fr ? "Nom" : "Nome"} : ${d.name}`,
+    `${translate("Nom", "Nome", lang)} : ${d.name}`,
     `E-mail : ${d.email || "—"}`,
-    `${fr ? "Pays de résidence" : "País de residência"} : ${d.country || "—"}`,
-    `${fr ? "Sujet" : "Assunto"} : ${d.subject}`,
+    `${translate("Pays de résidence", "País de residência", lang)} : ${d.country || "—"}`,
+    `${translate("Sujet", "Assunto", lang)} : ${d.subject}`,
     "",
     d.message,
     "",
-    fr
-      ? "Aucune demande n’a été envoyée. Conservez ce document pour votre premier échange. Coordonnées de contact : TBD."
-      : "Nenhum pedido foi enviado. Guarde este documento para a primeira conversa. Contactos: TBD.",
+    translate(
+      "Aucune demande n’a été envoyée. Conservez ce document pour votre premier échange. Coordonnées de contact : TBD.",
+      "Nenhum pedido foi enviado. Guarde este documento para a primeira conversa. Contactos: TBD.",
+      lang,
+    ),
   ].join("\n");
 }

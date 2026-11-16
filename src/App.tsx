@@ -1,3 +1,6 @@
+import { MarketChoice, type Currency } from "./MarketChoice";
+import { translate, languages, languageNames } from "./locales";
+import { handoffKey } from "./workspace/session";
 import { Workspace } from "./workspace/Workspace";
 import {
   createContext,
@@ -91,7 +94,7 @@ function useSite() {
   return {
     lang,
     open,
-    t: (fr: string, pt: string) => (lang === "fr" ? fr : pt),
+    t: (fr: string, pt: string) => translate(fr, pt, lang),
   };
 }
 function Button({
@@ -281,7 +284,7 @@ export function App({
   lang: Lang;
   search?: string;
 }) {
-  const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
+  const t = (fr: string, pt: string) => translate(fr, pt, lang);
   const [menu, setMenu] = useState(false),
     [request, setRequest] = useState<string | null>(null),
     [privacy, setPrivacy] = useState(false);
@@ -362,7 +365,7 @@ export function App({
               className="language-switch"
               aria-label={t("Langue du site", "Idioma do site")}
             >
-              {(["fr", "pt"] as Lang[]).map((l) => (
+              {languages.map((l) => (
                 <a
                   key={l}
                   href={href(
@@ -381,7 +384,7 @@ export function App({
                     );
                   }}
                   lang={l}
-                  aria-label={l === "fr" ? "Français" : "Português"}
+                  aria-label={languageNames[l]}
                   aria-current={lang === l ? "true" : undefined}
                 >
                   {l.toUpperCase()}
@@ -1274,8 +1277,8 @@ export function App({
         >
           <p>
             {t(
-              "Les informations saisies servent uniquement à préparer un récapitulatif dans cette page. Elles ne sont ni envoyées ni enregistrées dans le stockage du site. Le fichier téléchargé reste sur votre appareil jusqu’à sa suppression. Aucun outil publicitaire ou de suivi n’est installé.",
-              "As informações introduzidas servem apenas para preparar um resumo nesta página. Não são enviadas nem guardadas no armazenamento do site. O ficheiro descarregado permanece no seu dispositivo até o eliminar. Não estão instaladas ferramentas publicitárias ou de monitorização.",
+              "Les informations servent à préparer votre exemple. Le transfert vers la démo utilise le stockage de cet onglet ; la sauvegarde sur cet appareil est facultative et peut être effacée dans « Session de démonstration ». Aucun envoi ni outil publicitaire. Le fichier téléchargé reste sur votre appareil jusqu’à sa suppression.",
+              "As informações servem para preparar o exemplo. A transferência para a demo usa o armazenamento deste separador; a gravação neste dispositivo é facultativa e pode ser apagada em « Sessão de demonstração ». Sem envio nem ferramentas publicitárias. O ficheiro descarregado permanece no dispositivo até o eliminar.",
             )}
           </p>
         </Modal>
@@ -1313,23 +1316,31 @@ function Catalogue({
     <>
       <div className="catalogue-tools">
         <label className="search-label" htmlFor="service-search">
-          {fr
-            ? "Quel sujet souhaitez-vous organiser ?"
-            : "Que assunto pretende organizar?"}
+          {translate(
+            "Quel sujet souhaitez-vous organiser ?",
+            "Que assunto pretende organizar?",
+            lang,
+          )}
           <input
             id="service-search"
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={
-              fr ? "Maison, documents, retour…" : "Casa, documentos, regresso…"
-            }
+            placeholder={translate(
+              "Maison, documents, retour…",
+              "Casa, documentos, regresso…",
+              lang,
+            )}
           />
         </label>
         <div
           className="filters"
           role="group"
-          aria-label={fr ? "Filtrer par domaine" : "Filtrar por área"}
+          aria-label={translate(
+            "Filtrer par domaine",
+            "Filtrar por área",
+            lang,
+          )}
         >
           {[
             { id: "all", name: L("Tous les domaines", "Todas as áreas") },
@@ -1374,14 +1385,18 @@ function Catalogue({
       {!filtered.length && (
         <div className="empty-state">
           <h2>
-            {fr
-              ? "Aucun service ne correspond à cette recherche."
-              : "Nenhum serviço corresponde a esta pesquisa."}
+            {translate(
+              "Aucun service ne correspond à cette recherche.",
+              "Nenhum serviço corresponde a esta pesquisa.",
+              lang,
+            )}
           </h2>
           <p>
-            {fr
-              ? "Essayez un terme plus simple ou consultez tous les domaines."
-              : "Experimente um termo mais simples ou consulte todas as áreas."}
+            {translate(
+              "Essayez un terme plus simple ou consultez tous les domaines.",
+              "Experimente um termo mais simples ou consulte todas as áreas.",
+              lang,
+            )}
           </p>
           <button
             className="button secondary"
@@ -1390,7 +1405,7 @@ function Catalogue({
               setArea("all");
             }}
           >
-            {fr ? "Effacer les filtres" : "Limpar os filtros"}
+            {translate("Effacer les filtres", "Limpar os filtros", lang)}
           </button>
         </div>
       )}
@@ -1411,13 +1426,17 @@ function Membership({
       <div
         className="plan-period"
         role="group"
-        aria-label={fr ? "Périodicité indicative" : "Periodicidade indicativa"}
+        aria-label={translate(
+          "Périodicité indicative",
+          "Periodicidade indicativa",
+          lang,
+        )}
       >
         <button aria-pressed={!annual} onClick={() => setAnnual(false)}>
-          {fr ? "Mensuelle" : "Mensal"}
+          {translate("Mensuelle", "Mensal", lang)}
         </button>
         <button aria-pressed={annual} onClick={() => setAnnual(true)}>
-          {fr ? "Annuelle" : "Anual"}
+          {translate("Annuelle", "Anual", lang)}
         </button>
       </div>
       <div className="plan-grid">
@@ -1428,45 +1447,52 @@ function Membership({
           >
             <p className="plan-state">
               {p.id === "Premium"
-                ? fr
-                  ? "Plan à l’étude"
-                  : "Plano em estudo"
-                : fr
-                  ? "Proposition de plan"
-                  : "Proposta de plano"}
+                ? translate("Plan à l’étude", "Plano em estudo", lang)
+                : translate("Proposition de plan", "Proposta de plano", lang)}
             </p>
             <h2>{p.id}</h2>
             <p className="plan-people">{p.people[lang]}</p>
             <p className="plan-amount">
-              {new Intl.NumberFormat(fr ? "fr-FR" : "pt-PT", {
+              {new Intl.NumberFormat(lang, {
                 style: "currency",
                 currency: "EUR",
                 minimumFractionDigits: annual ? 0 : 2,
               }).format(annual ? p.annual : p.monthly)}
               <span>
                 {" "}
-                / {annual ? (fr ? "an" : "ano") : fr ? "mois" : "mês"}
+                /{" "}
+                {annual
+                  ? translate("an", "ano", lang)
+                  : translate("mois", "mês", lang)}
               </span>
             </p>
             <small>
-              {fr
-                ? "Montant indicatif, conditions et TVA à valider."
-                : "Valor indicativo, condições e IVA a validar."}
+              {translate(
+                "Montant indicatif, conditions et TVA à valider.",
+                "Valor indicativo, condições e IVA a validar.",
+                lang,
+              )}
             </small>
             <p className="plan-description">{p.description[lang]}</p>
             <button
               className={`button ${p.id === "Family" ? "primary" : "secondary"}`}
               onClick={() => onChoose(p.id)}
             >
-              {fr ? "Parler de ce plan" : "Conversar sobre este plano"}
+              {translate(
+                "Parler de ce plan",
+                "Conversar sobre este plano",
+                lang,
+              )}
             </button>
           </article>
         ))}
       </div>
       <p className="plan-disclaimer">
-        {fr
-          ? "L’annuel et le mensuel sont deux modalités distinctes. Échéances, renouvellement, bénéficiaires et limites d’accompagnement restent à préciser. Les services sont toujours facturés séparément."
-          : "Anual e mensal são duas modalidades distintas. Pagamentos, renovação, beneficiários e limites de acompanhamento estão por definir. Os serviços são sempre cobrados separadamente."}
+        {translate(
+          "L’annuel et le mensuel sont deux modalités distinctes. Échéances, renouvellement, bénéficiaires et limites d’accompagnement restent à préciser. Les services sont toujours facturés séparément.",
+          "Anual e mensal são duas modalidades distintas. Pagamentos, renovação, beneficiários e limites de acompanhamento estão por definir. Os serviços são sempre cobrados separadamente.",
+          lang,
+        )}
       </p>
     </>
   );
@@ -1525,7 +1551,11 @@ function Faq({ lang }: { lang: Lang }) {
   return (
     <section className="section wrap faq-layout">
       <h2>
-        {fr ? "Comprendre avant de choisir." : "Compreender antes de escolher."}
+        {translate(
+          "Comprendre avant de choisir.",
+          "Compreender antes de escolher.",
+          lang,
+        )}
       </h2>
       <div>
         {questions.map(([q, a]) => (
@@ -1588,7 +1618,7 @@ function Modal({
     >
       <button
         className="modal-close"
-        aria-label={lang === "fr" ? "Fermer" : "Fechar"}
+        aria-label={translate("Fermer", "Fechar", lang)}
         onClick={onClose}
       >
         <Icon name="close" />
@@ -1611,9 +1641,11 @@ function RequestModal({
   onClose: () => void;
 }) {
   const fr = lang === "fr",
-    t = (a: string, b: string) => (fr ? a : b);
+    t = (a: string, b: string) => translate(a, b, lang);
   const [draft, setDraft] = useState<RequestDraft | null>(null),
     [editing, setEditing] = useState(true);
+  const [handoffError, setHandoffError] = useState("");
+  const [currency, setCurrency] = useState<Currency>("EUR");
   const selected = services.find((s) => s.id === initial),
     plan = plans.find((p) => p.id === initial);
   const initialSubject =
@@ -1668,9 +1700,11 @@ function RequestModal({
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = fr
-      ? "luso-office-mon-echange.txt"
-      : "luso-office-a-minha-conversa.txt";
+    a.download = translate(
+      "luso-office-mon-echange.txt",
+      "luso-office-a-minha-conversa.txt",
+      lang,
+    );
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -1827,6 +1861,51 @@ function RequestModal({
             <dt>{t("Situation", "Situação")}</dt>
             <dd>{draft?.message}</dd>
           </dl>
+          {services.some((s) => s.id === subject) && (
+            <>
+              <button
+                className="button primary full"
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem(
+                      handoffKey,
+                      JSON.stringify({
+                        version: 1,
+                        service: subject,
+                        description: draft?.message || "",
+                        name: draft?.name || "",
+                        country: draft?.country || "",
+                        currency,
+                      }),
+                    );
+                    location.assign(
+                      href("workspace", lang, "#view=requests&role=member"),
+                    );
+                  } catch {
+                    setHandoffError(
+                      t(
+                        "Le navigateur ne permet pas ce transfert local. Téléchargez votre récapitulatif.",
+                        "O navegador não permite esta transferência local. Descarregue o resumo.",
+                      ),
+                    );
+                  }
+                }}
+              >
+                {t(
+                  "Continuer dans la démo O meu Portugal",
+                  "Continuar na demo O meu Portugal",
+                )}
+              </button>
+              <p>
+                {t(
+                  "Transfert local de cet exemple uniquement, sans envoi à l’équipe.",
+                  "Transferência local deste exemplo, sem envio à equipa.",
+                )}
+              </p>
+              {handoffError && <p role="alert">{handoffError}</p>}
+            </>
+          )}
+          <MarketChoice lang={lang} value={currency} onChange={setCurrency} />
           <button className="button primary full" onClick={download}>
             <Icon name="download" />
             {t("Télécharger le récapitulatif", "Descarregar o resumo")}

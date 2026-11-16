@@ -1,3 +1,5 @@
+import { nextRenewal, validDay } from "./calendar";
+import { failureReason } from "./failureReason";
 // In-memory design prototype. These checks demonstrate rules, not server authorization.
 import { services, plans } from "../catalogue";
 import { createActivity, type ActivityEvent } from "./activity";
@@ -40,7 +42,16 @@ export interface Settlement {
   dispute?: string;
   attempts: ("pending" | "failed" | "paid")[];
 }
+export interface Delivery {
+  version: number;
+  summary: string;
+  by: Role;
+  documents: { id: string; name: string; version: number }[];
+  status: "submitted" | "accepted" | "correction";
+  correction?: string;
+}
 export interface Case {
+  deliveries?: Delivery[];
   id: string;
   owner: string;
   service: string;
@@ -48,6 +59,8 @@ export interface Case {
   description: string;
   stage: Stage;
   partner: boolean;
+  partnerId?: string;
+  operatorId?: string;
   quote: number;
   fees: number;
   thirdParty: number;
@@ -154,13 +167,31 @@ export interface SubscriptionAttempt {
   amount: number;
   status: "pending" | "failed" | "paid";
 }
+export interface Account {
+  id: string;
+  profile: State["profile"];
+  subscription: State["subscription"];
+  invitations: FamilyInvitation[];
+}
+export interface Person {
+  id: string;
+  name: string;
+  kind: "operator" | "editor" | "admin" | "partner";
+  enabled: boolean;
+}
 export interface State {
+  demoToday: string;
+  activeClient: string;
+  accounts: Account[];
+  people: Person[];
+  operatorId: string;
+  partnerId: string;
   tasks: Task[];
   requirements: Requirement[];
   partnerEnabled: boolean;
   archives: { edition: Edition; delivered: number }[];
   cases: Case[];
-  properties: { id: string; name: string; town: string }[];
+  properties: { id: string; name: string; town: string; owner?: string }[];
   documents: Document[];
   messages: {
     id: string;
@@ -171,6 +202,12 @@ export interface State {
   }[];
   drafts: Record<Role, Record<string, string>>;
   subscription: {
+    startedOn?: string;
+    renewsOn?: string;
+    timeline?: {
+      day: string;
+      event: "started" | "renewed" | "expired" | "overdue";
+    }[];
     attempts: SubscriptionAttempt[];
     plan: "Member" | "Family" | "Premium";
     period: "annual" | "monthly";
@@ -182,7 +219,8 @@ export interface State {
   profile: {
     name: string;
     country: string;
-    language: "fr" | "pt";
+    language: "fr" | "pt" | "en" | "de";
+    currency?: "EUR" | "GBP" | "CHF" | "USD";
     consent: boolean;
   };
   edition: Edition;
@@ -218,6 +256,18 @@ export const stageLabels: Record<Stage, [string, string]> = {
   cancelled: ["Annulée", "Cancelado"],
 };
 export const initialState = (): State => ({
+  demoToday: "2026-11-16",
+  activeClient: "demo",
+  accounts: [],
+  operatorId: "operator-1",
+  partnerId: "partner-1",
+  people: [
+    { id: "operator-1", name: "Camille · démo", kind: "admin", enabled: true },
+    { id: "operator-2", name: "Rui · demo", kind: "operator", enabled: true },
+    { id: "editor-1", name: "Inês · demo", kind: "editor", enabled: true },
+    { id: "partner-1", name: "João · demo", kind: "partner", enabled: true },
+    { id: "partner-2", name: "Sofia · demo", kind: "partner", enabled: true },
+  ],
   drafts: { member: {}, team: {}, partner: {} },
   partnerEnabled: true,
   archives: [],
@@ -345,6 +395,9 @@ export const initialState = (): State => ({
     },
   ],
   subscription: {
+    startedOn: "2026-11-01",
+    renewsOn: "2027-11-01",
+    timeline: [{ day: "2026-11-01", event: "started" }],
     attempts: [],
     plan: "Member",
     period: "annual",
@@ -369,10 +422,21 @@ export const isClosed = (c: Case) =>
   ["completed", "cancelled"].includes(c.stage);
 export const canWork = (c: Case) => !isClosed(c) && !c.cancellation;
 export function visibleCases(s: State, role: Role) {
+  const actor = s.people.find((p) => p.id === s.operatorId);
+  if (role === "team" && (!actor?.enabled || actor.kind === "editor"))
+    return [];
+
   return s.cases.filter(
     (c) =>
-      role === "team" ||
-      (role === "partner" ? c.partner && s.partnerEnabled : c.owner === "demo"),
+      (role === "team" &&
+        (actor?.kind === "admin" ||
+          (c.operatorId || "operator-1") === s.operatorId)) ||
+      (role === "partner"
+        ? c.partner &&
+          s.partnerEnabled &&
+          (c.partnerId || "partner-1") === s.partnerId &&
+          s.people.some((p) => p.id === s.partnerId && p.enabled)
+        : role === "member" && c.owner === s.activeClient),
   );
 }
 export function visibleDocuments(s: State, role: Role) {
@@ -382,7 +446,12 @@ export function visibleDocuments(s: State, role: Role) {
   );
 }
 export const eligibleRecipients = (s: State) =>
-  s.profile.consent && s.subscription.active ? ["demo"] : [];
+  [
+    ...s.accounts,
+    { id: s.activeClient, profile: s.profile, subscription: s.subscription },
+  ]
+    .filter((a) => a.profile.consent && a.subscription.active)
+    .map((a) => a.id);
 export const total = (c: Case) =>
   Math.round((c.quote + c.fees + c.thirdParty) * 100) / 100;
 export function visibleTasks(s: State, role: Role) {
@@ -410,7 +479,7 @@ export function matchingCases(
   role: Role,
   query: string,
   stage: string,
-  lang: "fr" | "pt",
+  lang: import("../locales").Lang,
 ) {
   const norm = (v: string) =>
     v
@@ -441,6 +510,12 @@ export const validEdition = (e: Edition) =>
       e.sections.every((x) => x.trim()),
   );
 export type Action =
+  | { type: "demo-date"; day: string }
+  | { type: "client-create"; name: string; country: string }
+  | { type: "client-select"; id: string }
+  | { type: "actor-select"; id: string }
+  | { type: "staff-assign"; id: string; operatorId: string; partnerId: string }
+  | { type: "person-access"; id: string; enabled: boolean }
   | {
       type: "settlement-propose";
       id: string;
@@ -506,8 +581,25 @@ export type Action =
   | { type: "partner-access"; enabled: boolean }
   | { type: "next-edition" }
   | { type: "cancel-campaign" }
-  | { type: "request"; service: string; property: string; description: string }
-  | { type: "stage"; id: string; stage: Stage }
+  | {
+      type: "request";
+      service: string;
+      property: string;
+      description: string;
+      customer?: {
+        name: string;
+        country: string;
+        currency: "EUR" | "GBP" | "CHF" | "USD";
+      };
+    }
+  | { type: "delivery-accept"; id: string; version: number }
+  | {
+      type: "stage";
+      id: string;
+      stage: Stage;
+      summary?: string;
+      documents?: string[];
+    }
   | {
       type: "quote";
       scope: string;
@@ -540,7 +632,7 @@ export type Action =
   | { type: "publish" }
   | { type: "queue" }
   | { type: "dispatch" };
-export function transition(
+function applyTransition(
   s: State,
   role: Role,
   a: Action,
@@ -604,6 +696,189 @@ export function transition(
     reason: string,
   ) => [...c!.decisions, { kind, role, reason: reason.trim() }];
   switch (a.type) {
+    case "demo-date": {
+      if (
+        role !== "member" ||
+        !validDay(a.day) ||
+        a.day < s.demoToday ||
+        s.subscription.payment === "pending" ||
+        s.accounts.some((account) => account.subscription.payment === "pending")
+      )
+        return reject;
+      const expired = Boolean(
+        s.subscription.active &&
+          s.subscription.renewsOn &&
+          a.day >= s.subscription.renewsOn,
+      );
+      next = {
+        ...s,
+        demoToday: a.day,
+        accounts: s.accounts.map((account) => ({
+          ...account,
+          subscription:
+            account.subscription.active &&
+            account.subscription.renewsOn &&
+            a.day >= account.subscription.renewsOn
+              ? {
+                  ...account.subscription,
+                  active: false,
+                  timeline: [
+                    ...(account.subscription.timeline || []),
+                    {
+                      day: account.subscription.renewsOn,
+                      event: account.subscription.cancelAtEnd
+                        ? ("expired" as const)
+                        : ("overdue" as const),
+                    },
+                  ],
+                }
+              : account.subscription,
+        })),
+        subscription: {
+          ...s.subscription,
+          ...(expired
+            ? {
+                active: false,
+                timeline: [
+                  ...(s.subscription.timeline || []),
+                  {
+                    day: s.subscription.renewsOn!,
+                    event: s.subscription.cancelAtEnd
+                      ? ("expired" as const)
+                      : ("overdue" as const),
+                  },
+                ],
+              }
+            : {}),
+        },
+      };
+      break;
+    }
+    case "client-create": {
+      if (
+        role === "partner" ||
+        !a.name.trim() ||
+        a.name.length > 80 ||
+        !a.country.trim()
+      )
+        return reject;
+      const id = `client-${s.accounts.length + 1}`;
+      const previous = {
+        id: s.activeClient,
+        profile: s.profile,
+        subscription: s.subscription,
+        invitations: s.invitations,
+      };
+      next = {
+        ...s,
+        activeClient: id,
+        profile: {
+          name: a.name.trim(),
+          country: a.country,
+          language: s.profile.language,
+          consent: false,
+        },
+        subscription: {
+          attempts: [],
+          plan: "Member",
+          period: "annual",
+          cancelAtEnd: false,
+          payment: "unpaid",
+          active: false,
+        },
+        invitations: [],
+        accounts: [
+          ...s.accounts.filter((x) => x.id !== s.activeClient),
+          previous,
+        ],
+      };
+      break;
+    }
+    case "client-select": {
+      if (role === "partner" || a.id === s.activeClient) return reject;
+      const account = s.accounts.find((x) => x.id === a.id);
+      if (!account) return reject;
+      next = {
+        ...s,
+        activeClient: account.id,
+        profile: account.profile,
+        subscription: account.subscription,
+        invitations: account.invitations,
+        accounts: [
+          ...s.accounts.filter((x) => x.id !== a.id),
+          {
+            id: s.activeClient,
+            profile: s.profile,
+            subscription: s.subscription,
+            invitations: s.invitations,
+          },
+        ],
+      };
+      break;
+    }
+    case "actor-select": {
+      const person = s.people.find(
+        (p) =>
+          p.id === a.id &&
+          p.enabled &&
+          (role === "partner" ? p.kind === "partner" : p.kind !== "partner"),
+      );
+      if (role === "member" || !person) return reject;
+      next = {
+        ...s,
+        ...(role === "partner" ? { partnerId: a.id } : { operatorId: a.id }),
+      };
+      break;
+    }
+    case "person-access": {
+      if (
+        role !== "team" ||
+        s.people.find((p) => p.id === s.operatorId)?.kind !== "admin" ||
+        a.id === s.operatorId ||
+        !s.people.some((p) => p.id === a.id)
+      )
+        return reject;
+      next = {
+        ...s,
+        people: s.people.map((p) =>
+          p.id === a.id ? { ...p, enabled: a.enabled } : p,
+        ),
+      };
+      break;
+    }
+    case "staff-assign": {
+      if (
+        role !== "team" ||
+        !c ||
+        !canWork(c) ||
+        !s.people.some(
+          (p) =>
+            p.id === a.operatorId &&
+            p.enabled &&
+            ["admin", "operator"].includes(p.kind),
+        ) ||
+        (a.partnerId &&
+          !s.people.some(
+            (p) => p.id === a.partnerId && p.enabled && p.kind === "partner",
+          ))
+      )
+        return reject;
+      // A new partner never inherits document sharing from the previous partner.
+      next = {
+        ...update({
+          operatorId: a.operatorId,
+          partnerId: a.partnerId || undefined,
+          partner: Boolean(a.partnerId),
+        }),
+        documents: s.documents.map((d) =>
+          d.caseId === c.id && a.partnerId !== (c.partnerId || "partner-1")
+            ? { ...d, shared: false }
+            : d,
+        ),
+      };
+      break;
+    }
+
     case "settlement-propose": {
       const latest = c?.settlements.at(-1);
       if (
@@ -754,6 +1029,15 @@ export function transition(
       next = {
         ...update({
           stage: "inprogress",
+          deliveries: c.deliveries?.map((d, i) =>
+            i === c.deliveries!.length - 1
+              ? {
+                  ...d,
+                  status: "correction" as const,
+                  correction: a.reason.trim(),
+                }
+              : d,
+          ),
           history: [...c.history, "inprogress"],
           decisions: decision(a.type, a.reason),
           settlements: c.settlements.map((b) => ({
@@ -954,7 +1238,9 @@ export function transition(
     case "property-edit":
       if (
         role !== "member" ||
-        !s.properties.some((p) => p.id === a.id) ||
+        !s.properties.some(
+          (p) => p.id === a.id && (p.owner || "demo") === s.activeClient,
+        ) ||
         !a.name.trim() ||
         !a.town.trim()
       )
@@ -1007,7 +1293,11 @@ export function transition(
         role !== "member" ||
         !a.description.trim() ||
         !services.some((s) => s.id === a.service) ||
-        (a.property && !s.properties.some((p) => p.id === a.property))
+        (a.property &&
+          !s.properties.some(
+            (p) =>
+              p.id === a.property && (p.owner || "demo") === s.activeClient,
+          ))
       )
         return reject;
       next = {
@@ -1016,7 +1306,7 @@ export function transition(
           ...s.cases,
           {
             id: `DEMO-${String(s.cases.length + 1).padStart(3, "0")}`,
-            owner: "demo",
+            owner: s.activeClient,
             service: a.service,
             property: a.property,
             description: a.description.trim(),
@@ -1035,6 +1325,25 @@ export function transition(
         ],
       };
       break;
+    case "delivery-accept": {
+      const d = c?.deliveries?.at(-1);
+      if (
+        !c ||
+        role !== "member" ||
+        !canWork(c) ||
+        c.stage !== "delivered" ||
+        !d ||
+        d.version !== a.version ||
+        d.status !== "submitted"
+      )
+        return reject;
+      next = update({
+        deliveries: c.deliveries!.map((x) =>
+          x.version === d.version ? { ...x, status: "accepted" as const } : x,
+        ),
+      });
+      break;
+    }
     case "stage": {
       if (!c) return reject;
       const allowed =
@@ -1059,7 +1368,42 @@ export function transition(
         openTasks(s, c.id).length
       )
         return reject;
-      next = update({ stage: a.stage, history: [...c.history, a.stage] });
+      let deliveries = c.deliveries || [];
+      if (a.stage === "delivered") {
+        if (!a.summary?.trim() || a.summary.length > 3000) return reject;
+        const ids = a.documents || [];
+        if (
+          new Set(ids).size !== ids.length ||
+          ids.some(
+            (id) =>
+              !visibleDocuments(s, role).some(
+                (d) =>
+                  d.id === id && d.caseId === c.id && d.review === "accepted",
+              ),
+          )
+        )
+          return reject;
+        deliveries = [
+          ...deliveries,
+          {
+            version: deliveries.length + 1,
+            summary: a.summary.trim(),
+            by: role,
+            status: "submitted",
+            documents: ids.map((id) => {
+              const d = s.documents.find((d) => d.id === id)!;
+              return { id: d.id, name: d.name, version: d.version };
+            }),
+          },
+        ];
+      }
+      if (a.stage === "completed" && deliveries.at(-1)?.status !== "accepted")
+        return reject;
+      next = update({
+        stage: a.stage,
+        history: [...c.history, a.stage],
+        deliveries,
+      });
       break;
     }
     case "accept-quote": {
@@ -1236,6 +1580,7 @@ export function transition(
             id: `home-${s.properties.length + 1}`,
             name: a.name.trim(),
             town: a.town.trim(),
+            owner: s.activeClient,
           },
         ],
       };
@@ -1364,6 +1709,25 @@ export function transition(
           pending: undefined,
           payment: a.result,
           active: s.subscription.active || a.result === "paid",
+          ...(a.result === "paid"
+            ? {
+                startedOn: s.demoToday,
+                renewsOn: nextRenewal(
+                  s.demoToday,
+                  s.subscription.pending!.period,
+                ),
+                cancelAtEnd: false,
+                timeline: [
+                  ...(s.subscription.timeline || []),
+                  {
+                    day: s.demoToday,
+                    event: s.subscription.startedOn
+                      ? ("renewed" as const)
+                      : ("started" as const),
+                  },
+                ],
+              }
+            : {}),
           attempts: s.subscription.attempts.map((attempt, i) =>
             i === s.subscription.attempts.length - 1
               ? { ...attempt, status: a.result as "paid" | "failed" }
@@ -1774,3 +2138,111 @@ export const settlementLocked = (c: Case) =>
   ["approved", "pending", "failed", "settled"].includes(
     c.settlements.at(-1)?.status || "",
   );
+
+export function transition(
+  s: State,
+  role: Role,
+  a: Action,
+): { state: State; ok: boolean; error?: [string, string] } {
+  if (a.type === "request" && a.customer) {
+    if (
+      role !== "member" ||
+      a.property ||
+      !["EUR", "GBP", "CHF", "USD"].includes(a.customer.currency)
+    )
+      return {
+        state: s,
+        ok: false,
+        error: [
+          "Une nouvelle préparation doit être créée sans bien existant.",
+          "Uma nova preparação deve ser criada sem imóvel existente.",
+        ],
+      };
+    const created = applyTransition(s, role, {
+      type: "client-create",
+      name: a.customer.name,
+      country: a.customer.country,
+    });
+    if (!created.ok)
+      return {
+        ...created,
+        error: [
+          "Renseignez le nom fictif et le pays.",
+          "Preencha o nome fictício e o país.",
+        ],
+      };
+    const next = applyTransition(
+      {
+        ...created.state,
+        profile: { ...created.state.profile, currency: a.customer.currency },
+      },
+      role,
+      { ...a, customer: undefined },
+    );
+    return next.ok
+      ? next
+      : { state: s, ok: false, error: failureReason(s, role, a) };
+  }
+  const person = s.people.find(
+    (p) => p.id === (role === "team" ? s.operatorId : s.partnerId),
+  );
+  const editorial = [
+    "edition",
+    "edition-draft",
+    "edition-review",
+    "publish",
+    "queue",
+    "dispatch",
+    "cancel-campaign",
+    "next-edition",
+  ];
+  const admin = [
+    "person-access",
+    "partner-access",
+    "client-create",
+    "staff-assign",
+  ];
+  if (
+    role === "team" &&
+    a.type !== "actor-select" &&
+    (!person?.enabled ||
+      (person.kind === "editor" && !editorial.includes(a.type)) ||
+      (person.kind === "operator" &&
+        (editorial.includes(a.type) || admin.includes(a.type))))
+  )
+    return {
+      state: s,
+      ok: false,
+      error: [
+        "Cette fonction est réservée à un autre rôle. Choisissez un profil autorisé dans le sélecteur de démonstration.",
+        "Esta função está reservada a outra função. Escolha um perfil autorizado no seletor de demonstração.",
+      ],
+    };
+  if (
+    role === "team" &&
+    a.type === "client-select" &&
+    person?.kind === "operator" &&
+    !visibleCases(s, role).some((c) => c.owner === a.id)
+  )
+    return {
+      state: s,
+      ok: false,
+      error: [
+        "Ce client n’a aucun dossier attribué à cet opérateur.",
+        "Este cliente não tem pedidos atribuídos a este operador.",
+      ],
+    };
+  const result = applyTransition(s, role, a);
+  if (result.ok && a.type === "document-replace")
+    result.state = {
+      ...result.state,
+      accounts: result.state.accounts.map((account) => ({
+        ...account,
+        invitations: account.invitations.map((i) => ({
+          ...i,
+          documents: i.documents.filter((id) => id !== a.id),
+        })),
+      })),
+    };
+  return result.ok ? result : { ...result, error: failureReason(s, role, a) };
+}

@@ -1,3 +1,4 @@
+import { translate, languages, languageNames } from "../locales";
 import {
   createContext,
   useContext,
@@ -34,6 +35,7 @@ export type Context = {
   act: (a: Action) => boolean;
   go: (v: View, id?: string, destination?: CaseDestination) => void;
   caseIntent?: CaseIntent;
+  error?: string;
   selected: string;
   select: (id: string) => void;
   t: (fr: string, pt: string) => string;
@@ -55,7 +57,7 @@ export const labels: Record<View, [string, string]> = {
   admin: ["Administration", "Administração"],
 };
 export const roleNames: Record<Role, [string, string]> = {
-  member: ["Adhérent", "Aderente"],
+  member: ["Adhérent / client", "Aderente / cliente"],
   team: ["Équipe", "Equipa"],
   partner: ["Partenaire", "Parceiro"],
 };
@@ -141,7 +143,7 @@ export function Badge({
 export function useMoney() {
   const { lang } = useWorkspace();
   return (n: number) =>
-    new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "pt-PT", {
+    new Intl.NumberFormat(lang, {
       style: "currency",
       currency: "EUR",
     }).format(n);
@@ -158,7 +160,7 @@ export function Form({
   onSave: (d: FormData) => boolean | void;
   className?: string;
 }) {
-  const { t } = useWorkspace();
+  const { t, error } = useWorkspace();
   const [result, setResult] = useState<boolean | null>(null);
   return (
     <form
@@ -177,12 +179,14 @@ export function Form({
           className={result ? "ws-local-success" : "ws-local-error"}
           role="status"
         >
-          {result
-            ? t("Enregistré dans la démo.", "Guardado na demo.")
-            : t(
-                "Action non enregistrée. Vérifiez les champs et l’étape du dossier.",
-                "Ação não guardada. Verifique os campos e a etapa do pedido.",
-              )}
+          {!result && error
+            ? error
+            : result
+              ? t("Enregistré dans la démo.", "Guardado na demo.")
+              : t(
+                  "Action non enregistrée. Vérifiez les champs et l’étape du dossier.",
+                  "Ação não guardada. Verifique os campos e a etapa do pedido.",
+                )}
         </p>
       )}
     </form>
@@ -241,4 +245,24 @@ export function viewsForRole(role: Role): View[] {
           "admin",
         ]
       : ["overview", "guide", "requests", "tasks", "documents", "messages"];
+}
+
+export function navigationGroups(views: View[]) {
+  const groups: { title: [string, string]; views: View[] }[] = [
+    { title: ["Accueil", "Início"], views: ["overview", "guide"] },
+    {
+      title: ["Dossiers", "Pedidos"],
+      views: ["requests", "documents", "tasks", "messages", "settlements"],
+    },
+    { title: ["Biens", "Imóveis"], views: ["properties"] },
+    {
+      title: ["Compte et adhésion", "Conta e adesão"],
+      views: ["billing", "profile"],
+    },
+    { title: ["Le journal", "O jornal"], views: ["newsletter"] },
+    { title: ["Administration", "Administração"], views: ["admin"] },
+  ];
+  return groups
+    .map((g) => ({ ...g, views: g.views.filter((v) => views.includes(v)) }))
+    .filter((g) => g.views.length);
 }

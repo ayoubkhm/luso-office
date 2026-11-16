@@ -33,3 +33,18 @@ export {
   applicableCaseIntent,
   caseNavigationContext,
 } from "./workspace/caseRouting";
+
+export {
+  restoreSession,
+  routeHash,
+  readWorkspaceRoute,
+  readHandoff,
+} from "./workspace/session";
+export { nextRenewal } from "./workspace/calendar";
+export { viewsForActor, PeopleDesk } from "./workspace/People";
+export { Deliveries } from "./workspace/Deliveries";
+export { SubscriptionCalendar } from "./workspace/SubscriptionCalendar";
+export { translate, languages, translations } from "./locales";
+export { exampleText } from "./locales/examples";
+
+export { Workspace } from "./workspace/Workspace";

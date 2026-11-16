@@ -49,6 +49,7 @@ export function activityDestination(
     case "cancel-request":
     case "cancel-withdraw":
     case "cancel-decision":
+    case "delivery-accept":
     case "correction":
     case "reopen":
       return { section: "decisions" };

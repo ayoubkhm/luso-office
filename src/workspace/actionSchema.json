@@ -1,0 +1,1426 @@
+{
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "demo-date"
+        },
+        "day": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "day"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "client-create"
+        },
+        "name": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "country"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "client-select"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "actor-select"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "staff-assign"
+        },
+        "id": {
+          "type": "string"
+        },
+        "operatorId": {
+          "type": "string"
+        },
+        "partnerId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "operatorId",
+        "partnerId"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "person-access"
+        },
+        "id": {
+          "type": "string"
+        },
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "enabled"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "settlement-propose"
+        },
+        "id": {
+          "type": "string"
+        },
+        "coordination": {
+          "type": "number"
+        },
+        "official": {
+          "type": "number"
+        },
+        "thirdParty": {
+          "type": "number"
+        },
+        "explanation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "coordination",
+        "official",
+        "thirdParty",
+        "explanation"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "settlement-respond"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "approve": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version",
+        "approve",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "settlement-payment"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "const": "pending"
+            },
+            {
+              "const": "failed"
+            },
+            {
+              "const": "paid"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version",
+        "result"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "invite-state"
+        },
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "const": "active"
+            },
+            {
+              "const": "expired"
+            },
+            {
+              "const": "revoked"
+            }
+          ]
+        },
+        "generation": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "status",
+        "generation"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "invite-renew"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "family-case"
+        },
+        "id": {
+          "type": "string"
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "granted": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "caseId",
+        "granted"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "family-document"
+        },
+        "id": {
+          "type": "string"
+        },
+        "documentId": {
+          "type": "string"
+        },
+        "granted": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "documentId",
+        "granted"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "accept-quote"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "revise-quote"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "message-read"
+        },
+        "id": {
+          "type": "string"
+        },
+        "through": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "through"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "message-draft"
+        },
+        "id": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "body"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel-request"
+        },
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel-withdraw"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel-decision"
+        },
+        "id": {
+          "type": "string"
+        },
+        "confirm": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "confirm",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "const": "correction"
+            },
+            {
+              "const": "reopen"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "restart"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "task-create"
+        },
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "const": "team"
+            },
+            {
+              "const": "partner"
+            }
+          ]
+        },
+        "due": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "title",
+        "assignee",
+        "due"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "task-update"
+        },
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "const": "todo"
+            },
+            {
+              "const": "doing"
+            },
+            {
+              "const": "blocked"
+            },
+            {
+              "const": "done"
+            }
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "status",
+        "note"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "task-assign"
+        },
+        "id": {
+          "type": "string"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "const": "team"
+            },
+            {
+              "const": "partner"
+            }
+          ]
+        },
+        "due": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "assignee",
+        "due"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "requirement"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "label"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "document-review"
+        },
+        "id": {
+          "type": "string"
+        },
+        "review": {
+          "anyOf": [
+            {
+              "const": "accepted"
+            },
+            {
+              "const": "rejected"
+            }
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "review",
+        "reason"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "document-replace"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "name"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "property-edit"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "town": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "name",
+        "town"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "partner-access"
+        },
+        "enabled": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "enabled"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "next-edition"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel-campaign"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "request"
+        },
+        "service": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "customer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "currency": {
+                  "anyOf": [
+                    {
+                      "const": "EUR"
+                    },
+                    {
+                      "const": "GBP"
+                    },
+                    {
+                      "const": "CHF"
+                    },
+                    {
+                      "const": "USD"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "country",
+                "currency"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "service",
+        "property",
+        "description"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "delivery-accept"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "stage"
+        },
+        "id": {
+          "type": "string"
+        },
+        "stage": {
+          "anyOf": [
+            {
+              "const": "submitted"
+            },
+            {
+              "const": "review"
+            },
+            {
+              "const": "quote"
+            },
+            {
+              "const": "approved"
+            },
+            {
+              "const": "inprogress"
+            },
+            {
+              "const": "delivered"
+            },
+            {
+              "const": "completed"
+            },
+            {
+              "const": "cancelled"
+            }
+          ]
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "documents": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "stage"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "quote"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "exclusions": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "number"
+        },
+        "fees": {
+          "type": "number"
+        },
+        "thirdParty": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "scope",
+        "exclusions",
+        "id",
+        "quote",
+        "fees",
+        "thirdParty"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "assign"
+        },
+        "id": {
+          "type": "string"
+        },
+        "assigned": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "assigned"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "pay"
+        },
+        "id": {
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "const": "pending"
+            },
+            {
+              "const": "failed"
+            },
+            {
+              "const": "paid"
+            },
+            {
+              "const": "unpaid"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "result"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "message"
+        },
+        "id": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "body"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "note"
+        },
+        "id": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "body"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "property"
+        },
+        "name": {
+          "type": "string"
+        },
+        "town": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "town"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "document"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "requirement": {
+          "anyOf": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "name"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "share"
+        },
+        "id": {
+          "type": "string"
+        },
+        "shared": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "shared"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "custody"
+        },
+        "id": {
+          "type": "string"
+        },
+        "custody": {
+          "anyOf": [
+            {
+              "const": "digital"
+            },
+            {
+              "const": "received"
+            },
+            {
+              "const": "returned"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "custody"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "subscription"
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "const": "Member"
+            },
+            {
+              "const": "Family"
+            },
+            {
+              "const": "Premium"
+            }
+          ]
+        },
+        "period": {
+          "anyOf": [
+            {
+              "const": "annual"
+            },
+            {
+              "const": "monthly"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "plan",
+        "period"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "subscription-payment"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "const": "pending"
+            },
+            {
+              "const": "failed"
+            },
+            {
+              "const": "paid"
+            },
+            {
+              "const": "unpaid"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "result"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "cancel"
+        },
+        "cancel": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "cancel"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "profile"
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "language": {
+              "anyOf": [
+                {
+                  "const": "fr"
+                },
+                {
+                  "const": "pt"
+                },
+                {
+                  "const": "en"
+                },
+                {
+                  "const": "de"
+                }
+              ]
+            },
+            "currency": {
+              "anyOf": [
+                {
+                  "const": "EUR"
+                },
+                {
+                  "const": "GBP"
+                },
+                {
+                  "const": "CHF"
+                },
+                {
+                  "const": "USD"
+                }
+              ]
+            },
+            "consent": {
+              "anyOf": [
+                {
+                  "const": false
+                },
+                {
+                  "const": true
+                }
+              ]
+            }
+          },
+          "required": [
+            "name",
+            "country",
+            "language",
+            "consent"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "profile"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "invite"
+        },
+        "email": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "email"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "edition"
+        },
+        "edition": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "const": "review"
+                },
+                {
+                  "const": "draft"
+                },
+                {
+                  "const": "published"
+                }
+              ]
+            }
+          },
+          "required": [
+            "title",
+            "sections",
+            "excerpt",
+            "status"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "edition"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "edition-draft"
+        },
+        "content": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "sections": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "title",
+            "excerpt",
+            "sections"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "content"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "edition-review"
+        },
+        "revision": {
+          "type": "number"
+        },
+        "confirmed": {
+          "anyOf": [
+            {
+              "const": false
+            },
+            {
+              "const": true
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "revision",
+        "confirmed"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "publish"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "queue"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "dispatch"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { routeHash } from "./session";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Case, Role } from "./model";
 import { useWorkspace } from "./ui";
@@ -58,6 +59,7 @@ export function useCaseNavigation(c: Case, role: Role) {
     document.getElementById(tabId(section))?.focus();
   const open = (section: CaseSectionName) => {
     if (!sections.includes(section)) return;
+    history.pushState(null, "", routeHash("requests", role, c.id, { section }));
     setSelection({ context, section });
     requestAnimationFrame(() => focus(section));
   };

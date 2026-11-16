@@ -189,6 +189,21 @@ test("Restart activity opens the new case and Family sharing resolves its docume
 });
 
 const apply = (s, role, action) => {
+  if (action.type === "stage" && action.stage === "delivered")
+    action = {
+      ...action,
+      summary: "Compte rendu fictif de la mission terminée",
+      documents: [],
+    };
+  if (action.type === "stage" && action.stage === "completed") {
+    const receipt = s.cases.find((c) => c.id === action.id)?.deliveries?.at(-1);
+    if (receipt?.status === "submitted")
+      s = transition(s, "member", {
+        type: "delivery-accept",
+        id: action.id,
+        version: receipt.version,
+      }).state;
+  }
   const r = transition(s, role, action);
   assert.equal(r.ok, true, `${role}: ${action.type}`);
   return r.state;
@@ -1548,6 +1563,7 @@ test("All guided walkthroughs complete using the real demo transition rules", ()
         },
       ],
       ["partner", { type: "stage", id: "DEMO-001", stage: "delivered" }],
+      ["member", { type: "delivery-accept", id: "DEMO-001", version: 1 }],
       ["team", { type: "stage", id: "DEMO-001", stage: "completed" }],
     ],
     family: [

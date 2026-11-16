@@ -13,7 +13,7 @@ npm test
 npm run preview
 ```
 
-Le build génère 14 pages HTML en français et portugais dans `dist/`, avec leurs ressources optimisées, et deux redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
+Le build génère 28 pages HTML en français, portugais, anglais et allemand dans `dist/`, avec leurs ressources optimisées, et quatre redirections historiques. Le contenu public est pré-rendu ; React gère les filtres, les modalités d’adhésion et le récapitulatif local. Le serveur de développement utilise le repli Vite pour les routes ; le serveur de prévisualisation permet de vérifier les fichiers générés.
 
 ## Pages
 
@@ -23,8 +23,8 @@ Le build génère 14 pages HTML en français et portugais dans `dist/`, avec leu
 - `business.html` : coordination LusoOffice et interventions distinctes du comptable et du consultant, sept axes à développer.
 - `a-propos.html` : histoire de la fondatrice, diaspora, présence internationale projetée, partenariat et contact TBD.
 - `journal.html` : format de la newsletter « Portugal — Tão longe e tão perto » et projet Coffret da Lis, sans édition ni produit fictif.
-- `espace.html` : atelier interactif « O meu Portugal », vues adhérent, équipe et partenaire, entièrement en mémoire.
-- `/pt/` : mêmes pages en portugais. Le choix de langue conserve le domaine et les termes recherchés.
+- `espace.html` : atelier interactif « O meu Portugal », vues client, équipe et partenaire, avec sauvegarde locale facultative des exemples.
+- `/pt/`, `/en/`, `/de/` : mêmes pages en portugais, anglais et allemand. Le choix de langue conserve les filtres du catalogue ; dans l’espace, il conserve la session et la route courantes.
 - `tarifs.html` : ancienne URL redirigée vers l’adhésion.
 
 ## Sources et statut commercial
@@ -39,10 +39,10 @@ L’histoire de la fondatrice fille d’émigrants en France est issue de la com
 
 ## Parcours et limites
 
-- Le visiteur consulte une fiche, un plan ou le partenariat et prépare un document texte local avec le sujet présélectionné.
+- Le visiteur consulte une fiche, un plan ou le partenariat et prépare un récapitulatif avec le sujet présélectionné. Pour un service, il peut transférer sa préparation vers un formulaire modifiable dans la démo, puis créer un client fictif sans adhésion et son dossier.
 - Nom et situation obligatoires ; e-mail et pays facultatifs. Aucun document sensible demandé.
 - Le résultat précise qu’aucune demande n’a été envoyée ; il permet téléchargement et modification.
-- Aucun stockage persistant, endpoint, envoi, paiement, compte, newsletter active, suivi de dossier ou backoffice. « O meu Portugal » dispose désormais d’une maquette interactive, sans authentification ni persistance.
+- Aucun endpoint, envoi, paiement, compte ni newsletter réels. La maquette reste sans authentification serveur. Une sauvegarde facultative des exemples utilise le navigateur sur cet appareil, avec reprise et suppression explicites. Le transfert depuis le catalogue utilise temporairement le stockage de l’onglet.
 - Les prochaines phases fonctionnelles demandent un cadrage dédié : identification juridique, contrats, paiement, accès, sécurité documentaire, rôles des opérateurs et partenaires.
 
 ## Design et architecture
@@ -52,7 +52,9 @@ Palette conservée et affinée : bleu cobalt `#164bcb`, marine `#092245`, blanc 
 - `src/catalogue.ts` : catalogue typé, traductions, plans, recherche et formatage des prix.
 - `src/App.tsx` : pages et composants partagés, navigation, dialogues et formulaire.
 - `src/routes.ts` : routes, métadonnées et sérialisation du récapitulatif.
-- `scripts/prerender.mjs` : génération des pages FR/PT et anciennes routes.
+- `scripts/prerender.mjs` : génération des pages FR/PT/EN/DE et anciennes routes.
+- `src/locales/` : traductions EN/DE des textes FR/PT, exemples localisés et listes de couverture. Les saisies libres ne sont jamais traduites automatiquement.
+- `scripts/action-schema.mjs` : schéma des actions dérivé du type TypeScript au build, utilisé pour valider les sauvegardes avant leur rejeu.
 - `scripts/site.test.mjs` : contrôles de données, recherche, prix, routes, récapitulatif et sortie statique.
 - `public/assets/` : images WebP et polices WOFF2. Les sources historiques restent dans `assets/` mais ne sont pas publiées par le build.
 
@@ -68,9 +70,11 @@ Build TypeScript/Vite et tests automatisés du site et des transitions métier (
 
 ### Périmètre de l’atelier
 
-Ouvrir `/espace.html` ou `/pt/espace.html`. Le sélecteur de vue permet de suivre les mêmes données fictives entre adhérent, équipe et partenaire. Le changement FR/PT conserve la session ; le rechargement la réinitialise. Le retour au site quitte cette session. Les documents sont des intitulés, sans sélection de fichier. Les brouillons de messages et les états de lecture sont également limités à cette session en mémoire. Aucun paiement, e-mail, invitation, facture ou compte réel n’est créé.
+Ouvrir `/espace.html`, `/pt/espace.html`, `/en/espace.html` ou `/de/espace.html`. Les profils et intervenants sont fictifs. Le changement de langue conserve la session ; l’URL suit le rôle, la rubrique, le dossier et les onglets ouverts. Le bouton Retour du navigateur suit les navigations internes.
 
-Validation de l’atelier : build et 70 tests réussis (7 contrôles du site, 40 scénarios métier et parcours, 7 contrôles de navigation et rendu des dossiers, 4 contrôles des tâches et échéances, 4 contrôles des documents, 4 contrôles de l’historique d’adhésion, 4 contrôles de relecture du journal). Les six exemples guidés ont été déroulés jusqu’à leur dernière étape via les mêmes transitions que l’interface. Les contrôles Chrome antérieurs couvrent certains écrans desktop et un parcours de paiement, mais pas toutes les évolutions suivantes. La revue visuelle mobile et celle des nouveaux écrans restent à compléter : l’ouverture automatisée dans Chrome échoue encore. Ne pas considérer la démo comme visuellement validée sur tous les navigateurs.
+Par défaut la session reste en mémoire. « Session de démonstration » permet d’activer une sauvegarde locale, de la reprendre après rechargement ou de l’effacer. Le stockage contient les saisies d’exemple ; il ne doit pas recevoir de données réelles. La restauration valide puis rejoue les actions ; une sauvegarde incompatible ou endommagée est refusée. Les formulaires non soumis ne sont pas tous sauvegardés ; les notes restent conservées entre les onglets d’un même dossier, et les brouillons de messages et du journal suivent la session. Le navigateur avertit avant de quitter une session non sauvegardée ou des champs modifiés.
+
+Validation actuelle : build et **82 tests réussis**, dont 9 contrôles des corrections de l’audit et 3 tests d’interaction React dans un DOM simulé. Les tests vérifient notamment remise/validation/correction, clients distincts, profils nommés, échéances, sauvegardes invalides, routes, langues, transfert de préparation, reprise explicite et Retour navigateur. L’audit des dépendances ne signale aucune vulnérabilité après mise à jour de Vite vers 7.3.8. Ces contrôles ne remplacent pas une revue visuelle : Chrome reste inaccessible via le pilotage automatisé, donc mobile, mise en page et navigation clavier complète restent à valider dans un navigateur réel.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -80,8 +84,25 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | Biens et documents | Ajout/modification d’un bien, rattachement des demandes, pièces attendues, vérification/refus motivé, nouvelle version avec historique, partage explicite, réception/restitution d’original | Mandats, stockage privé, contrôle des fichiers réels, conservation, preuves de garde et restitution |
 | Demandes et messages | Création, réception équipe, propositions versionnées avec périmètre et ajustements, accord sur une version précise, provision, mission, livrable et clôture ; recherche/filtres, tâches datées et attribuées, blocages, échanges, non-lus, brouillons par rôle/dossier et notes internes ; annulation examinée, correction, réouverture motivée et reprise indépendante | API, notifications et rappels, litiges, conditions commerciales et rapprochement financier |
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance ; bilan versionné, correction, accord et simulation de solde/remboursement | Prestataire de paiement, devis contractuel, prorata, rapprochement bancaire, exécution des remboursements, émission fiscale et avoirs |
-| Administration et partenaires | Attribution/révocation par dossier, partage/retrait de pièces, vue partenaire restreinte, suspension globale et réattribution des tâches, journal d’actions démo | Rôles serveur séparés, invitations nominatives, gestion des clients, éditeur du catalogue et journal d’audit durable |
+| Administration et partenaires | Plusieurs clients fictifs, intervenants nommés, charge par responsable, affectations, suspension individuelle, vues opérateur/éditeur/admin, partage documentaire explicite, activité | Identités et permissions serveur, invitations réelles, catalogue administrable et audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
+
+### Corrections de l’audit — version courante
+
+| Point | Comportement livré |
+| --- | --- |
+| Livrable | Compte rendu obligatoire, pièces validées du même dossier, versions conservées avec snapshots des pièces, correction motivée, validation par le client de la version courante, puis clôture par l’équipe. Un simple changement de statut ne peut plus clore une mission sans résultat validé. |
+| Catalogue → demande | Sujet et situation préremplis depuis la vitrine. La confirmation crée atomiquement un nouveau client fictif sans adhésion et son dossier ; aucun bien, paiement ou document d’un autre client n’est repris. Une demande refusée ne laisse pas un client partiellement créé. |
+| Reprise et navigation | Historique navigateur, URL partageable pour une vue de scénario, sauvegarde locale facultative, reprise explicite, effacement, validation structurelle des actions et refus des versions incompatibles. L’URL seule ne transporte pas les données d’une session. |
+| Plusieurs clients et intervenants | Création et sélection de clients fictifs avec profils/adhésions distincts. Deux profils opérationnels, un éditeur et deux partenaires nommés. L’opérateur voit ses dossiers, l’éditeur le journal, l’administrateur l’ensemble. Les mutations suivent les mêmes limites démo. Un changement de partenaire retire ses partages documentaires ; il faut les autoriser à nouveau. |
+| Adhésion dans le temps | Dates de début et échéance fictives, frise, avancée manuelle de la date, expiration ou impayé, nouvelle tentative et nouvelle période après paiement simulé. La date ne peut avancer avec des paiements d’adhésion en attente. Les droits expirés ne ferment pas les dossiers. Les règles restent des propositions de conception, sans prélèvement, grâce ou prorata réels. |
+| Erreurs | Refus avec raison et action utile : pièce non validée, tâche ouverte, livrable non approuvé, date invalide, paiement en attente, rôle non autorisé, etc. Les formulaires utilisant un résultat affichent cette explication au lieu du seul message générique. |
+| International | Quatre langues pour la vitrine et l’atelier, 28 services traduits, formats localisés et redirections. Choix EUR/GBP/CHF/USD comme préférence de devis ; les prix sources restent en EUR. Aucun taux de change ni tarif étranger non validé n’est introduit. Les exemples initiaux sont localisés sans modifier la langue des saisies libres. Le journal éditorial reste prévu en portugais. |
+| Navigation | Cinq groupes principaux côté client, sous-rubriques pour les dossiers/documents/tâches/messages/bilans et pour compte/adhésion. Les groupes disponibles suivent le profil ; les fonctionnalités restent accessibles. |
+
+Revue manuelle recommandée : tester sur mobile les quatre langues (en particulier les libellés allemands), les sélecteurs de clients/intervenants, les sous-rubriques et le compte rendu. Vérifier le focus avec Retour navigateur, un stockage refusé ou saturé, et une session restaurée. La sauvegarde est propre au navigateur/appareil ; elle n’est ni un compte connecté ni une synchronisation.
+
+Les sections suivantes conservent l’historique des itérations ; leurs anciens nombres de tests et limites de persistance ne décrivent pas tous la version courante ci-dessus.
 
 ### Deuxième itération de la démo
 

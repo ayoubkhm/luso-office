@@ -1,6 +1,13 @@
-export type Lang = "fr" | "pt";
+import { translate, languages, languageNames } from "./locales";
+import type { Lang } from "./locales";
+export type { Lang } from "./locales";
 export type Text = Record<Lang, string>;
-export const L = (fr: string, pt: string): Text => ({ fr, pt });
+export const L = (fr: string, pt: string): Text => ({
+  fr,
+  pt,
+  en: translate(fr, pt, "en"),
+  de: translate(fr, pt, "de"),
+});
 export type AreaId = "maison" | "documents" | "famille" | "retour" | "business";
 export const areas: {
   id: AreaId;
@@ -746,10 +753,10 @@ export function filterServices(area: string, query: string, lang: Lang) {
 }
 export function price(service: Service, member: boolean, lang: Lang) {
   const amount = service.prices[member ? 1 : 0];
-  if (amount === null) return lang === "fr" ? "Sur devis" : "Sob orçamento";
+  if (amount === null) return translate("Sur devis", "Sob orçamento", lang);
   return (
-    (service.from ? (lang === "fr" ? "Dès " : "Desde ") : "") +
-    new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "pt-PT", {
+    (service.from ? translate("Dès ", "Desde ", lang) : "") +
+    new Intl.NumberFormat(lang, {
       style: "currency",
       currency: "EUR",
       maximumFractionDigits: 0,

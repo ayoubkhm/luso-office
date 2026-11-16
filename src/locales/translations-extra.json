@@ -1,0 +1,282 @@
+{
+  "Accueil": [
+    "Home",
+    "Startseite"
+  ],
+  "Accès du collaborateur modifié": [
+    "Collaborator access updated",
+    "Zugriff des Mitarbeiters geändert"
+  ],
+  "Accès partenaire réactivé": [
+    "Partner access reactivated",
+    "Partnerzugriff reaktiviert"
+  ],
+  "Ajustement de la proposition demandé": [
+    "Proposal adjustment requested",
+    "Anpassung des Angebots angefordert"
+  ],
+  "Attribution de la tâche mise à jour": [
+    "Task assignment updated",
+    "Aufgabenzuweisung aktualisiert"
+  ],
+  "Bien ajouté": [
+    "Property added",
+    "Immobilie hinzugefügt"
+  ],
+  "Bilan approuvé": [
+    "Settlement approved",
+    "Abrechnung genehmigt"
+  ],
+  "Bilan proposé": [
+    "Settlement proposed",
+    "Abrechnung vorgeschlagen"
+  ],
+  "Ce client n’a aucun dossier attribué à cet opérateur.": [
+    "This client has no cases assigned to this operator.",
+    "Diesem Bearbeiter sind keine Vorgänge dieses Kunden zugewiesen."
+  ],
+  "Changement d’adhésion préparé": [
+    "Membership change prepared",
+    "Änderung der Mitgliedschaft vorbereitet"
+  ],
+  "Client de démonstration sélectionné": [
+    "Demo client selected",
+    "Demo-Kunde ausgewählt"
+  ],
+  "Client fictif créé": [
+    "Fictional client created",
+    "Fiktiver Kunde erstellt"
+  ],
+  "Compte et adhésion": [
+    "Account and membership",
+    "Konto und Mitgliedschaft"
+  ],
+  "Conversation marquée comme lue": [
+    "Conversation marked as read",
+    "Gespräch als gelesen markiert"
+  ],
+  "Correction de la mission demandée": [
+    "Assignment correction requested",
+    "Korrektur des Auftrags angefordert"
+  ],
+  "Date de démonstration avancée": [
+    "Demo date moved forward",
+    "Demo-Datum weitergestellt"
+  ],
+  "Demande créée": [
+    "Request created",
+    "Anfrage erstellt"
+  ],
+  "Distribution annulée": [
+    "Distribution cancelled",
+    "Versand abgebrochen"
+  ],
+  "Distribution préparée": [
+    "Distribution prepared",
+    "Versand vorbereitet"
+  ],
+  "Distribution simulée": [
+    "Distribution simulated",
+    "Versand simuliert"
+  ],
+  "Dossier partagé avec le bénéficiaire": [
+    "Case shared with the beneficiary",
+    "Vorgang für den Begünstigten freigegeben"
+  ],
+  "Dossier rouvert": [
+    "Case reopened",
+    "Vorgang wieder geöffnet"
+  ],
+  "Garde de l’original mise à jour": [
+    "Original custody updated",
+    "Verwahrung des Originals aktualisiert"
+  ],
+  "Informations du bien mises à jour": [
+    "Property information updated",
+    "Immobilienangaben aktualisiert"
+  ],
+  "Invitation Family mise à jour": [
+    "Family invitation updated",
+    "Family-Einladung aktualisiert"
+  ],
+  "Invitation Family préparée": [
+    "Family invitation prepared",
+    "Family-Einladung vorbereitet"
+  ],
+  "Invitation Family renouvelée": [
+    "Family invitation renewed",
+    "Family-Einladung erneuert"
+  ],
+  "Les informations servent à préparer votre exemple. Le transfert vers la démo utilise le stockage de cet onglet ; la sauvegarde sur cet appareil est facultative et peut être effacée dans « Session de démonstration ». Aucun envoi ni outil publicitaire. Le fichier téléchargé reste sur votre appareil jusqu’à sa suppression.": [
+    "The information is used to prepare your example. Transfer to the demo uses this tab's storage; saving on this device is optional and can be cleared under “Demo session”. Nothing is sent and no advertising tools are used. The downloaded file stays on your device until you delete it.",
+    "Die Angaben dienen zur Vorbereitung Ihres Beispiels. Die Übernahme in die Demo nutzt den Speicher dieses Tabs; die Speicherung auf diesem Gerät ist freiwillig und kann unter „Demo-Sitzung“ gelöscht werden. Es wird nichts versendet und es werden keine Werbetools verwendet. Die heruntergeladene Datei bleibt auf Ihrem Gerät, bis Sie sie löschen."
+  ],
+  "Les montants de démonstration restent en EUR. La devise souhaitée est transmise comme préférence pour un futur devis.": [
+    "Demo amounts remain in EUR. Your preferred currency is passed on as a preference for a future quotation.",
+    "Die Demo-Beträge bleiben in EUR. Ihre gewünschte Währung wird als Präferenz für ein künftiges Angebot übernommen."
+  ],
+  "Livrable validé par le client": [
+    "Deliverable approved by the client",
+    "Arbeitsergebnis vom Kunden bestätigt"
+  ],
+  "Message ajouté à la conversation": [
+    "Message added to the conversation",
+    "Nachricht zum Gespräch hinzugefügt"
+  ],
+  "Mission attribuée au partenaire": [
+    "Assignment assigned to the partner",
+    "Auftrag dem Partner zugewiesen"
+  ],
+  "Note interne ajoutée": [
+    "Internal note added",
+    "Interne Notiz hinzugefügt"
+  ],
+  "Nouveau dossier créé depuis le besoin précédent": [
+    "New case created from the previous need",
+    "Neuer Vorgang aus dem vorherigen Bedarf erstellt"
+  ],
+  "Nouvelle version de la pièce déposée": [
+    "New document version uploaded",
+    "Neue Version der Unterlage hochgeladen"
+  ],
+  "Nouvelle édition ouverte": [
+    "New edition opened",
+    "Neue Ausgabe geöffnet"
+  ],
+  "Paiement de l’adhésion mis à jour": [
+    "Membership payment updated",
+    "Mitgliedschaftszahlung aktualisiert"
+  ],
+  "Pièce demandée à l’adhérent": [
+    "Document requested from the member",
+    "Unterlage beim Mitglied angefordert"
+  ],
+  "Pièce d’exemple ajoutée": [
+    "Sample document added",
+    "Beispielunterlage hinzugefügt"
+  ],
+  "Pièce partagée avec le bénéficiaire": [
+    "Document shared with the beneficiary",
+    "Unterlage für den Begünstigten freigegeben"
+  ],
+  "Pièce partagée avec le partenaire": [
+    "Document shared with the partner",
+    "Unterlage für den Partner freigegeben"
+  ],
+  "Pièce validée": [
+    "Document approved",
+    "Unterlage bestätigt"
+  ],
+  "Profil de démonstration sélectionné": [
+    "Demo profile selected",
+    "Demo-Profil ausgewählt"
+  ],
+  "Proposition préparée": [
+    "Proposal prepared",
+    "Angebot vorbereitet"
+  ],
+  "Provision mise à jour": [
+    "Advance payment updated",
+    "Vorauszahlung aktualisiert"
+  ],
+  "Préférences du compte enregistrées": [
+    "Account preferences saved",
+    "Kontoeinstellungen gespeichert"
+  ],
+  "Publication de l’édition simulée": [
+    "Edition publication simulated",
+    "Veröffentlichung der Ausgabe simuliert"
+  ],
+  "Relecture confirmée": [
+    "Review confirmed",
+    "Prüfung bestätigt"
+  ],
+  "Renouvellement arrêté à l’échéance": [
+    "Renewal stopped at the end of the term",
+    "Verlängerung zum Laufzeitende beendet"
+  ],
+  "Renseignez le nom fictif et le pays.": [
+    "Enter the fictional name and country.",
+    "Geben Sie den fiktiven Namen und das Land ein."
+  ],
+  "Responsables du dossier modifiés": [
+    "Case assignees changed",
+    "Zuständigkeiten für den Vorgang geändert"
+  ],
+  "Règlement du bilan mis à jour": [
+    "Settlement payment updated",
+    "Zahlung der Abrechnung aktualisiert"
+  ],
+  "Saisie conservée": [
+    "Entered data saved",
+    "Eingaben gespeichert"
+  ],
+  "Tâche créée": [
+    "Task created",
+    "Aufgabe erstellt"
+  ],
+  "Tâche mise à jour": [
+    "Task updated",
+    "Aufgabe aktualisiert"
+  ],
+  "Une adhésion active est nécessaire pour lire l’édition complète.": [
+    "An active membership is required to read the full edition.",
+    "Zum Lesen der vollständigen Ausgabe ist eine aktive Mitgliedschaft erforderlich."
+  ],
+  "Une nouvelle préparation doit être créée sans bien existant.": [
+    "A new preparation must be created without an existing property.",
+    "Eine neue Vorbereitung muss ohne vorhandene Immobilie erstellt werden."
+  ],
+  "billing": [
+    "billing",
+    "billing"
+  ],
+  "message-draft": [
+    "message-draft",
+    "message-draft"
+  ],
+  "overview": [
+    "overview",
+    "overview"
+  ],
+  "published": [
+    "published",
+    "published"
+  ],
+  "Édition enregistrée": [
+    "Edition saved",
+    "Ausgabe gespeichert"
+  ],
+  "Étape du dossier mise à jour": [
+    "Case stage updated",
+    "Bearbeitungsstand des Vorgangs aktualisiert"
+  ],
+  "Adhérent / client": [
+    "Member / customer",
+    "Mitglied / Kunde"
+  ],
+  "Choisissez une date valide, égale ou postérieure à la date simulée.": [
+    "Choose a valid date on or after the simulated date.",
+    "Wählen Sie ein gültiges Datum ab dem simulierten Datum."
+  ],
+  "Terminez les tentatives de paiement en attente avant d’avancer la date.": [
+    "Resolve pending payment attempts before advancing the date.",
+    "Schließen Sie ausstehende Zahlungsversuche ab, bevor Sie das Datum vorsetzen."
+  ],
+  "Renseignez un nom fictif de 80 caractères maximum et un pays.": [
+    "Enter a fictional name of up to 80 characters and a country.",
+    "Geben Sie einen fiktiven Namen mit höchstens 80 Zeichen und ein Land ein."
+  ],
+  "Choisissez un client disponible dans le sélecteur de démonstration.": [
+    "Choose an available customer in the demo selector.",
+    "Wählen Sie einen verfügbaren Kunden in der Demo-Auswahl."
+  ],
+  "Choisissez des intervenants actifs autorisés à traiter ce dossier.": [
+    "Choose active staff members authorised to handle this case.",
+    "Wählen Sie aktive Personen, die diesen Vorgang bearbeiten dürfen."
+  ],
+  "Acceptez la dernière proposition avant de préparer la provision ; une tentative doit être en attente avant de confirmer son résultat.": [
+    "Accept the latest proposal before preparing the advance payment; an attempt must be pending before its result can be confirmed.",
+    "Nehmen Sie das aktuelle Angebot vor der Vorauszahlung an. Ein Zahlungsversuch muss ausstehen, bevor sein Ergebnis bestätigt werden kann."
+  ]
+}

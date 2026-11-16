@@ -46,6 +46,21 @@ function activeSection(html) {
   return visible[0].match(/-(progress|proposal|decisions|team)-panel/)[1];
 }
 function apply(s, role, action) {
+  if (action.type === "stage" && action.stage === "delivered")
+    action = {
+      ...action,
+      summary: "Compte rendu fictif de la mission terminée",
+      documents: [],
+    };
+  if (action.type === "stage" && action.stage === "completed") {
+    const receipt = s.cases.find((c) => c.id === action.id)?.deliveries?.at(-1);
+    if (receipt?.status === "submitted")
+      s = transition(s, "member", {
+        type: "delivery-accept",
+        id: action.id,
+        version: receipt.version,
+      }).state;
+  }
   const result = transition(s, role, action);
   assert.equal(result.ok, true);
   return result.state;

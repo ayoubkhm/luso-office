@@ -1,3 +1,4 @@
+import { exampleText } from "../locales/examples";
 import { documentReviewLabels } from "./documentBoard";
 import {
   localDay,
@@ -282,7 +283,7 @@ function TaskCreate({
   lockedCase: boolean;
   onCreated: (id: string) => void;
 }) {
-  const { state, role, t, act } = useWorkspace();
+  const { state, role, t, act, lang } = useWorkspace();
   const cases = visibleCases(state, role).filter(
     (c) => canWork(c) && (!lockedCase || c.id === caseId),
   );
@@ -378,7 +379,7 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
           {t(...taskLabels[task.status])}
         </Badge>
       </div>
-      <h3>{task.title}</h3>
+      <h3>{exampleText(task.title, lang)}</h3>
       {!["done", "paused"].includes(timing) && (
         <p className={`ws-task-timing ws-timing-${timing}`}>
           {t(...timingLabels[timing])}
@@ -505,7 +506,7 @@ export function CaseRequirements({
   caseId: string;
   onOpenDocuments?: () => void;
 }) {
-  const { state, role, t, act, go } = useWorkspace();
+  const { state, role, t, act, go, lang } = useWorkspace();
   if (role === "partner") return null;
   const c = state.cases.find((c) => c.id === caseId)!;
   const needs = state.requirements.filter((r) => r.caseId === caseId);
@@ -527,7 +528,7 @@ export function CaseRequirements({
         const doc = state.documents.find((d) => d.requirement === r.id);
         return (
           <div className="ws-required-row" key={r.id}>
-            <strong>{r.label}</strong>
+            <strong>{exampleText(r.label, lang)}</strong>
             <Badge good={doc?.review === "accepted"}>
               {t(
                 !doc
@@ -555,7 +556,7 @@ export function CaseRequirements({
                     act({
                       type: "document",
                       id: caseId,
-                      name: `${r.label} · DEMO`,
+                      name: `${exampleText(r.label, lang)} · DEMO`,
                       requirement: r.id,
                     })
                   )
@@ -620,7 +621,7 @@ export function CaseRequirements({
   );
 }
 export function DocumentReview({ doc }: { doc: Document }) {
-  const { state, role, t, act } = useWorkspace();
+  const { state, role, t, act, lang } = useWorkspace();
   const [decision, setDecision] = useState<"accepted" | "rejected">("accepted");
   const closed = !canWork(state.cases.find((c) => c.id === doc.caseId)!);
   return (
@@ -693,7 +694,7 @@ export function DocumentReview({ doc }: { doc: Document }) {
               name="name"
               required
               maxLength={160}
-              defaultValue={doc.name}
+              defaultValue={exampleText(doc.name, lang)}
             />
           </Field>
           <Button secondary type="submit">
@@ -712,7 +713,7 @@ export function DocumentReview({ doc }: { doc: Document }) {
           </summary>
           {doc.revisions.map((r) => (
             <p key={r.version}>
-              v{r.version} — {r.name}
+              v{r.version} — {exampleText(r.name, lang)}
               <br />
               {r.reason}
             </p>
@@ -723,7 +724,7 @@ export function DocumentReview({ doc }: { doc: Document }) {
   );
 }
 export function PropertyEditor({ id }: { id: string }) {
-  const { state, t, act } = useWorkspace();
+  const { state, t, act, lang } = useWorkspace();
   const p = state.properties.find((p) => p.id === id)!;
   return (
     <details className="ws-property-editor">
@@ -754,7 +755,7 @@ export function PropertyEditor({ id }: { id: string }) {
   );
 }
 export function PartnerAccess() {
-  const { state, t, act } = useWorkspace();
+  const { state, t, act, lang } = useWorkspace();
   const [confirm, setConfirm] = useState(false);
   return (
     <Panel title={t("Accès du partenaire démo", "Acesso do parceiro demo")}>
@@ -810,7 +811,7 @@ export function PartnerAccess() {
   );
 }
 export function EditionArchives() {
-  const { state, role, t, act } = useWorkspace();
+  const { state, role, t, act, lang } = useWorkspace();
   return (
     <Panel title={t("Les éditions précédentes", "Edições anteriores")}>
       {role === "team" && state.edition.status === "published" && (

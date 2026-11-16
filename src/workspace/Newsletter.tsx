@@ -360,8 +360,12 @@ export function Newsletter() {
             ) : (
               <p className="ws-empty">
                 {t(
-                  "Aucune édition publiée dans cette démonstration. La vue équipe permet d’en préparer une, puis de la rendre visible ici.",
-                  "Nenhuma edição publicada nesta demonstração. A vista da equipa permite preparar uma e torná-la visível aqui.",
+                  state.edition.status === "published"
+                    ? "Une adhésion active est nécessaire pour lire l’édition complète."
+                    : "Aucune édition publiée dans cette démonstration. La vue équipe permet d’en préparer une, puis de la rendre visible ici.",
+                  state.edition.status === "published"
+                    ? "É necessária uma adesão ativa para ler a edição completa."
+                    : "Nenhuma edição publicada nesta demonstração. A vista da equipa permite preparar uma e torná-la visível aqui.",
                 )}
               </p>
             )}

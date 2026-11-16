@@ -1839,3 +1839,19 @@ body:has(.workspace) {
   padding-left: 18px;
   margin-top: 20px;
 }
+
+.ws-session, .ws-handoff {padding: 18px 28px; border-bottom: 1px solid #d1deec; background: #fff;}
+.ws-session summary, .ws-client-create summary {font-weight: 700; cursor: pointer; padding: 8px 0;}
+.ws-session p {max-width: 80ch; font-size: 14px; margin: 12px 0;}
+.ws-subnavigation {display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; border-bottom: 1px solid #d1deec; padding-bottom: 12px;}
+.ws-subnavigation button {padding: 10px 14px; min-height: 44px; border-radius: 6px; color: #092245; background: white;}
+.ws-subnavigation button[aria-current] {background: #164bcb; color: white;}
+.ws-people-list {display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 18px;}
+.ws-people-list article {border: 1px solid #d1deec; padding: 18px; border-radius: 8px;}
+.ws-delivery {padding: 24px 0; border-top: 1px solid #d1deec; margin-top: 20px;}
+.ws-delivery fieldset {border: 1px solid #d1deec; padding: 16px;}
+.ws-delivery ul {padding-left: 24px;}
+.ws-client-create {margin-bottom: 20px;}
+.ws-client-create form {max-width: 560px;}
+.ws-sidebar > .ws-field {margin-bottom: 14px;}
+@media (max-width: 700px) {.ws-session,.ws-handoff {padding: 14px 18px;}.ws-subnavigation {gap: 6px;}.ws-subnavigation button {flex: 1 1 140px;}.ws-top {flex-wrap: wrap;}.ws-language {margin-left:auto;}}

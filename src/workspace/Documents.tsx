@@ -1,3 +1,4 @@
+import { exampleText } from "../locales/examples";
 import { useState } from "react";
 import { canWork, visibleCases, type Document } from "./model";
 import { matchingDocuments, documentReviewLabels } from "./documentBoard";
@@ -187,7 +188,7 @@ function DocumentDeposit({
   caseId?: string;
   onCreated: (id: string) => void;
 }) {
-  const { state, role, t, act } = useWorkspace();
+  const { state, role, t, act, lang } = useWorkspace();
   const cases = visibleCases(state, role).filter(
     (c) => canWork(c) && (!caseId || c.id === caseId),
   );
@@ -240,7 +241,7 @@ function DocumentDeposit({
                 </option>
                 {needs.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.label}
+                    {exampleText(r.label, lang)}
                   </option>
                 ))}
               </select>
@@ -269,7 +270,7 @@ function DocumentDeposit({
 }
 
 function DocumentCard({ d }: { d: Document }) {
-  const { state, role, t, act, go } = useWorkspace();
+  const { state, role, t, act, go, lang } = useWorkspace();
   const cases = visibleCases(state, role);
   const c = cases.find((c) => c.id === d.caseId)!;
   return (
@@ -281,7 +282,7 @@ function DocumentCard({ d }: { d: Document }) {
       >
         {d.caseId}
       </button>
-      <h3>{d.name}</h3>
+      <h3>{exampleText(d.name, lang)}</h3>
       <Badge good={d.review === "accepted"}>
         {t(...documentReviewLabels[d.review])} · v{d.version}
       </Badge>
@@ -345,7 +346,7 @@ function DocumentCard({ d }: { d: Document }) {
             {t("Aperçu du document démo", "Pré-visualizar documento demo")}
           </summary>
           <p className="ws-sample">
-            DEMO — {d.name}
+            DEMO — {exampleText(d.name, lang)}
             <br />
             {t(
               "Aucun contenu réel. L’accès au fichier et son téléchargement sécurisé seront connectés ultérieurement.",

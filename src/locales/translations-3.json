@@ -1,0 +1,1678 @@
+{
+  "Acceptation simulée": [
+    "Simulated acceptance",
+    "Simulierte Annahme"
+  ],
+  "Accepter une invitation, limiter les partages et vérifier l’effet du retrait d’accès.": [
+    "Accept an invitation, limit sharing and check what happens when access is removed.",
+    "Eine Einladung annehmen, Freigaben begrenzen und prüfen, was passiert, wenn der Zugriff entzogen wird."
+  ],
+  "Accord simulé enregistré": [
+    "Simulated agreement recorded",
+    "Simulierte Zustimmung gespeichert"
+  ],
+  "Accès actif": [
+    "Active access",
+    "Zugriff aktiv"
+  ],
+  "Accès aux prix adhérent sur les services": [
+    "Access to member prices for services",
+    "Zugang zu Mitgliederpreisen für Leistungen"
+  ],
+  "Accès limités au nécessaire": [
+    "Access limited to what is needed",
+    "Zugriff auf das Nötige beschränkt"
+  ],
+  "Accès retiré": [
+    "Access removed",
+    "Zugriff entzogen"
+  ],
+  "Achats, montage, nettoyage, contrats et travaux des tiers sont supplémentaires.": [
+    "Purchases, assembly, cleaning, contracts and work by third parties cost extra.",
+    "Einkäufe, Montage, Reinigung, Verträge und Arbeiten Dritter werden zusätzlich berechnet."
+  ],
+  "Action ou numéro de dossier…": [
+    "Action or case number…",
+    "Aktion oder Vorgangsnummer…"
+  ],
+  "Actions récentes": [
+    "Recent actions",
+    "Letzte Aktionen"
+  ],
+  "Activité de la session": [
+    "Session activity",
+    "Sitzungsaktivität"
+  ],
+  "Adhésion active": [
+    "Active membership",
+    "Mitgliedschaft aktiv"
+  ],
+  "Adhésion et paiements": [
+    "Membership and payments",
+    "Mitgliedschaft und Zahlungen"
+  ],
+  "Adhésion inactive": [
+    "Inactive membership",
+    "Mitgliedschaft inaktiv"
+  ],
+  "Adresse professionnelle recherchée": [
+    "Business address sought",
+    "Gesuchte Geschäftsadresse"
+  ],
+  "Aide administrative à distance": [
+    "Remote administrative assistance",
+    "Administrative Unterstützung aus der Ferne"
+  ],
+  "Ajouter la tâche": [
+    "Add task",
+    "Aufgabe hinzufügen"
+  ],
+  "Ajouter une note interne": [
+    "Add an internal note",
+    "Interne Notiz hinzufügen"
+  ],
+  "Ajouter à la liste des pièces": [
+    "Add to the document list",
+    "Zur Dokumentenliste hinzufügen"
+  ],
+  "Ajoutez uniquement un intitulé fictif. Aucun fichier n’est lu ou téléversé.": [
+    "Add a fictional title only. No file is read or uploaded.",
+    "Geben Sie nur einen fiktiven Titel ein. Es wird keine Datei gelesen oder hochgeladen."
+  ],
+  "Allemagne": [
+    "Germany",
+    "Deutschland"
+  ],
+  "Annulation confirmée": [
+    "Cancellation confirmed",
+    "Stornierung bestätigt"
+  ],
+  "Annulation refusée par l’équipe": [
+    "Cancellation declined by the team",
+    "Stornierung vom Team abgelehnt"
+  ],
+  "Annuler la campagne en attente": [
+    "Cancel the pending campaign",
+    "Ausstehende Kampagne stornieren"
+  ],
+  "Annulée · bilan à préparer": [
+    "Cancelled · settlement to prepare",
+    "Storniert · Abrechnung zu erstellen"
+  ],
+  "Aperçu du document démo": [
+    "Demo document preview",
+    "Vorschau des Demodokuments"
+  ],
+  "Après une clôture ou une annulation, comparez la provision avec le bilan proposé par l’équipe. L’accord sur le bilan précède toute simulation de solde ou de remboursement.": [
+    "After a case is closed or cancelled, compare the advance payment with the settlement proposed by the team. The settlement must be agreed before any balance payment or refund is simulated.",
+    "Vergleichen Sie nach Abschluss oder Stornierung die Vorauszahlung mit der vom Team vorgeschlagenen Abrechnung. Vor jeder Simulation einer Restzahlung oder Erstattung muss der Abrechnung zugestimmt werden."
+  ],
+  "Atelier de conception": [
+    "Design workshop",
+    "Designwerkstatt"
+  ],
+  "Attribuée au partenaire démo. Seules les pièces partagées lui sont visibles.": [
+    "Assigned to the demo partner. They can only see shared documents.",
+    "Dem Demopartner zugewiesen. Er sieht nur freigegebene Dokumente."
+  ],
+  "Aucun changement essayé pendant cette session.": [
+    "No changes tried during this session.",
+    "In dieser Sitzung wurden keine Änderungen ausprobiert."
+  ],
+  "Aucun dossier accessible. Le bénéficiaire doit avoir accepté l’invitation, disposer des droits Family et recevoir un partage explicite.": [
+    "No accessible cases. The beneficiary must have accepted the invitation, have Family access rights and receive an explicit share.",
+    "Keine zugänglichen Vorgänge. Die begünstigte Person muss die Einladung angenommen haben, über Family-Zugriffsrechte verfügen und eine ausdrückliche Freigabe erhalten."
+  ],
+  "Aucun dossier ouvert dans cette sélection pour un dépôt. Les pièces existantes restent consultables.": [
+    "No open cases in this selection for a submission. Existing documents remain available to view.",
+    "In dieser Auswahl gibt es keine offenen Vorgänge zum Einreichen von Dokumenten. Vorhandene Dokumente können weiterhin eingesehen werden."
+  ],
+  "Aucun message non lu dans cette vue": [
+    "No unread messages in this view",
+    "Keine ungelesenen Nachrichten in dieser Ansicht"
+  ],
+  "Aucun service ne correspond à cette recherche.": [
+    "No services match this search.",
+    "Keine Leistungen entsprechen dieser Suche."
+  ],
+  "Aucune action enregistrée ici. Faites avancer un dossier pour voir son suivi.": [
+    "No actions recorded here. Move a case forward to see its activity.",
+    "Hier sind noch keine Aktionen erfasst. Bearbeiten Sie einen Vorgang weiter, um seinen Verlauf zu sehen."
+  ],
+  "Aucune demande n’a été envoyée. Conservez ce document pour votre premier échange. Coordonnées de contact : TBD.": [
+    "No request has been sent. Keep this document for your first conversation. Contact details: TBD.",
+    "Es wurde keine Anfrage gesendet. Bewahren Sie dieses Dokument für Ihr Erstgespräch auf. Kontaktdaten: TBD."
+  ],
+  "Aucune pièce demandée pour l’instant.": [
+    "No documents requested yet.",
+    "Bisher wurden keine Dokumente angefordert."
+  ],
+  "Aucune tâche dans cette vue. Modifiez les filtres ; les tâches terminées et celles des dossiers suspendus restent consultables.": [
+    "No tasks in this view. Change the filters; completed tasks and those in suspended cases remain available to view.",
+    "Keine Aufgaben in dieser Ansicht. Ändern Sie die Filter; abgeschlossene Aufgaben und Aufgaben ausgesetzter Vorgänge können weiterhin eingesehen werden."
+  ],
+  "Audience proposée : adhérents actifs ayant choisi de recevoir le journal. La préférence est revérifiée au moment de la simulation d’envoi.": [
+    "Proposed audience: active members who have opted to receive the newsletter. This preference is checked again when sending is simulated.",
+    "Vorgeschlagene Zielgruppe: aktive Mitglieder, die den Newsletter erhalten möchten. Diese Einstellung wird bei der Versandsimulation erneut geprüft."
+  ],
+  "Autorisation de partage conservée, mais aucun partenaire n’a actuellement accès à ce dossier.": [
+    "Sharing permission retained, but no partner currently has access to this case.",
+    "Die Freigabe bleibt bestehen, aber derzeit hat kein Partner Zugriff auf diesen Vorgang."
+  ],
+  "Autre pays": [
+    "Other country",
+    "Anderes Land"
+  ],
+  "Avancer la date de démonstration": [
+    "Advance the demo date",
+    "Demodatum weiterstellen"
+  ],
+  "Avec messages non lus": [
+    "With unread messages",
+    "Mit ungelesenen Nachrichten"
+  ],
+  "Azulejo": [
+    "Azulejo",
+    "Azulejo"
+  ],
+  "Besoin repris depuis": [
+    "Need carried over from",
+    "Bedarf übernommen aus"
+  ],
+  "Bien de démonstration": [
+    "Demo property",
+    "Demoimmobilie"
+  ],
+  "Bilan remplacé": [
+    "Settlement replaced",
+    "Abrechnung ersetzt"
+  ],
+  "Bilan à examiner": [
+    "Settlement to review",
+    "Abrechnung zu prüfen"
+  ],
+  "Bilans des dossiers": [
+    "Case settlements",
+    "Vorgangsabrechnungen"
+  ],
+  "Brouillon": [
+    "Draft",
+    "Entwurf"
+  ],
+  "Brouillons et relecture du journal. Pas d’accès aux pièces des clients.": [
+    "Newsletter drafts and review. No access to client documents.",
+    "Newsletterentwürfe und Korrekturlesen. Kein Zugriff auf Kundendokumente."
+  ],
+  "Business Portugal — premier entretien": [
+    "Business Portugal — initial consultation",
+    "Business Portugal — Erstgespräch"
+  ],
+  "Calendrier de l’adhésion": [
+    "Membership timeline",
+    "Mitgliedschaftszeitplan"
+  ],
+  "Carte physique numérotée envisagée": [
+    "Numbered physical card under consideration",
+    "Nummerierte physische Karte geplant"
+  ],
+  "Ce dossier est annulé": [
+    "This case is cancelled",
+    "Dieser Vorgang ist storniert"
+  ],
+  "Ce dépôt répond à": [
+    "This submission responds to",
+    "Diese Einreichung bezieht sich auf"
+  ],
+  "Ce n’est ni une expertise immobilière ni une inspection technique. Durée, accès et zone à préciser.": [
+    "This is neither a property valuation nor a technical inspection. Duration, access and area to be confirmed.",
+    "Dies ist weder eine Immobilienbewertung noch eine technische Prüfung. Dauer, Zugang und Einsatzgebiet sind noch zu klären."
+  ],
+  "Ce que vous recevez": [
+    "What you receive",
+    "Was Sie erhalten"
+  ],
+  "Ces axes de travail sont à développer avec les partenaires. Les prestations spécialisées font l’objet de propositions distinctes.": [
+    "These areas of work are to be developed with partners. Specialist services are covered by separate proposals.",
+    "Diese Arbeitsbereiche sollen gemeinsam mit Partnern entwickelt werden. Fachleistungen werden separat angeboten."
+  ],
+  "Cette formule et cette modalité sont déjà actives. Choisissez un changement pour préparer un essai.": [
+    "This plan and payment option are already active. Choose a change to prepare a trial.",
+    "Dieser Tarif und diese Zahlungsweise sind bereits aktiv. Wählen Sie eine Änderung aus, um einen Test vorzubereiten."
+  ],
+  "Cette sauvegarde est incompatible ou endommagée. Vous pouvez l’effacer et repartir du scénario initial.": [
+    "This saved data is incompatible or damaged. You can delete it and restart the initial scenario.",
+    "Diese gespeicherten Daten sind inkompatibel oder beschädigt. Sie können sie löschen und zum Ausgangsszenario zurückkehren."
+  ],
+  "Cette version est liée à l’accord et à la provision du dossier. Un changement de périmètre après accord demandera un avenant à concevoir séparément.": [
+    "This version is tied to the agreement and advance payment for the case. A change in scope after agreement will require an amendment to be designed separately.",
+    "Diese Version ist mit der Zustimmung und der Vorauszahlung für den Vorgang verknüpft. Eine Änderung des Leistungsumfangs nach Zustimmung erfordert einen separat auszuarbeitenden Nachtrag."
+  ],
+  "Cette version permet de découvrir l’offre et de préparer un récapitulatif local. Aucun paiement, compte client ou envoi de demande n’est activé.": [
+    "This version lets you explore the offer and prepare a local summary. Payments, client accounts and request submission are not enabled.",
+    "In dieser Version können Sie das Angebot erkunden und eine lokale Zusammenfassung vorbereiten. Zahlungen, Kundenkonten und das Senden von Anfragen sind nicht aktiviert."
+  ],
+  "Changement en attente": [
+    "Change pending",
+    "Änderung ausstehend"
+  ],
+  "Charger cet exemple": [
+    "Load this example",
+    "Dieses Beispiel laden"
+  ],
+  "Choisir les dossiers et documents partagés": [
+    "Choose shared cases and documents",
+    "Freigegebene Vorgänge und Dokumente auswählen"
+  ],
+  "Choisissez un service du catalogue et décrivez le besoin (2 000 caractères maximum).": [
+    "Choose a service from the catalogue and describe your needs (2,000 characters maximum).",
+    "Wählen Sie eine Leistung aus dem Katalog und beschreiben Sie Ihren Bedarf (maximal 2.000 Zeichen)."
+  ],
+  "Cinq façons de garder\nle lien avec le Portugal.": [
+    "Five ways to stay\nconnected to Portugal.",
+    "Fünf Wege, mit Portugal\nverbunden zu bleiben."
+  ],
+  "Clôture du dossier validée": [
+    "Case closure approved",
+    "Vorgangsabschluss bestätigt"
+  ],
+  "Commander un service": [
+    "Order a service",
+    "Leistung beauftragen"
+  ],
+  "Comment nous pouvons aider": [
+    "How we can help",
+    "Wie wir helfen können"
+  ],
+  "Comparer la provision au bilan final et suivre un remboursement entièrement simulé.": [
+    "Compare the advance payment with the final settlement and track a fully simulated refund.",
+    "Vergleichen Sie die Vorauszahlung mit der Schlussabrechnung und verfolgen Sie eine vollständig simulierte Erstattung."
+  ],
+  "Comprendre avant de choisir.": [
+    "Understand before you choose.",
+    "Verstehen, bevor Sie wählen."
+  ],
+  "Comptabilité et fiscalité": [
+    "Accounting and tax",
+    "Buchhaltung und Steuern"
+  ],
+  "Compte fictif": [
+    "Fictional account",
+    "Fiktives Konto"
+  ],
+  "Confidentialité": [
+    "Privacy",
+    "Datenschutz"
+  ],
+  "Confirmer la simulation": [
+    "Confirm simulation",
+    "Simulation bestätigen"
+  ],
+  "Conserver": [
+    "Keep",
+    "Beibehalten"
+  ],
+  "Conserver les préférences démo": [
+    "Keep demo preferences",
+    "Demoeinstellungen beibehalten"
+  ],
+  "Consulter et gérer cette pièce": [
+    "View and manage this document",
+    "Dieses Dokument ansehen und verwalten"
+  ],
+  "Consulter le récapitulatif démo": [
+    "View the demo summary",
+    "Demozusammenfassung ansehen"
+  ],
+  "Consultez les dossiers attribués, les pièces partagées et les échanges utiles.": [
+    "View assigned cases, shared documents and relevant conversations.",
+    "Sehen Sie zugewiesene Vorgänge, freigegebene Dokumente und relevante Gespräche ein."
+  ],
+  "Continuer dans la démo O meu Portugal": [
+    "Continue in the O meu Portugal demo",
+    "In der Demo O meu Portugal fortfahren"
+  ],
+  "Contrôler et clôturer": [
+    "Check and close",
+    "Prüfen und abschließen"
+  ],
+  "Coordination LusoOffice": [
+    "LusoOffice coordination",
+    "Koordination durch LusoOffice"
+  ],
+  "Coordination retenue dans ce bilan": [
+    "Coordination included in this settlement",
+    "In dieser Abrechnung berücksichtigte Koordination"
+  ],
+  "Coordonnées de contact : TBD. Aucun dossier n’est en attente de traitement.": [
+    "Contact details: TBD. No cases are awaiting processing.",
+    "Kontaktdaten: TBD. Es warten keine Vorgänge auf Bearbeitung."
+  ],
+  "Correction de la pièce demandée": [
+    "Document correction requested",
+    "Dokumentkorrektur angefordert"
+  ],
+  "Correction demandée : ": [
+    "Correction requested: ",
+    "Korrektur angefordert: "
+  ],
+  "Corriger les pièces refusées": [
+    "Correct rejected documents",
+    "Abgelehnte Dokumente korrigieren"
+  ],
+  "Créer le nouveau dossier démo": [
+    "Create the new demo case",
+    "Neuen Demovorgang erstellen"
+  ],
+  "Créer, installer ou développer une activité demande de réunir plusieurs compétences. LusoOffice organise le lien avec les intervenants adaptés à votre projet.": [
+    "Starting, establishing or growing a business requires a range of skills. LusoOffice connects you with the right professionals for your project.",
+    "Die Gründung, Ansiedlung oder Entwicklung eines Unternehmens erfordert unterschiedliche Kompetenzen. LusoOffice stellt den Kontakt zu passenden Fachleuten für Ihr Projekt her."
+  ],
+  "DEMO-001 est clos avec une provision fictive de 39 €. Pour ce test, proposez 25 € de coordination, 0 € de frais et 0 € de tiers, avec une explication fictive.": [
+    "DEMO-001 is closed with a fictional advance payment of €39. For this test, propose €25 for coordination, €0 in fees and €0 for third parties, with a fictional explanation.",
+    "DEMO-001 ist mit einer fiktiven Vorauszahlung von 39 € abgeschlossen. Schlagen Sie für diesen Test 25 € für Koordination, 0 € für Gebühren und 0 € für Dritte vor, mit einer fiktiven Erläuterung."
+  ],
+  "Dans Documents, choisissez « Correction nécessaire » pour la pièce déposée et expliquez le défaut fictif.": [
+    "In Documents, choose “Correction needed” for the submitted document and explain the fictional issue.",
+    "Wählen Sie unter Dokumente für das eingereichte Dokument „Korrektur erforderlich“ und erläutern Sie den fiktiven Mangel."
+  ],
+  "Dans la démo, un passage confirmé à Member retirera les invitations et accès Family. Une tentative échouée conserve les droits actuels. Aucun partage ne sera rétabli automatiquement lors d’un retour à Family.": [
+    "In the demo, a confirmed switch to Member will remove Family invitations and access. A failed attempt preserves current rights. No sharing will be restored automatically when returning to Family.",
+    "In der Demo entzieht ein bestätigter Wechsel zu Member die Family-Einladungen und -Zugriffe. Bei einem fehlgeschlagenen Versuch bleiben die aktuellen Rechte bestehen. Beim erneuten Wechsel zu Family werden keine Freigaben automatisch wiederhergestellt."
+  ],
+  "Date dépassée": [
+    "Overdue",
+    "Überfällig"
+  ],
+  "Date souhaitée (facultative)": [
+    "Preferred date (optional)",
+    "Wunschtermin (optional)"
+  ],
+  "Dates fictives pour tester le parcours. Ce calendrier ne fixe aucune condition commerciale, période de grâce ou règle de prorata.": [
+    "Fictional dates to test the flow. This timeline does not set any commercial terms, grace periods or proration rules.",
+    "Fiktive Termine zum Testen des Ablaufs. Dieser Zeitplan legt keine Geschäftsbedingungen, Kulanzfristen oder Regeln zur anteiligen Berechnung fest."
+  ],
+  "Demande et suivi d’un document": [
+    "Requesting and tracking a document",
+    "Dokument beantragen und nachverfolgen"
+  ],
+  "Demander l’export ou la suppression des données selon les règles de conservation à définir.": [
+    "Request data export or deletion under retention rules yet to be defined.",
+    "Datenexport oder Löschung gemäß noch festzulegenden Aufbewahrungsregeln anfordern."
+  ],
+  "Demander une correction du bilan": [
+    "Request a correction to the settlement",
+    "Korrektur der Abrechnung anfordern"
+  ],
+  "Demandes": [
+    "Requests",
+    "Anfragen"
+  ],
+  "Des pièces obligatoires attendent une validation. Ouvrez les documents du dossier.": [
+    "Required documents are awaiting approval. Open the case documents.",
+    "Erforderliche Dokumente warten auf Freigabe. Öffnen Sie die Dokumente des Vorgangs."
+  ],
+  "Documents": [
+    "Documents",
+    "Dokumente"
+  ],
+  "Documents et administration": [
+    "Documents and administration",
+    "Dokumente und Verwaltung"
+  ],
+  "Dossier": [
+    "Case",
+    "Vorgang"
+  ],
+  "Dossier ordonné et liste des pièces manquantes à réunir.": [
+    "An organised file and a list of missing documents to gather.",
+    "Geordnete Unterlagen und eine Liste der noch zusammenzustellenden Dokumente."
+  ],
+  "Dossier suspendu ou clos": [
+    "Case suspended or closed",
+    "Vorgang ausgesetzt oder abgeschlossen"
+  ],
+  "Dossiers": [
+    "Cases",
+    "Vorgänge"
+  ],
+  "Dossiers suspendus ou clos": [
+    "Suspended or closed cases",
+    "Ausgesetzte oder abgeschlossene Vorgänge"
+  ],
+  "Du changement de périmètre à l’accord sur la bonne version, puis au paiement simulé.": [
+    "From a change in scope to agreement on the right version, then simulated payment.",
+    "Von der Änderung des Leistungsumfangs über die Zustimmung zur richtigen Version bis zur simulierten Zahlung."
+  ],
+  "Début de la période": [
+    "Period start",
+    "Beginn des Zeitraums"
+  ],
+  "Décisions et suites": [
+    "Decisions and next steps",
+    "Entscheidungen und nächste Schritte"
+  ],
+  "Découvrir notre histoire": [
+    "Discover our story",
+    "Unsere Geschichte entdecken"
+  ],
+  "Décrivez votre besoin": [
+    "Describe your needs",
+    "Beschreiben Sie Ihren Bedarf"
+  ],
+  "Déposer la version corrigée": [
+    "Submit the corrected version",
+    "Korrigierte Version einreichen"
+  ],
+  "Désactiver et effacer la sauvegarde": [
+    "Disable and delete saved data",
+    "Speicherung deaktivieren und Daten löschen"
+  ],
+  "E-mail fictif du bénéficiaire": [
+    "Beneficiary’s fictional email",
+    "Fiktive E-Mail-Adresse der begünstigten Person"
+  ],
+  "Effacer la sauvegarde": [
+    "Delete saved data",
+    "Gespeicherte Daten löschen"
+  ],
+  "En cours": [
+    "In progress",
+    "In Bearbeitung"
+  ],
+  "Enregistrer la fiche": [
+    "Save details",
+    "Angaben speichern"
+  ],
+  "Enregistrer l’attribution": [
+    "Save assignment",
+    "Zuweisung speichern"
+  ],
+  "Enregistré dans la démo.": [
+    "Saved in the demo.",
+    "In der Demo gespeichert."
+  ],
+  "Essai": [
+    "Trial",
+    "Test"
+  ],
+  "Et vous, qu’avez-vous\nà organiser au Portugal ?": [
+    "What do you need\nto arrange in Portugal?",
+    "Was möchten Sie\nin Portugal organisieren?"
+  ],
+  "Examiner le bilan proposé": [
+    "Review the proposed settlement",
+    "Vorgeschlagene Abrechnung prüfen"
+  ],
+  "Exclusions et points à confirmer": [
+    "Exclusions and points to confirm",
+    "Ausschlüsse und zu klärende Punkte"
+  ],
+  "Expiration simulée": [
+    "Simulated expiry",
+    "Simulierter Ablauf"
+  ],
+  "Explorer ce client": [
+    "Explore this client",
+    "Diesen Kunden ansehen"
+  ],
+  "Explorer l’espace de démonstration": [
+    "Explore the demo area",
+    "Demobereich erkunden"
+  ],
+  "Extrait non renseigné.": [
+    "No excerpt provided.",
+    "Kein Auszug angegeben."
+  ],
+  "Faire le lien avec l’entreprise intervenante et vous tenir informé des éléments recueillis sur place.": [
+    "Liaise with the company carrying out the work and keep you informed of information gathered on site.",
+    "Den Kontakt zum ausführenden Unternehmen halten und Sie über die vor Ort gesammelten Informationen auf dem Laufenden halten."
+  ],
+  "Family est déjà actif dans cet exemple. Dans Mon compte, simulez l’acceptation de l’invitation préparée.": [
+    "Family is already active in this example. In My account, simulate acceptance of the prepared invitation.",
+    "Family ist in diesem Beispiel bereits aktiv. Simulieren Sie unter Mein Konto die Annahme der vorbereiteten Einladung."
+  ],
+  "Fermer le formulaire": [
+    "Close form",
+    "Formular schließen"
+  ],
+  "Fermer l’aperçu de saisie": [
+    "Close input preview",
+    "Eingabevorschau schließen"
+  ],
+  "Filtrer les actions": [
+    "Filter actions",
+    "Aktionen filtern"
+  ],
+  "Filtrer par dossier": [
+    "Filter by case",
+    "Nach Vorgang filtern"
+  ],
+  "Fournir la pièce attendue": [
+    "Provide the requested document",
+    "Angefordertes Dokument bereitstellen"
+  ],
+  "Frais officiels (scénario)": [
+    "Official fees (scenario)",
+    "Amtliche Gebühren (Szenario)"
+  ],
+  "France": [
+    "France",
+    "Frankreich"
+  ],
+  "Garder un œil sur votre maison, préparer une arrivée ou organiser une intervention.": [
+    "Keep an eye on your home, prepare for an arrival or arrange a service visit.",
+    "Ein Auge auf Ihr Zuhause haben, eine Ankunft vorbereiten oder einen Einsatz organisieren."
+  ],
+  "Hirondelle": [
+    "Swallow",
+    "Schwalbe"
+  ],
+  "Historique des changements d’adhésion": [
+    "Membership change history",
+    "Verlauf der Mitgliedschaftsänderungen"
+  ],
+  "Hors périmètre et points à confirmer": [
+    "Outside scope and points to confirm",
+    "Nicht enthaltene Leistungen und zu klärende Punkte"
+  ],
+  "Identité juridique et siège": [
+    "Legal identity and registered office",
+    "Rechtliche Identität und Sitz"
+  ],
+  "Intervention envisagée d’un comptable partenaire, selon une prestation et des honoraires propres.": [
+    "Possible involvement of a partner accountant, with their own service scope and fees.",
+    "Möglicher Einsatz eines Partners für Buchhaltung mit eigenem Leistungsumfang und Honorar."
+  ],
+  "Inventaire photographique du bien": [
+    "Photographic property inventory",
+    "Fotografisches Immobilieninventar"
+  ],
+  "Invitation Family expirée": [
+    "Family invitation expired",
+    "Family-Einladung abgelaufen"
+  ],
+  "Invitation préparée": [
+    "Invitation prepared",
+    "Einladung vorbereitet"
+  ],
+  "Journal éditorial": [
+    "Newsletter editorial area",
+    "Newsletterredaktion"
+  ],
+  "J’ai consulté le périmètre, les points à confirmer et le détail de cette proposition de démonstration.": [
+    "I have reviewed the scope, points to confirm and details of this demo proposal.",
+    "Ich habe den Leistungsumfang, die zu klärenden Punkte und die Einzelheiten dieses Demoangebots geprüft."
+  ],
+  "J’ai relu les montants et l’explication de cette version démo.": [
+    "I have reviewed the amounts and explanation in this demo version.",
+    "Ich habe die Beträge und die Erläuterung dieser Demoversion geprüft."
+  ],
+  "La maquette n’ouvre aucun compte et ne collecte aucun mot de passe.": [
+    "The prototype does not open accounts or collect passwords.",
+    "Der Prototyp eröffnet keine Konten und erfasst keine Passwörter."
+  ],
+  "La nouvelle édition repart d’un brouillon vide. L’édition publiée et son bilan sont conservés ici.": [
+    "The new edition starts with an empty draft. The published edition and its report are kept here.",
+    "Die neue Ausgabe beginnt mit einem leeren Entwurf. Die veröffentlichte Ausgabe und ihr Bericht bleiben hier erhalten."
+  ],
+  "La question du mois": [
+    "Question of the month",
+    "Frage des Monats"
+  ],
+  "La version connectée prévoira adresse, accès autorisés et justificatifs de mandat. Ne saisissez pas de code d’accès ici.": [
+    "The connected version will include an address, authorised access and proof of authorisation. Do not enter access codes here.",
+    "Die angebundene Version wird Adresse, erlaubte Zugänge und Vollmachtsnachweise vorsehen. Geben Sie hier keine Zugangscodes ein."
+  ],
+  "Langue": [
+    "Language",
+    "Sprache"
+  ],
+  "Le Portugal, une histoire qui continue.": [
+    "Portugal, a story that continues.",
+    "Portugal, eine Geschichte, die weitergeht."
+  ],
+  "Le bilan financier a déjà été approuvé. Cette démo conserve ce dossier clos ; un nouveau besoin doit être cadré dans une nouvelle demande.": [
+    "The financial settlement has already been approved. This demo keeps the case closed; any new need must be scoped in a new request.",
+    "Die Abrechnung wurde bereits genehmigt. In dieser Demo bleibt der Vorgang abgeschlossen; ein neuer Bedarf muss in einer neuen Anfrage abgegrenzt werden."
+  ],
+  "Le cadre de l’intervention": [
+    "Scope of the service",
+    "Rahmen des Einsatzes"
+  ],
+  "Le choix est figé pour cette tentative. Simulez son résultat avant de préparer un autre changement ; les droits actuels restent inchangés en attendant.": [
+    "The choice is locked for this attempt. Simulate its result before preparing another change; current rights remain unchanged in the meantime.",
+    "Die Auswahl ist für diesen Versuch festgelegt. Simulieren Sie das Ergebnis, bevor Sie eine weitere Änderung vorbereiten; die aktuellen Rechte bleiben bis dahin unverändert."
+  ],
+  "Le dossier est suspendu ou clos. Consultez Décisions et suites avant de reprendre le travail.": [
+    "The case is suspended or closed. Check Decisions and next steps before resuming work.",
+    "Der Vorgang ist ausgesetzt oder abgeschlossen. Lesen Sie Entscheidungen und nächste Schritte, bevor Sie die Arbeit fortsetzen."
+  ],
+  "Le journal de LusoOffice": [
+    "The LusoOffice newsletter",
+    "Der LusoOffice-Newsletter"
+  ],
+  "Le partenaire ne voit que ses missions et les documents explicitement partagés. Les notes internes et la facturation client lui sont masquées.": [
+    "The partner only sees their assignments and explicitly shared documents. Internal notes and client billing are hidden from them.",
+    "Der Partner sieht nur seine Aufträge und ausdrücklich freigegebene Dokumente. Interne Notizen und die Kundenabrechnung sind für ihn ausgeblendet."
+  ],
+  "Le rendez-vous mensuel en portugais": [
+    "Your monthly read in Portuguese",
+    "Ihre monatliche Lektüre auf Portugiesisch"
+  ],
+  "Le stockage du navigateur n’est pas disponible. La démo reste utilisable en mémoire.": [
+    "Browser storage is unavailable. The demo can still be used in memory.",
+    "Der Browserspeicher ist nicht verfügbar. Die Demo kann weiterhin im Arbeitsspeicher genutzt werden."
+  ],
+  "Lecture seule dans la démo. Cet aperçu ne remplace pas une connexion ni des autorisations serveur.": [
+    "Read-only in the demo. This preview does not replace sign-in or server-side permissions.",
+    "In der Demo nur lesbar. Diese Vorschau ersetzt weder eine Anmeldung noch serverseitige Berechtigungen."
+  ],
+  "Les actions sont organisées": [
+    "Actions are organised",
+    "Die Aktionen sind geordnet"
+  ],
+  "Les coordonnées publiques et les zones couvertes au Portugal seront précisées ici une fois confirmées.": [
+    "Public contact details and areas covered in Portugal will be listed here once confirmed.",
+    "Öffentliche Kontaktdaten und abgedeckte Gebiete in Portugal werden hier ergänzt, sobald sie bestätigt sind."
+  ],
+  "Les droits peuvent expirer. Aucun paiement automatique ne sera déclenché. La réinitialisation permet de revenir au scénario initial.": [
+    "Access rights may expire. No automatic payment will be triggered. Resetting returns you to the initial scenario.",
+    "Zugriffsrechte können ablaufen. Es wird keine automatische Zahlung ausgelöst. Durch Zurücksetzen kehren Sie zum Ausgangsszenario zurück."
+  ],
+  "Les interventions possibles, les autorisations, le prix et les frais externes sont à convenir avant de commencer.": [
+    "Possible services, permissions, prices and external fees must be agreed before starting.",
+    "Mögliche Leistungen, Genehmigungen, Preise und externe Kosten müssen vor Beginn vereinbart werden."
+  ],
+  "Les montants présentés sont des propositions de travail en euros. TVA, frais, déplacements, périmètres et unités de facturation doivent être validés avant toute commercialisation.": [
+    "The amounts shown are draft proposals in euros. VAT, fees, travel, scope and billing units must be approved before any commercial launch.",
+    "Die angezeigten Beträge sind Arbeitsvorschläge in Euro. Mehrwertsteuer, Gebühren, Anfahrten, Leistungsumfang und Abrechnungseinheiten müssen vor einer Vermarktung bestätigt werden."
+  ],
+  "Les repères de dates excluent les tâches terminées et les dossiers suspendus ou clos.": [
+    "Date indicators exclude completed tasks and suspended or closed cases.",
+    "Die Terminanzeigen berücksichtigen keine abgeschlossenen Aufgaben und keine ausgesetzten oder abgeschlossenen Vorgänge."
+  ],
+  "Les éditions précédentes": [
+    "Previous editions",
+    "Frühere Ausgaben"
+  ],
+  "Lire les nouveaux messages": [
+    "Read new messages",
+    "Neue Nachrichten lesen"
+  ],
+  "Livrable de la mission": [
+    "Assignment deliverable",
+    "Auftragsergebnis"
+  ],
+  "Livrables, délai et prix à convenir. Sans recommandation de produits financiers.": [
+    "Deliverables, timeframe and price to be agreed. No recommendations of financial products.",
+    "Ergebnisse, Frist und Preis sind zu vereinbaren. Keine Empfehlungen für Finanzprodukte."
+  ],
+  "LusoOffice souhaite construire des relations avec les associations portugaises, les écoles et les réseaux de la diaspora. Les conditions du programme de partenariat restent à définir.": [
+    "LusoOffice aims to build relationships with Portuguese associations, schools and diaspora networks. The terms of the partnership programme remain to be defined.",
+    "LusoOffice möchte Beziehungen zu portugiesischen Vereinen, Schulen und Netzwerken der Diaspora aufbauen. Die Bedingungen des Partnerprogramms sind noch festzulegen."
+  ],
+  "Luxembourg": [
+    "Luxembourg",
+    "Luxemburg"
+  ],
+  "L’accès au compte, les paiements et le suivi des dossiers seront développés dans une phase dédiée.": [
+    "Account access, payments and case tracking will be developed in a dedicated phase.",
+    "Kontozugang, Zahlungen und Vorgangsverfolgung werden in einer eigenen Phase entwickelt."
+  ],
+  "L’adhésion donne accès aux avantages de votre plan et aux prix adhérent. Les interventions au Portugal se choisissent et se paient séparément.": [
+    "Membership gives you access to your plan benefits and member prices. Services in Portugal are selected and paid for separately.",
+    "Die Mitgliedschaft bietet Zugang zu den Vorteilen Ihres Tarifs und zu Mitgliederpreisen. Leistungen in Portugal werden separat ausgewählt und bezahlt."
+  ],
+  "L’annuel et le mensuel sont deux modalités distinctes. Échéances, renouvellement, bénéficiaires et limites d’accompagnement restent à préciser. Les services sont toujours facturés séparément.": [
+    "Annual and monthly billing are two separate options. Due dates, renewal, beneficiaries and support limits remain to be confirmed. Services are always billed separately.",
+    "Jährliche und monatliche Zahlung sind zwei unterschiedliche Optionen. Fälligkeiten, Verlängerung, begünstigte Personen und Grenzen der Unterstützung sind noch zu klären. Leistungen werden immer separat berechnet."
+  ],
+  "L’équipe a validé la fin de la mission dans la démo. Les documents et les échanges restent consultables depuis les boutons en haut du dossier.": [
+    "The team has approved completion of the assignment in the demo. Documents and conversations remain available through the buttons at the top of the case.",
+    "Das Team hat den Auftragsabschluss in der Demo bestätigt. Dokumente und Gespräche bleiben über die Schaltflächen oben im Vorgang zugänglich."
+  ],
+  "L’équipe prépare une proposition après le cadrage de votre besoin.": [
+    "The team prepares a proposal after defining your needs.",
+    "Das Team erstellt ein Angebot, nachdem Ihr Bedarf abgegrenzt wurde."
+  ],
+  "Maison, démarches, famille, retour ou activité professionnelle : explorez les 28 prestations envisagées et préparez votre premier échange.": [
+    "Home, paperwork, family, returning or business: explore the 28 planned services and prepare for your first conversation.",
+    "Zuhause, Formalitäten, Familie, Rückkehr oder Beruf: Entdecken Sie die 28 geplanten Leistungen und bereiten Sie Ihr Erstgespräch vor."
+  ],
+  "Marquez la version 2 comme conforme au besoin et enregistrez la vérification.": [
+    "Mark version 2 as meeting the need and save the check.",
+    "Markieren Sie Version 2 als bedarfsgerecht und speichern Sie die Prüfung."
+  ],
+  "Mes biens et documents": [
+    "My properties and documents",
+    "Meine Immobilien und Dokumente"
+  ],
+  "Messages": [
+    "Messages",
+    "Nachrichten"
+  ],
+  "Mettre à jour la tâche": [
+    "Update task",
+    "Aufgabe aktualisieren"
+  ],
+  "Mission remise pour vérification": [
+    "Assignment submitted for review",
+    "Auftrag zur Prüfung eingereicht"
+  ],
+  "Modalité annuelle": [
+    "Annual billing option",
+    "Jährliche Zahlungsweise"
+  ],
+  "Modifier la fiche du bien": [
+    "Edit property details",
+    "Immobilienangaben bearbeiten"
+  ],
+  "Modifiez le périmètre ou les montants de la proposition, puis soumettez la version 2 à l’adhérent.": [
+    "Change the scope or amounts in the proposal, then submit version 2 to the member.",
+    "Ändern Sie den Leistungsumfang oder die Beträge im Angebot und legen Sie Version 2 dem Mitglied vor."
+  ],
+  "Montants de travail · à valider": [
+    "Draft amounts · subject to approval",
+    "Vorläufige Beträge · zu bestätigen"
+  ],
+  "Motif de révision": [
+    "Reason for revision",
+    "Grund für die Überarbeitung"
+  ],
+  "Nationalité portugaise, NIF, retraites, permis de conduire, traductions, études ou véhicule : ces thèmes sont à l’étude. Leur prise en charge et leurs conditions restent à confirmer.": [
+    "Portuguese nationality, NIF, pensions, driving licences, translations, education or vehicles: these topics are under consideration. Availability and terms remain to be confirmed.",
+    "Portugiesische Staatsangehörigkeit, NIF, Renten, Führerscheine, Übersetzungen, Studium oder Fahrzeuge: Diese Themen werden geprüft. Ob und unter welchen Bedingungen sie übernommen werden, ist noch zu bestätigen."
+  ],
+  "Navigation principale": [
+    "Main navigation",
+    "Hauptnavigation"
+  ],
+  "Ne saisissez pas de documents d’identité, de coordonnées bancaires ou d’informations sensibles.": [
+    "Do not enter identity documents, bank details or sensitive information.",
+    "Geben Sie keine Ausweisdokumente, Bankdaten oder sensiblen Informationen ein."
+  ],
+  "Nom": [
+    "Name",
+    "Name"
+  ],
+  "Nom du bien d’exemple": [
+    "Example property name",
+    "Name der Beispielimmobilie"
+  ],
+  "Nom, dossier, bien ou pièce demandée…": [
+    "Name, case, property or requested document…",
+    "Name, Vorgang, Immobilie oder angefordertes Dokument…"
+  ],
+  "Non autorisé": [
+    "Not authorised",
+    "Nicht autorisiert"
+  ],
+  "Non. Les prestations ponctuelles sont accessibles aux non-adhérents. L’adhésion donne accès à des avantages et à des tarifs propres, selon les conditions qui seront validées.": [
+    "No. One-off services are available to non-members. Membership provides benefits and specific prices, subject to terms yet to be approved.",
+    "Nein. Einzelne Leistungen stehen auch Nichtmitgliedern offen. Die Mitgliedschaft bietet Vorteile und eigene Preise gemäß noch zu bestätigenden Bedingungen."
+  ],
+  "Notes internes · équipe uniquement": [
+    "Internal notes · team only",
+    "Interne Notizen · nur für das Team"
+  ],
+  "Nous précisons le cadre": [
+    "We define the scope",
+    "Wir klären den Rahmen"
+  ],
+  "Nouvelle invitation préparée": [
+    "New invitation prepared",
+    "Neue Einladung vorbereitet"
+  ],
+  "N’utilisez que des exemples. Aucun fichier réel, mot de passe ou numéro de carte n’est demandé. Les vues de rôle servent à la revue de conception ; elles ne constituent pas une authentification.": [
+    "Use examples only. No real files, passwords or card numbers are requested. Role views are for design review; they do not provide authentication.",
+    "Verwenden Sie nur Beispiele. Es werden keine echten Dateien, Passwörter oder Kartennummern verlangt. Die Rollenansichten dienen der Designprüfung; sie stellen keine Authentifizierung dar."
+  ],
+  "Observer l’état apparent du logement et informer les intéressés autorisés des besoins immédiats.": [
+    "Observe the visible condition of the home and inform authorised parties of immediate needs.",
+    "Den sichtbaren Zustand der Wohnung erfassen und berechtigte Beteiligte über unmittelbaren Handlungsbedarf informieren."
+  ],
+  "Opération refusée.": [
+    "Operation declined.",
+    "Vorgang abgelehnt."
+  ],
+  "Organisation des documents de succession": [
+    "Organising inheritance documents",
+    "Nachlassdokumente ordnen"
+  ],
+  "Organiser la restitution des originaux": [
+    "Arrange the return of originals",
+    "Rückgabe der Originale organisieren"
+  ],
+  "Organiser un projet d’investissement": [
+    "Organise an investment project",
+    "Investitionsprojekt organisieren"
+  ],
+  "Orientation et accompagnement selon le plan défini": [
+    "Guidance and support according to the agreed plan",
+    "Orientierung und Unterstützung nach dem festgelegten Plan"
+  ],
+  "Ouverture, aération et vérification des conditions de base de l’eau, de l’électricité et des équipements accessibles.": [
+    "Open up, ventilate and check the basic condition of water, electricity and accessible equipment.",
+    "Öffnen, lüften und den grundlegenden Zustand von Wasser, Strom und zugänglichen Geräten prüfen."
+  ],
+  "Ouvrir": [
+    "Open",
+    "Öffnen"
+  ],
+  "Ouvrir le dossier": [
+    "Open case",
+    "Vorgang öffnen"
+  ],
+  "Ouvrir les dossiers": [
+    "Open cases",
+    "Vorgänge öffnen"
+  ],
+  "Pack Regresso Plus": [
+    "Regresso Plus package",
+    "Regresso Plus-Paket"
+  ],
+  "Paiement de l’adhésion": [
+    "Membership payment",
+    "Mitgliedschaftszahlung"
+  ],
+  "Paiement simulé confirmé": [
+    "Simulated payment confirmed",
+    "Simulierte Zahlung bestätigt"
+  ],
+  "Par dossier défini": [
+    "Per defined case",
+    "Pro festgelegtem Vorgang"
+  ],
+  "Par entretien": [
+    "Per consultation",
+    "Pro Gespräch"
+  ],
+  "Par intervention": [
+    "Per service visit",
+    "Pro Einsatz"
+  ],
+  "Par mission définie": [
+    "Per defined assignment",
+    "Pro festgelegtem Auftrag"
+  ],
+  "Par trajet convenu": [
+    "Per agreed journey",
+    "Pro vereinbarter Fahrt"
+  ],
+  "Par visite, coordination à préciser": [
+    "Per visit, coordination to be confirmed",
+    "Pro Besuch, Koordination noch zu klären"
+  ],
+  "Parcours en cours": [
+    "Walkthrough in progress",
+    "Durchlauf läuft"
+  ],
+  "Parcours réalisé. Vous pouvez continuer à explorer cette session ou charger un autre exemple.": [
+    "Walkthrough completed. You can continue exploring this session or load another example.",
+    "Durchlauf abgeschlossen. Sie können diese Sitzung weiter erkunden oder ein anderes Beispiel laden."
+  ],
+  "Partage de la pièce retiré au bénéficiaire": [
+    "Document sharing removed for the beneficiary",
+    "Dokumentfreigabe für die begünstigte Person entzogen"
+  ],
+  "Partage partenaire": [
+    "Partner sharing",
+    "Partnerfreigabe"
+  ],
+  "Partager la liste de visite": [
+    "Share the visit checklist",
+    "Besuchscheckliste teilen"
+  ],
+  "Partenaire": [
+    "Partner",
+    "Partner"
+  ],
+  "Partez de ce qui compte pour vous. Chaque domaine rassemble des prestations précises et leurs limites.": [
+    "Start with what matters to you. Each area brings together specific services and their limits.",
+    "Beginnen Sie mit dem, was Ihnen wichtig ist. Jeder Bereich bündelt konkrete Leistungen und deren Grenzen."
+  ],
+  "Pays": [
+    "Country",
+    "Land"
+  ],
+  "Petite intervention de maintenance": [
+    "Minor maintenance work",
+    "Kleine Wartungsarbeit"
+  ],
+  "Pièce conforme au besoin": [
+    "Document meets the need",
+    "Dokument erfüllt den Bedarf"
+  ],
+  "Pièces validées à joindre (facultatif)": [
+    "Approved documents to attach (optional)",
+    "Freigegebene Dokumente zum Anhängen (optional)"
+  ],
+  "Planification mensuelle, rebonds, plaintes et reprise des erreurs : à connecter au service d’envoi.": [
+    "Monthly scheduling, bounces, complaints and error retries: to be connected to the sending service.",
+    "Monatliche Planung, Rückläufer, Beschwerden und erneute Versuche bei Fehlern: noch an den Versanddienst anzubinden."
+  ],
+  "Points à confirmer non précisés.": [
+    "Points to confirm not specified.",
+    "Zu klärende Punkte nicht angegeben."
+  ],
+  "Pour ceux qui sont partis.\nEt ceux qui ont grandi ailleurs.": [
+    "For those who left.\nAnd those who grew up elsewhere.",
+    "Für alle, die gegangen sind.\nUnd alle, die anderswo aufgewachsen sind."
+  ],
+  "Pour un titulaire": [
+    "For one primary member",
+    "Für ein Hauptmitglied"
+  ],
+  "Pour une correction, utilisez le formulaire ci-dessous. La clôture reste une action de l’équipe.": [
+    "For a correction, use the form below. Only the team can close the case.",
+    "Verwenden Sie für eine Korrektur das folgende Formular. Der Abschluss bleibt dem Team vorbehalten."
+  ],
+  "Première édition à venir": [
+    "First edition coming soon",
+    "Erste Ausgabe folgt"
+  ],
+  "Prestations de tiers (scénario)": [
+    "Third-party services (scenario)",
+    "Leistungen Dritter (Szenario)"
+  ],
+  "Prestations, provisions et pièces de facturation": [
+    "Services, advance payments and billing documents",
+    "Leistungen, Vorauszahlungen und Abrechnungsbelege"
+  ],
+  "Prochaine échéance": [
+    "Next due date",
+    "Nächste Fälligkeit"
+  ],
+  "Projet et financement": [
+    "Project and funding",
+    "Projekt und Finanzierung"
+  ],
+  "Proposition de démonstration": [
+    "Demo proposal",
+    "Demoangebot"
+  ],
+  "Proposition et provision": [
+    "Proposal and advance payment",
+    "Angebot und Vorauszahlung"
+  ],
+  "Proposition prête à relire": [
+    "Proposal ready for review",
+    "Angebot zur Prüfung bereit"
+  ],
+  "Prorata et date d’effet non calculés.": [
+    "Proration and effective date not calculated.",
+    "Anteilig berechnete Beträge und Wirksamkeitsdatum nicht berechnet."
+  ],
+  "Provision déjà réglée dans la démo. Après annulation, son bilan est suivi dans « Bilans des dossiers ». Aucun mouvement bancaire réel n’est effectué.": [
+    "Advance payment already paid in the demo. After cancellation, its settlement is tracked in “Case settlements”. No real bank transactions take place.",
+    "Die Vorauszahlung wurde in der Demo bereits geleistet. Nach einer Stornierung wird die Abrechnung unter „Vorgangsabrechnungen“ verfolgt. Es erfolgen keine echten Banktransaktionen."
+  ],
+  "Provision simulée réglée": [
+    "Simulated advance payment paid",
+    "Simulierte Vorauszahlung geleistet"
+  ],
+  "Préparation du dossier de demande et suivi de son état auprès de l’entité concernée.": [
+    "Prepare the application file and track its status with the relevant organisation.",
+    "Antragsunterlagen vorbereiten und den Bearbeitungsstand bei der zuständigen Stelle verfolgen."
+  ],
+  "Préparer la campagne démo": [
+    "Prepare the demo campaign",
+    "Demokampagne vorbereiten"
+  ],
+  "Préparer la résiliation à échéance": [
+    "Prepare cancellation at the end of the term",
+    "Kündigung zum Laufzeitende vorbereiten"
+  ],
+  "Préparer le bilan": [
+    "Prepare the settlement",
+    "Abrechnung vorbereiten"
+  ],
+  "Préparer le paiement démo": [
+    "Prepare the demo payment",
+    "Demozahlung vorbereiten"
+  ],
+  "Préparer les informations nécessaires à la prise en charge du dossier par les professionnels.": [
+    "Prepare the information professionals need to handle the case.",
+    "Die Informationen vorbereiten, die Fachleute zur Übernahme des Vorgangs benötigen."
+  ],
+  "Préparer l’édition": [
+    "Prepare the edition",
+    "Ausgabe vorbereiten"
+  ],
+  "Préparer mon échange": [
+    "Prepare for my conversation",
+    "Mein Gespräch vorbereiten"
+  ],
+  "Préparer un échange partenaire": [
+    "Prepare a partner conversation",
+    "Partnergespräch vorbereiten"
+  ],
+  "Préparer une nouvelle invitation": [
+    "Prepare a new invitation",
+    "Neue Einladung vorbereiten"
+  ],
+  "Préparons le premier échange.": [
+    "Let’s prepare for the first conversation.",
+    "Bereiten wir das Erstgespräch vor."
+  ],
+  "Présentation de votre interlocuteur": [
+    "Introduction to your contact person",
+    "Vorstellung Ihrer Ansprechperson"
+  ],
+  "Prévue plus tard": [
+    "Scheduled for later",
+    "Für später geplant"
+  ],
+  "Puis-je déjà souscrire ou envoyer une demande ?": [
+    "Can I already subscribe or send a request?",
+    "Kann ich bereits eine Mitgliedschaft abschließen oder eine Anfrage senden?"
+  ],
+  "Périodicité indicative": [
+    "Indicative frequency",
+    "Unverbindliche Häufigkeit"
+  ],
+  "Quels frais doivent être distingués ?": [
+    "Which costs need to be distinguished?",
+    "Welche Kosten müssen unterschieden werden?"
+  ],
+  "Recenser les meubles et objets présents dans un lieu déterminé.": [
+    "List the furniture and objects present at a specified location.",
+    "Die an einem bestimmten Ort vorhandenen Möbel und Gegenstände erfassen."
+  ],
+  "Recherche et coordination de fournisseurs": [
+    "Finding and coordinating suppliers",
+    "Lieferanten suchen und koordinieren"
+  ],
+  "Rechercher une action": [
+    "Search actions",
+    "Aktionen suchen"
+  ],
+  "Rechercher une tâche": [
+    "Search tasks",
+    "Aufgaben suchen"
+  ],
+  "Regrouper les pièces d’un même sujet pour retrouver plus facilement les informations utiles.": [
+    "Group documents on the same topic to make useful information easier to find.",
+    "Dokumente zum gleichen Thema bündeln, damit wichtige Informationen leichter zu finden sind."
+  ],
+  "Relire la version enregistrée": [
+    "Review the saved version",
+    "Gespeicherte Version prüfen"
+  ],
+  "Relisez le compte rendu, cochez la relecture et validez cette version.": [
+    "Review the report, tick the review checkbox and approve this version.",
+    "Lesen Sie den Bericht, bestätigen Sie die Prüfung per Kontrollkästchen und geben Sie diese Version frei."
+  ],
+  "Remettre la mission": [
+    "Submit the assignment",
+    "Auftrag einreichen"
+  ],
+  "Remplacer ma saisie": [
+    "Replace my input",
+    "Meine Eingabe ersetzen"
+  ],
+  "Renouvellement désactivé. Le calendrier ci-dessus montre la fin des droits dans ce scénario.": [
+    "Renewal disabled. The timeline above shows when access rights end in this scenario.",
+    "Verlängerung deaktiviert. Der Zeitplan oben zeigt, wann die Zugriffsrechte in diesem Szenario enden."
+  ],
+  "Renseignez le compte rendu (3 000 caractères maximum) et choisissez uniquement des pièces validées de ce dossier.": [
+    "Complete the report (3,000 characters maximum) and choose only approved documents from this case.",
+    "Füllen Sie den Bericht aus (maximal 3.000 Zeichen) und wählen Sie ausschließlich freigegebene Dokumente dieses Vorgangs."
+  ],
+  "Renvoyer à l’équipe": [
+    "Send back to the team",
+    "An das Team zurückgeben"
+  ],
+  "Reprendre la version enregistrée": [
+    "Resume the saved version",
+    "Gespeicherte Version fortsetzen"
+  ],
+  "Responsable du dossier": [
+    "Case manager",
+    "Vorgangsverantwortliche Person"
+  ],
+  "Retirer cet accès": [
+    "Remove this access",
+    "Diesen Zugriff entziehen"
+  ],
+  "Retirer l’accès": [
+    "Remove access",
+    "Zugriff entziehen"
+  ],
+  "Retirer ma demande d’annulation": [
+    "Withdraw my cancellation request",
+    "Meine Stornierungsanfrage zurückziehen"
+  ],
+  "Retour au site": [
+    "Back to the website",
+    "Zurück zur Website"
+  ],
+  "Retrouvez les pièces, leur vérification et les originaux confiés. Une autorisation de partage et une mission attribuée sont toutes deux nécessaires pour donner accès au partenaire.": [
+    "Find documents, their review status and entrusted originals. Both sharing permission and an assigned task are required to give the partner access.",
+    "Finden Sie Dokumente, deren Prüfstatus und anvertraute Originale. Damit ein Partner Zugriff erhält, sind sowohl eine Freigabe als auch ein zugewiesener Auftrag erforderlich."
+  ],
+  "Revenir au scénario initial ? Les modifications de cette maquette seront effacées.": [
+    "Return to the initial scenario? Changes to this prototype will be deleted.",
+    "Zum Ausgangsszenario zurückkehren? Änderungen an diesem Prototyp werden gelöscht."
+  ],
+  "Rien à traiter dans cette vue. Les dossiers restent consultables dans Demandes.": [
+    "Nothing to process in this view. Cases remain available in Requests.",
+    "In dieser Ansicht ist nichts zu bearbeiten. Die Vorgänge bleiben unter Anfragen zugänglich."
+  ],
+  "Rubrique": [
+    "Section",
+    "Rubrik"
+  ],
+  "Réactiver le renouvellement démo": [
+    "Reactivate demo renewal",
+    "Demoverlängerung wieder aktivieren"
+  ],
+  "Récapitulatif local, sans envoi de données.": [
+    "Local summary, with no data sent.",
+    "Lokale Zusammenfassung ohne Datenversand."
+  ],
+  "Réception d’un technicien": [
+    "Receiving a technician",
+    "Empfang eines Technikers"
+  ],
+  "Régler le solde dans la démo": [
+    "Pay the balance in the demo",
+    "Restbetrag in der Demo begleichen"
+  ],
+  "Résoudre la tentative de paiement démo": [
+    "Resolve the demo payment attempt",
+    "Demozahlungsversuch abschließen"
+  ],
+  "Résultat de la vérification": [
+    "Review result",
+    "Prüfergebnis"
+  ],
+  "Rétablir l’accès démo": [
+    "Restore demo access",
+    "Demozugriff wiederherstellen"
+  ],
+  "Saisie en cours · non publiée": [
+    "Editing in progress · not published",
+    "In Bearbeitung · nicht veröffentlicht"
+  ],
+  "Sans adhésion": [
+    "Without membership",
+    "Ohne Mitgliedschaft"
+  ],
+  "Sans date": [
+    "No date",
+    "Ohne Datum"
+  ],
+  "Sans inventaire judiciaire, évaluation ni détermination de la propriété des biens.": [
+    "No court inventory, valuation or determination of ownership of the assets.",
+    "Keine gerichtliche Inventarisierung, Bewertung oder Feststellung der Eigentumsverhältnisse."
+  ],
+  "Sans valeur fiscale": [
+    "Not valid for tax purposes",
+    "Nicht für steuerliche Zwecke gültig"
+  ],
+  "Sauvegarder mes exemples sur cet appareil": [
+    "Save my examples on this device",
+    "Meine Beispiele auf diesem Gerät speichern"
+  ],
+  "Se connecter, récupérer son accès et fermer ses sessions.": [
+    "Sign in, recover access and end sessions.",
+    "Anmelden, Zugriff wiederherstellen und Sitzungen beenden."
+  ],
+  "Selon mission convenue": [
+    "Based on the agreed assignment",
+    "Nach vereinbartem Auftrag"
+  ],
+  "Selon périmètre de recherche": [
+    "Based on the search scope",
+    "Nach Suchumfang"
+  ],
+  "Service, numéro, bien…": [
+    "Service, number, property…",
+    "Leistung, Nummer, Immobilie…"
+  ],
+  "Services sans adhésion": [
+    "Services without membership",
+    "Leistungen ohne Mitgliedschaft"
+  ],
+  "Simulation sans valeur contractuelle. L’adhésion et cette prestation restent distinctes. TVA, conditions, déplacements et frais réels sont à confirmer avant toute offre réelle.": [
+    "Simulation with no contractual validity. Membership and this service remain separate. VAT, terms, travel and actual costs must be confirmed before any real offer.",
+    "Simulation ohne vertragliche Gültigkeit. Mitgliedschaft und diese Leistung bleiben getrennt. Mehrwertsteuer, Bedingungen, Anfahrten und tatsächliche Kosten müssen vor einem echten Angebot bestätigt werden."
+  ],
+  "Simuler la confirmation": [
+    "Simulate confirmation",
+    "Bestätigung simulieren"
+  ],
+  "Simuler la provision": [
+    "Simulate the advance payment",
+    "Vorauszahlung simulieren"
+  ],
+  "Simuler la réception de l’original": [
+    "Simulate receipt of the original",
+    "Eingang des Originals simulieren"
+  ],
+  "Simuler l’acceptation du bénéficiaire": [
+    "Simulate beneficiary acceptance",
+    "Annahme durch die begünstigte Person simulieren"
+  ],
+  "Simuler ma désinscription": [
+    "Simulate unsubscribing",
+    "Meine Abmeldung simulieren"
+  ],
+  "Simuler mon inscription": [
+    "Simulate subscribing",
+    "Meine Anmeldung simulieren"
+  ],
+  "Simuler un échec": [
+    "Simulate a failure",
+    "Fehlschlag simulieren"
+  ],
+  "Situation du dossier": [
+    "Case situation",
+    "Vorgangssituation"
+  ],
+  "Solde simulé à régler dans la vue adhérent.": [
+    "Simulated balance to be paid in the member view.",
+    "Simulierter Restbetrag in der Mitgliederansicht zu begleichen."
+  ],
+  "Soumettre cette version à l’adhérent": [
+    "Submit this version to the member",
+    "Diese Version dem Mitglied vorlegen"
+  ],
+  "Soumettre à relecture": [
+    "Submit for review",
+    "Zur Prüfung einreichen"
+  ],
+  "Suisse": [
+    "Switzerland",
+    "Schweiz"
+  ],
+  "Suivre le remboursement démo": [
+    "Track the demo refund",
+    "Demoerstattung verfolgen"
+  ],
+  "Sujet à aborder": [
+    "Topic to discuss",
+    "Gesprächsthema"
+  ],
+  "Suspendre l’accès démo": [
+    "Suspend demo access",
+    "Demozugriff aussetzen"
+  ],
+  "Synthèse du besoin et des prochaines étapes après l’entretien.": [
+    "Summary of needs and next steps after the consultation.",
+    "Zusammenfassung des Bedarfs und der nächsten Schritte nach dem Gespräch."
+  ],
+  "TVA, prorata, date d’effet et conditions : à valider. Aucun montant effectivement débité n’est calculé.": [
+    "VAT, proration, effective date and terms: subject to approval. No actual charge is calculated.",
+    "Mehrwertsteuer, anteilige Berechnung, Wirksamkeitsdatum und Bedingungen: noch zu bestätigen. Es wird kein tatsächlich abzubuchender Betrag berechnet."
+  ],
+  "Temps d’attente à définir. Sans garantie de résolution ni représentation réservée à un professionnel habilité.": [
+    "Waiting time to be defined. No guarantee of resolution or representation reserved for an authorised professional.",
+    "Wartezeit noch festzulegen. Keine Lösungsgarantie und keine Vertretung, die einer zugelassenen Fachperson vorbehalten ist."
+  ],
+  "Tentative refusée (simulation)": [
+    "Attempt declined (simulation)",
+    "Versuch abgelehnt (Simulation)"
+  ],
+  "Terminez les tâches et faites valider les pièces obligatoires avant la remise.": [
+    "Complete the tasks and have required documents approved before submission.",
+    "Schließen Sie die Aufgaben ab und lassen Sie die erforderlichen Dokumente vor der Übergabe freigeben."
+  ],
+  "Terminées": [
+    "Completed",
+    "Abgeschlossen"
+  ],
+  "Titre": [
+    "Title",
+    "Titel"
+  ],
+  "Tous les domaines": [
+    "All areas",
+    "Alle Bereiche"
+  ],
+  "Tous les essais": [
+    "All trials",
+    "Alle Tests"
+  ],
+  "Tout": [
+    "All",
+    "Alle"
+  ],
+  "Toutes les places sont réservées. Retirez une invitation ou un accès avant d’en préparer un autre.": [
+    "All places are reserved. Remove an invitation or access before preparing another.",
+    "Alle Plätze sind reserviert. Entfernen Sie eine Einladung oder einen Zugriff, bevor Sie eine weitere Einladung vorbereiten."
+  ],
+  "Traitée par l’équipe. Aucun partenaire n’a accès à ce dossier.": [
+    "Handled by the team. No partner has access to this case.",
+    "Vom Team bearbeitet. Kein Partner hat Zugriff auf diesen Vorgang."
+  ],
+  "Transfert local de cet exemple uniquement, sans envoi à l’équipe.": [
+    "Local transfer of this example only; nothing is sent to the team.",
+    "Nur lokale Übernahme dieses Beispiels, ohne Versand an das Team."
+  ],
+  "Trouver mon service": [
+    "Find my service",
+    "Meine Leistung finden"
+  ],
+  "Tâche terminée": [
+    "Task completed",
+    "Aufgabe abgeschlossen"
+  ],
+  "Tâches": [
+    "Tasks",
+    "Aufgaben"
+  ],
+  "Télécharger le récapitulatif": [
+    "Download summary",
+    "Zusammenfassung herunterladen"
+  ],
+  "Un accompagnement renforcé dont les limites restent à définir.": [
+    "Enhanced support whose limits remain to be defined.",
+    "Erweiterte Unterstützung, deren Grenzen noch festzulegen sind."
+  ],
+  "Un brouillon fictif est prêt. Dans Le journal, soumettez-le à relecture sans remplacer les textes par des informations réelles.": [
+    "A fictional draft is ready. In The newsletter, submit it for review without replacing the text with real information.",
+    "Ein fiktiver Entwurf ist bereit. Reichen Sie ihn unter Der Newsletter zur Prüfung ein, ohne die Texte durch echte Informationen zu ersetzen."
+  ],
+  "Un dossier donne accès à son résumé et au bien associé. Les pièces se partagent une par une. Les messages, propositions, factures et notes internes restent masqués dans cet aperçu.": [
+    "A case gives access to its summary and associated property. Documents are shared individually. Messages, proposals, invoices and internal notes remain hidden in this preview.",
+    "Ein Vorgang gewährt Zugriff auf seine Zusammenfassung und die zugehörige Immobilie. Dokumente werden einzeln freigegeben. Nachrichten, Angebote, Rechnungen und interne Notizen bleiben in dieser Vorschau ausgeblendet."
+  ],
+  "Un lien dans la durée.\nDes services à la demande.": [
+    "A lasting connection.\nServices when you need them.",
+    "Eine dauerhafte Verbindung.\nLeistungen nach Bedarf."
+  ],
+  "Un service en lien avec le sujet et son périmètre d’intervention.": [
+    "A service related to the topic and its scope.",
+    "Eine Leistung zum Thema und ihrem Einsatzbereich."
+  ],
+  "Un échange rattaché à chaque dossier": [
+    "A conversation linked to each case",
+    "Ein Gespräch zu jedem Vorgang"
+  ],
+  "Une explication accessible à partir d’une question concrète.": [
+    "An accessible explanation based on a practical question.",
+    "Eine verständliche Erklärung anhand einer konkreten Frage."
+  ],
+  "Une maison, des projets. Un fil à garder.": [
+    "A home, plans for the future. A connection to keep.",
+    "Ein Zuhause, neue Pläne. Eine Verbindung, die bleibt."
+  ],
+  "Une pièce complémentaire": [
+    "An additional document",
+    "Ein zusätzliches Dokument"
+  ],
+  "Une pièce à corriger": [
+    "A document to correct",
+    "Ein zu korrigierendes Dokument"
+  ],
+  "Une tentative de paiement est encore en attente. Simulez son résultat dans la vue adhérent avant de confirmer l’annulation.": [
+    "A payment attempt is still pending. Simulate its result in the member view before confirming cancellation.",
+    "Ein Zahlungsversuch steht noch aus. Simulieren Sie das Ergebnis in der Mitgliederansicht, bevor Sie die Stornierung bestätigen."
+  ],
+  "Une édition du journal": [
+    "A newsletter edition",
+    "Eine Newsletterausgabe"
+  ],
+  "Validation de relecture retirée": [
+    "Review approval withdrawn",
+    "Prüffreigabe zurückgezogen"
+  ],
+  "Valider le livrable": [
+    "Approve deliverable",
+    "Auftragsergebnis freigeben"
+  ],
+  "Version": [
+    "Version",
+    "Version"
+  ],
+  "Version enregistrée": [
+    "Saved version",
+    "Gespeicherte Version"
+  ],
+  "Versions précédentes du bilan": [
+    "Previous settlement versions",
+    "Frühere Abrechnungsversionen"
+  ],
+  "Ville retenue pour la recherche": [
+    "City selected for the search",
+    "Für die Suche gewählte Stadt"
+  ],
+  "Voir le détail": [
+    "View details",
+    "Details ansehen"
+  ],
+  "Voir les informations de contact": [
+    "View contact information",
+    "Kontaktinformationen ansehen"
+  ],
+  "Voir les échanges": [
+    "View conversations",
+    "Gespräche ansehen"
+  ],
+  "Voir l’aperçu de ma saisie": [
+    "Preview my input",
+    "Vorschau meiner Eingabe"
+  ],
+  "Vos missions, au bon endroit.": [
+    "Your assignments, in the right place.",
+    "Ihre Aufträge am richtigen Ort."
+  ],
+  "Votre accès est suspendu": [
+    "Your access is suspended",
+    "Ihr Zugriff ist ausgesetzt"
+  ],
+  "Votre e-mail": [
+    "Your email",
+    "Ihre E-Mail-Adresse"
+  ],
+  "Votre message d’exemple": [
+    "Your example message",
+    "Ihre Beispielnachricht"
+  ],
+  "Votre préparation depuis le catalogue": [
+    "Your preparation from the catalogue",
+    "Ihre Vorbereitung aus dem Katalog"
+  ],
+  "Votre situation *": [
+    "Your situation *",
+    "Ihre Situation *"
+  ],
+  "Vous avez désactivé la réception. La lecture reste accessible avec une adhésion active.": [
+    "You have opted out of receiving the newsletter. Reading remains available with an active membership.",
+    "Sie haben den Newsletterempfang deaktiviert. Mit einer aktiven Mitgliedschaft können Sie ihn weiterhin lesen."
+  ],
+  "Vous examinez la version": [
+    "You are reviewing version",
+    "Sie prüfen Version"
+  ],
+  "Vous représentez une structure ?": [
+    "Do you represent an organisation?",
+    "Vertreten Sie eine Organisation?"
+  ],
+  "Vérification attendue": [
+    "Review pending",
+    "Prüfung ausstehend"
+  ],
+  "Vérification d’une maison inoccupée": [
+    "Checking an unoccupied home",
+    "Kontrolle eines unbewohnten Hauses"
+  ],
+  "Vérifier avant de simuler mon accord": [
+    "Review before simulating my agreement",
+    "Vor meiner simulierten Zustimmung prüfen"
+  ],
+  "Vérifier le livrable remis": [
+    "Review the submitted deliverable",
+    "Eingereichtes Auftragsergebnis prüfen"
+  ],
+  "Vérifiez la formule choisie et terminez la tentative de paiement en attente avant une nouvelle opération.": [
+    "Check the selected plan and complete the pending payment attempt before starting a new operation.",
+    "Prüfen Sie den gewählten Tarif und schließen Sie den ausstehenden Zahlungsversuch ab, bevor Sie einen neuen Vorgang starten."
+  ],
+  "Vérifiez l’adhésion Family, les places disponibles et l’état actuel de cette invitation.": [
+    "Check the Family membership, available places and current status of this invitation.",
+    "Prüfen Sie die Family-Mitgliedschaft, verfügbare Plätze und den aktuellen Status dieser Einladung."
+  ],
+  "Zones couvertes au Portugal": [
+    "Areas covered in Portugal",
+    "Abgedeckte Gebiete in Portugal"
+  ],
+  "actions à examiner": [
+    "actions to review",
+    "zu prüfende Aktionen"
+  ],
+  "an": [
+    "year",
+    "Jahr"
+  ],
+  "approved": [
+    "approved",
+    "approved"
+  ],
+  "business": [
+    "business",
+    "business"
+  ],
+  "confirmé (simulation)": [
+    "confirmed (simulation)",
+    "bestätigt (Simulation)"
+  ],
+  "delivered": [
+    "delivered",
+    "delivered"
+  ],
+  "destinataire éligible dans la démo": [
+    "eligible recipient in the demo",
+    "berechtigte empfangende Person in der Demo"
+  ],
+  "disputed": [
+    "disputed",
+    "disputed"
+  ],
+  "dossier(s)": [
+    "case(s)",
+    "Vorgang/Vorgänge"
+  ],
+  "dossier(s) trouvé(s)": [
+    "case(s) found",
+    "Vorgang/Vorgänge gefunden"
+  ],
+  "démo": [
+    "demo",
+    "Demo"
+  ],
+  "essai(s)": [
+    "trial(s)",
+    "Test(s)"
+  ],
+  "failed": [
+    "failed",
+    "failed"
+  ],
+  "idle": [
+    "idle",
+    "idle"
+  ],
+  "member": [
+    "member",
+    "member"
+  ],
+  "messages non lus": [
+    "unread messages",
+    "ungelesene Nachrichten"
+  ],
+  "monthly": [
+    "monthly",
+    "monthly"
+  ],
+  "paid": [
+    "paid",
+    "paid"
+  ],
+  "person-access": [
+    "person-access",
+    "person-access"
+  ],
+  "queued": [
+    "queued",
+    "queued"
+  ],
+  "refusé (simulation)": [
+    "declined (simulation)",
+    "abgelehnt (Simulation)"
+  ],
+  "réception simulée": [
+    "simulated receipt",
+    "simulierter Empfang"
+  ],
+  "service trouvé": [
+    "service found",
+    "Leistung gefunden"
+  ],
+  "submitted": [
+    "submitted",
+    "submitted"
+  ],
+  "tâche(s) trouvée(s), par date croissante": [
+    "task(s) found, earliest date first",
+    "Aufgabe(n) gefunden, nach Datum aufsteigend"
+  ],
+  "À chaque dossier, sa prochaine étape.": [
+    "A next step for every case.",
+    "Für jeden Vorgang ein nächster Schritt."
+  ],
+  "À définir ensemble": [
+    "To be defined together",
+    "Gemeinsam festzulegen"
+  ],
+  "À la une": [
+    "Featured",
+    "Im Fokus"
+  ],
+  "À restituer": [
+    "To be returned",
+    "Zurückzugeben"
+  ],
+  "À suivre": [
+    "To follow up",
+    "Nachzuverfolgen"
+  ],
+  "À votre rythme": [
+    "At your own pace",
+    "In Ihrem Tempo"
+  ],
+  "Échange commun à l’adhérent, l’équipe et au partenaire lorsqu’il a accès au dossier. Les notes internes restent dans Demandes. Aucun message n’est envoyé hors de la démo.": [
+    "Conversation shared by the member, the team and the partner when they have access to the case. Internal notes remain in Requests. No messages are sent outside the demo.",
+    "Gemeinsames Gespräch zwischen Mitglied, Team und Partner, sofern dieser Zugriff auf den Vorgang hat. Interne Notizen bleiben unter Anfragen. Es werden keine Nachrichten außerhalb der Demo versendet."
+  ],
+  "Échéance": [
+    "Due date",
+    "Fälligkeit"
+  ],
+  "Écoles, contenus, autorisations et production restent à organiser. Aucun coffret n’est proposé à la vente.": [
+    "Schools, content, permissions and production still need to be arranged. No box set is offered for sale.",
+    "Schulen, Inhalte, Genehmigungen und Produktion müssen noch organisiert werden. Es wird kein Set zum Verkauf angeboten."
+  ],
+  "Édition soumise à relecture": [
+    "Edition submitted for review",
+    "Ausgabe zur Prüfung eingereicht"
+  ],
+  "Équipe, partenaires et charge de travail": [
+    "Team, partners and workload",
+    "Team, Partner und Arbeitsauslastung"
+  ],
+  "État du dossier": [
+    "Case status",
+    "Vorgangsstatus"
+  ],
+  "à régler": [
+    "to pay",
+    "zu begleichen"
+  ],
+  "étapes": [
+    "steps",
+    "Schritte"
+  ]
+}

@@ -1,3 +1,26 @@
+import { exampleText } from "../locales/examples";
+import { MarketChoice, type Currency } from "../MarketChoice";
+import { translate, languages, languageNames } from "../locales";
+import {
+  PeopleSelectors,
+  PeopleDesk,
+  ClientForm,
+  StaffAssignment,
+  viewsForActor,
+} from "./People";
+import { SubscriptionCalendar } from "./SubscriptionCalendar";
+import { SessionTools } from "./SessionTools";
+import {
+  sessionKey,
+  restoreSession,
+  routeHash,
+  readWorkspaceRoute,
+  handoffKey,
+  readHandoff,
+  type SessionLog,
+  type RequestHandoff,
+} from "./session";
+import { Deliveries } from "./Deliveries";
 import {
   caseNavigationContext,
   type CaseDestination,
@@ -33,6 +56,7 @@ import {
   icons,
   type View,
   viewsForRole,
+  navigationGroups,
   Button,
   Field,
   Panel,
@@ -80,7 +104,7 @@ function PaymentControls({
   status: PaymentState;
   onChange: (status: PaymentState) => void;
 }) {
-  const { t } = useWorkspace();
+  const { t, lang } = useWorkspace();
   return (
     <div className="ws-payment">
       <Badge good={status === "paid"}>
@@ -139,25 +163,163 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     [view, setView] = useState<View>("overview"),
     [selected, setSelected] = useState("DEMO-001"),
     [notice, setNotice] = useState(""),
+    [actionError, setActionError] = useState(""),
     [reset, setReset] = useState(false),
     [scenarioId, setScenarioId] = useState<ScenarioId | null>(null),
     [completed, setCompleted] = useState(0),
     [epoch, setEpoch] = useState(0);
   const [caseIntent, setCaseIntent] = useState<CaseIntent>();
   const navigationCounter = useRef(0);
+  const log = useRef<SessionLog>({ version: 2, base: null, events: [] });
+  const [savedSession, setSavedSession] = useState(false);
+  const [saveEnabled, setSaveEnabled] = useState(false);
+  const [storageError, setStorageError] = useState("");
+  const [handoff, setHandoff] = useState<RequestHandoff | null>(null);
+  const [ready, setReady] = useState(false);
+  const applyRoute = (hash: string, source = state) => {
+    const route = readWorkspaceRoute(hash);
+    const c = visibleCases(source, route.role).find((c) => c.id === route.id);
+    if (!route.destination)
+      requestAnimationFrame(() => heading.current?.focus());
+    setRole(route.role);
+    setView(
+      viewsForActor(source, route.role).includes(route.view)
+        ? route.view
+        : viewsForActor(source, route.role)[0],
+    );
+    setSelected(c?.id || visibleCases(source, route.role)[0]?.id || "");
+    setCaseIntent(
+      c && route.destination
+        ? {
+            caseId: c.id,
+            role: route.role,
+            context: caseNavigationContext(c),
+            token: ++navigationCounter.current,
+            destination: route.destination,
+          }
+        : undefined,
+    );
+  };
+  useEffect(() => {
+    applyRoute(location.hash);
+    try {
+      setSavedSession(Boolean(localStorage.getItem(sessionKey)));
+      const raw = sessionStorage.getItem(handoffKey);
+      if (raw) setHandoff(readHandoff(raw));
+    } catch {
+      setStorageError(
+        t(
+          "Le stockage du navigateur n’est pas disponible. La démo reste utilisable en mémoire.",
+          "O armazenamento não está disponível. A demo continua utilizável em memória.",
+        ),
+      );
+    }
+    setReady(true);
+  }, []);
+  useEffect(() => {
+    const back = () => applyRoute(location.hash);
+    window.addEventListener("popstate", back);
+    return () => window.removeEventListener("popstate", back);
+  }, [state]);
+  useEffect(() => {
+    if (!ready || !saveEnabled) return;
+    try {
+      const content = JSON.stringify(log.current);
+      if (content.length > 2_000_000 || log.current.events.length > 5000)
+        throw new Error("session-size");
+      localStorage.setItem(sessionKey, content);
+      setSavedSession(true);
+      setStorageError("");
+    } catch {
+      setSaveEnabled(false);
+      setStorageError(
+        t(
+          "La sauvegarde a échoué. Votre session reste ouverte ; libérez de l’espace puis réessayez.",
+          "A gravação falhou. A sessão continua aberta; liberte espaço e tente novamente.",
+        ),
+      );
+    }
+  }, [state, saveEnabled, ready]);
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      const unsaved = Array.from(
+        document.querySelectorAll("form input, form textarea"),
+      ).some((node) => {
+        const input = node as HTMLInputElement | HTMLTextAreaElement;
+        return input instanceof HTMLInputElement &&
+          ["checkbox", "radio"].includes(input.type)
+          ? input.checked !== input.defaultChecked
+          : input.value !== input.defaultValue;
+      });
+      if (unsaved || (log.current.events.length && !saveEnabled)) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saveEnabled]);
+  const discardSave = () => {
+    try {
+      localStorage.removeItem(sessionKey);
+      setSavedSession(false);
+      setSaveEnabled(false);
+      setStorageError("");
+    } catch {
+      setStorageError(
+        t(
+          "Impossible d’effacer la sauvegarde dans ce navigateur.",
+          "Não foi possível apagar a gravação neste navegador.",
+        ),
+      );
+    }
+  };
+  const resumeSave = () => {
+    try {
+      const restored = restoreSession(localStorage.getItem(sessionKey) || "");
+      log.current = restored.log;
+      setState(restored.state);
+      setEpoch((x) => x + 1);
+      setScenarioId(null);
+      setSaveEnabled(true);
+      applyRoute(location.hash, restored.state);
+      setStorageError("");
+    } catch {
+      setStorageError(
+        t(
+          "Cette sauvegarde est incompatible ou endommagée. Vous pouvez l’effacer et repartir du scénario initial.",
+          "Esta gravação é incompatível ou está danificada. Pode apagá-la e iniciar o cenário inicial.",
+        ),
+      );
+    }
+  };
+
   const select = (id: string) => {
     setSelected(id);
     setCaseIntent(undefined);
+    history.pushState(null, "", routeHash(view, role, id));
   };
   const scenario = demoScenarios.find((s) => s.id === scenarioId);
-  const t = (fr: string, pt: string) => (lang === "fr" ? fr : pt);
+  const t = (fr: string, pt: string) => translate(fr, pt, lang);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     document.title =
       "O meu Portugal — " + t("Maquette LusoOffice", "Protótipo LusoOffice");
     document.documentElement.lang = lang;
-  }, [lang]);
-  const go = (v: View, id?: string, destination?: CaseDestination) => {
+    if (ready)
+      history.replaceState(
+        null,
+        "",
+        href("workspace", lang, location.search + location.hash),
+      );
+  }, [lang, ready]);
+  const go = (
+    v: View,
+    id?: string,
+    destination?: CaseDestination,
+    asRole: Role = role,
+  ) => {
+    history.pushState(null, "", routeHash(v, asRole, id, destination));
     setView(v);
     if (id) setSelected(id);
     const c = id
@@ -175,22 +337,46 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
         : undefined,
     );
     setNotice("");
+    setActionError("");
     if (!destination) requestAnimationFrame(() => heading.current?.focus());
   };
   const act = (a: Action) => {
     const result = transition(state, role, a);
+    setActionError(result.ok ? "" : t(...result.error!));
     const event = result.ok ? result.state.audit.at(-1) : undefined;
     if (!["message-draft", "message-read", "edition-draft"].includes(a.type))
       setNotice(
         event
           ? `${t(...event.title)}${event.caseId ? ` · ${event.caseId}` : ""}. ${t("Enregistré dans la démo.", "Guardado na demo.")}`
           : t(
-              "Action indisponible : vérifiez les champs, les droits et l’étape du dossier.",
-              "Ação indisponível: verifique os campos, as permissões e a etapa do pedido.",
+              ...(result.error || ["Opération refusée.", "Operação recusada."]),
             ),
       );
     if (result.ok) {
+      const last = log.current.events.at(-1);
+      if (
+        last?.role === role &&
+        last.action.type === a.type &&
+        ["message-draft", "edition-draft"].includes(a.type) &&
+        ("id" in a ? "id" in last.action && last.action.id === a.id : true)
+      )
+        log.current.events[log.current.events.length - 1] = { role, action: a };
+      else log.current.events.push({ role, action: a });
       setState(result.state);
+      if (["actor-select", "client-select", "client-create"].includes(a.type)) {
+        setEpoch((x) => x + 1);
+        const allowed = viewsForActor(result.state, role);
+        const target =
+          a.type === "client-create"
+            ? "requests"
+            : allowed.includes(view)
+              ? view
+              : allowed[0];
+        setView(target);
+        setSelected(visibleCases(result.state, role)[0]?.id || "");
+        setCaseIntent(undefined);
+        history.pushState(null, "", routeHash(target, role));
+      }
       if (
         scenario &&
         !["message-draft", "message-read", "edition-draft"].includes(a.type)
@@ -199,7 +385,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     }
     return result.ok;
   };
-  const views = viewsForRole(role);
+  const views = viewsForActor(state, role);
   const openStep = (step: DemoStep) => {
     setRole(step.role);
     const accessible = visibleCases(state, step.role);
@@ -207,28 +393,45 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       accessible.find((c) => c.id === step.caseId)?.id ||
       accessible[0]?.id ||
       "";
-    select(id);
-    go(step.view, id);
+    setSelected(id);
+    go(step.view, id, undefined, step.role);
   };
   const startScenario = (id: ScenarioId) => {
     const chosen = demoScenarios.find((s) => s.id === id)!;
     const next = scenarioState(id);
+    log.current = { version: 2, base: id, events: [] };
     setState(next);
     setScenarioId(id);
     setCompleted(0);
     setEpoch((x) => x + 1);
     setReset(false);
     setRole(chosen.steps[0].role);
-    select(
+    setSelected(
       chosen.steps[0].caseId ||
         visibleCases(next, chosen.steps[0].role)[0]?.id ||
         "",
     );
-    go(chosen.steps[0].view, chosen.steps[0].caseId);
+    go(
+      chosen.steps[0].view,
+      chosen.steps[0].caseId,
+      undefined,
+      chosen.steps[0].role,
+    );
   };
   return (
     <WorkspaceContext.Provider
-      value={{ state, role, lang, act, go, selected, select, t, caseIntent }}
+      value={{
+        state,
+        role,
+        lang,
+        act,
+        go,
+        selected,
+        select,
+        t,
+        caseIntent,
+        error: actionError,
+      }}
     >
       <div className="workspace">
         <a className="skip-link" href="#workspace-main">
@@ -238,8 +441,8 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
           <span>
             <strong>{t("Atelier de conception", "Atelier de conceção")}</strong>{" "}
             {t(
-              "Données fictives. Tout reste en mémoire et s’efface au rechargement.",
-              "Dados fictícios. Tudo fica em memória e desaparece ao recarregar.",
+              "Données fictives. Sauvegarde locale facultative dans « Session de démonstration ».",
+              "Dados fictícios. Gravação local facultativa em « Sessão de demonstração ».",
             )}
           </span>
           <button onClick={() => go("guide")}>
@@ -259,12 +462,13 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             </p>
             <Button
               onClick={() => {
+                log.current = { version: 2, base: null, events: [] };
                 setState(initialState());
                 setScenarioId(null);
                 setCompleted(0);
                 setEpoch((x) => x + 1);
                 setReset(false);
-                select("DEMO-001");
+                setSelected("DEMO-001");
                 go("overview");
               }}
             >
@@ -283,14 +487,67 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             {t("Retour au site", "Voltar ao site")}
           </a>
           <div className="ws-language" aria-label={t("Langue", "Idioma")}>
-            <button aria-pressed={lang === "fr"} onClick={() => setLang("fr")}>
-              FR
-            </button>
-            <button aria-pressed={lang === "pt"} onClick={() => setLang("pt")}>
-              PT
-            </button>
+            {languages.map((l) => (
+              <button
+                key={l}
+                aria-pressed={lang === l}
+                onClick={() => setLang(l)}
+                lang={l}
+                title={languageNames[l]}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
           </div>
         </header>
+        <SessionTools
+          t={t}
+          saved={savedSession}
+          enabled={saveEnabled}
+          error={storageError}
+          resume={resumeSave}
+          discard={discardSave}
+          enable={() => setSaveEnabled(true)}
+        />
+        {handoff && (
+          <div className="ws-handoff">
+            <h2>
+              {t(
+                "Votre préparation depuis le catalogue",
+                "A sua preparação do catálogo",
+              )}
+            </h2>
+            <p>
+              {handoff.name} · {handoff.country}
+            </p>
+            <p>{handoff.description}</p>
+            <p>
+              {t(
+                "Ce brouillon n’a pas été envoyé. Vous pourrez le modifier avant de créer une demande fictive.",
+                "Este rascunho não foi enviado. Pode alterá-lo antes de criar um pedido fictício.",
+              )}
+            </p>
+            <Button
+              onClick={() => {
+                setRole("member");
+                go("requests", undefined, undefined, "member");
+              }}
+            >
+              {t("Continuer ma demande", "Continuar pedido")}
+            </Button>
+            <Button
+              secondary
+              onClick={() => {
+                setHandoff(null);
+                try {
+                  sessionStorage.removeItem(handoffKey);
+                } catch {}
+              }}
+            >
+              {t("Abandonner cette préparation", "Descartar preparação")}
+            </Button>
+          </div>
+        )}
         <div className="ws-layout">
           <aside className="ws-sidebar">
             <p className="ws-title">
@@ -314,8 +571,15 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                     accessible.find((c) => c.id === selected)?.id ||
                     accessible[0]?.id ||
                     "";
-                  select(id);
-                  go(viewsForRole(r).includes(view) ? view : "overview", id);
+                  setSelected(id);
+                  go(
+                    viewsForActor(state, r).includes(view)
+                      ? view
+                      : viewsForActor(state, r)[0],
+                    id,
+                    undefined,
+                    r,
+                  );
                 }}
               >
                 {Object.entries(roleNames).map(([r, l]) => (
@@ -325,6 +589,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 ))}
               </select>
             </Field>
+            <PeopleSelectors />
             <div className="ws-mobile-navigation">
               <Field label={t("Rubrique", "Secção")}>
                 <select
@@ -344,26 +609,14 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               </Field>
             </div>
             <nav aria-label={t("Navigation de l’espace", "Navegação da área")}>
-              {views.map((v) => (
+              {navigationGroups(views).map((group) => (
                 <button
-                  key={v}
-                  aria-current={v === view ? "page" : undefined}
-                  onClick={() => go(v)}
+                  key={group.views[0]}
+                  aria-current={group.views.includes(view) ? "page" : undefined}
+                  onClick={() => go(group.views[0])}
                 >
-                  <span aria-hidden="true">{icons[v]}</span>
-                  {t(...labels[v])}
-                  {v === "messages" &&
-                    unreadMessages(state, role).length > 0 && (
-                      <span
-                        className="ws-nav-count"
-                        aria-label={`${unreadMessages(state, role).length} ${t(
-                          "messages non lus",
-                          "mensagens não lidas",
-                        )}`}
-                      >
-                        {unreadMessages(state, role).length}
-                      </span>
-                    )}
+                  <span aria-hidden="true">{icons[group.views[0]]}</span>
+                  {t(...group.title)}
                 </button>
               ))}
             </nav>
@@ -397,6 +650,29 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                   : t(...labels[view])}
               </h1>
             </div>
+            {navigationGroups(views)
+              .filter((g) => g.views.includes(view) && g.views.length > 1)
+              .map((g) => (
+                <nav
+                  className="ws-subnavigation"
+                  key={g.views[0]}
+                  aria-label={t(...g.title)}
+                >
+                  {g.views.map((v) => (
+                    <button
+                      key={v}
+                      aria-current={view === v ? "page" : undefined}
+                      onClick={() => go(v)}
+                    >
+                      {t(...labels[v])}
+                      {v === "messages" &&
+                      unreadMessages(state, role).length > 0
+                        ? ` (${unreadMessages(state, role).length})`
+                        : ""}
+                    </button>
+                  ))}
+                </nav>
+              ))}
             <p className="ws-feedback" role="status" aria-live="polite">
               {notice}
             </p>
@@ -418,7 +694,17 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                 />
               )}
               {view === "overview" && <Overview />}
-              {view === "requests" && <Requests />}
+              {view === "requests" && (
+                <Requests
+                  handoff={handoff}
+                  consumed={() => {
+                    setHandoff(null);
+                    try {
+                      sessionStorage.removeItem(handoffKey);
+                    } catch {}
+                  }}
+                />
+              )}
               {view === "tasks" && <Tasks />}
               {view === "properties" && <Properties />}
               {view === "documents" && <Documents key={selected} />}
@@ -569,12 +855,18 @@ function Overview() {
     </>
   );
 }
-function Requests() {
+function Requests({
+  handoff,
+  consumed,
+}: {
+  handoff: RequestHandoff | null;
+  consumed: () => void;
+}) {
   const { state, role, lang, t, act, selected, select, caseIntent } =
     useWorkspace();
   const cases = visibleCases(state, role);
   const [filter, setFilter] = useState("all"),
-    [create, setCreate] = useState(false),
+    [create, setCreate] = useState(Boolean(handoff)),
     [query, setQuery] = useState("");
   useEffect(() => {
     setFilter("all");
@@ -584,6 +876,7 @@ function Requests() {
   const current = shown.find((c) => c.id === selected) || shown[0];
   return (
     <>
+      {role === "member" && <ClientForm />}
       <div className="ws-toolbar">
         <Field label={t("Rechercher un dossier", "Pesquisar pedido")}>
           <input
@@ -624,11 +917,19 @@ function Requests() {
             onSave={(d) => {
               const ok = act({
                 type: "request",
+                customer: handoff
+                  ? {
+                      name: handoff.name,
+                      country: handoff.country || "TBD",
+                      currency: handoff.currency || "EUR",
+                    }
+                  : undefined,
                 service: value(d, "service"),
                 property: value(d, "property"),
                 description: value(d, "description"),
               });
               if (ok) {
+                consumed();
                 setCreate(false);
                 setFilter("all");
                 setQuery("");
@@ -636,10 +937,11 @@ function Requests() {
                   `DEMO-${String(state.cases.length + 1).padStart(3, "0")}`,
                 );
               }
+              return ok;
             }}
           >
             <Field label={t("Service", "Serviço")}>
-              <select name="service">
+              <select name="service" defaultValue={handoff?.service}>
                 {services.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name[lang]}
@@ -652,11 +954,16 @@ function Requests() {
                 <option value="">
                   {t("Sans bien associé", "Sem imóvel associado")}
                 </option>
-                {state.properties.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
+                {state.properties
+                  .filter(
+                    (p) =>
+                      !handoff && (p.owner || "demo") === state.activeClient,
+                  )
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {exampleText(p.name, lang)}
+                    </option>
+                  ))}
               </select>
             </Field>
             <Field
@@ -665,7 +972,13 @@ function Requests() {
                 "Situação e prazo pretendido — apenas exemplo",
               )}
             >
-              <textarea name="description" required maxLength={2000} rows={3} />
+              <textarea
+                name="description"
+                required
+                maxLength={2000}
+                rows={3}
+                defaultValue={handoff?.description}
+              />
             </Field>
             <p className="ws-hint">
               {t(
@@ -745,7 +1058,7 @@ export function CaseDetail({ c }: { c: Case }) {
         </Badge>
       </div>
       <h2>{serviceName(c.service, lang)}</h2>
-      <p>{c.description}</p>
+      <p>{exampleText(c.description, lang)}</p>
       <p className="ws-hint">
         {t("Bien", "Imóvel")} :{" "}
         {state.properties.find((p) => p.id === c.property)?.name ||
@@ -798,19 +1111,13 @@ export function CaseDetail({ c }: { c: Case }) {
               {t("Démarrer la mission", "Iniciar missão")}
             </Button>
           )}
-          {canWork(c) && role !== "member" && c.stage === "inprogress" && (
-            <Button
-              disabled={missing > 0 || remaining > 0}
-              onClick={() =>
-                act({ type: "stage", id: c.id, stage: "delivered" })
-              }
-            >
-              {t("Remettre pour vérification", "Entregar para verificação")}
-            </Button>
-          )}
           {canWork(c) && role === "team" && c.stage === "delivered" && (
             <Button
-              disabled={missing > 0 || remaining > 0}
+              disabled={
+                missing > 0 ||
+                remaining > 0 ||
+                c.deliveries?.at(-1)?.status !== "accepted"
+              }
               onClick={() =>
                 act({ type: "stage", id: c.id, stage: "completed" })
               }
@@ -831,6 +1138,7 @@ export function CaseDetail({ c }: { c: Case }) {
               `${remaining} ${t("tâche(s) à terminer.", "tarefa(s) por concluir.")}`}
           </p>
         )}
+        <Deliveries key={`${c.id}-${c.deliveries?.length}`} c={c} />
         <CaseRequirements caseId={c.id} />
         <details
           className="ws-case-tasks"
@@ -868,6 +1176,7 @@ export function CaseDetail({ c }: { c: Case }) {
           )}
       </CaseSection>
       <CaseSection navigation={navigation} name="decisions">
+        <Deliveries readOnly key={`${c.id}-${c.deliveries?.length}`} c={c} />
         <CaseDecisions
           key={`${c.id}-${c.stage}-${Boolean(c.cancellation)}`}
           c={c}
@@ -877,6 +1186,7 @@ export function CaseDetail({ c }: { c: Case }) {
         {role === "team" && (
           <div className="ws-assignment">
             <h3>{t("Attribution de la mission", "Atribuição da missão")}</h3>
+            <StaffAssignment c={c} />
             <p>
               {t(
                 c.partner
@@ -948,34 +1258,36 @@ export function CaseDetail({ c }: { c: Case }) {
   );
 }
 function Properties() {
-  const { state, t, act, go } = useWorkspace();
+  const { state, t, act, go, lang } = useWorkspace();
   return (
     <div className="ws-two">
       <div>
-        {state.properties.map((p) => (
-          <Panel title={p.name} key={p.id}>
-            <Badge>
-              {t("Bien de démonstration", "Imóvel de demonstração")}
-            </Badge>
-            <p>{p.town}</p>
-            <p>
-              {state.cases.filter((c) => c.property === p.id).length}{" "}
-              {t("dossier(s) associé(s)", "pedido(s) associado(s)")}
-            </p>
-            {state.cases
-              .filter((c) => c.property === p.id)
-              .map((c) => (
-                <Button
-                  key={c.id}
-                  secondary
-                  onClick={() => go("requests", c.id)}
-                >
-                  {c.id}
-                </Button>
-              ))}
-            <PropertyEditor id={p.id} />
-          </Panel>
-        ))}
+        {state.properties
+          .filter((p) => (p.owner || "demo") === state.activeClient)
+          .map((p) => (
+            <Panel title={exampleText(p.name, lang)} key={p.id}>
+              <Badge>
+                {t("Bien de démonstration", "Imóvel de demonstração")}
+              </Badge>
+              <p>{exampleText(p.town, lang)}</p>
+              <p>
+                {state.cases.filter((c) => c.property === p.id).length}{" "}
+                {t("dossier(s) associé(s)", "pedido(s) associado(s)")}
+              </p>
+              {state.cases
+                .filter((c) => c.property === p.id)
+                .map((c) => (
+                  <Button
+                    key={c.id}
+                    secondary
+                    onClick={() => go("requests", c.id)}
+                  >
+                    {c.id}
+                  </Button>
+                ))}
+              <PropertyEditor id={p.id} />
+            </Panel>
+          ))}
       </div>
       <Panel
         title={t("Ajouter un bien d’exemple", "Adicionar imóvel de exemplo")}
@@ -1026,6 +1338,7 @@ export function Billing() {
   if (role === "partner") return null;
   return (
     <>
+      <SubscriptionCalendar />
       <p className="ws-intro">
         {t(
           "L’adhésion donne accès aux avantages du plan. Chaque prestation, provision et éventuel ajustement conserve son propre suivi.",
@@ -1064,8 +1377,8 @@ export function Billing() {
           <p>
             {t(
               sub.cancelAtEnd
-                ? "Renouvellement désactivé dans la maquette. Les droits sont conservés jusqu’à l’échéance, à définir au contrat."
-                : "Renouvellement prévu dans le scénario. Échéance, modalités et conditions : à valider.",
+                ? "Renouvellement désactivé. Le calendrier ci-dessus montre la fin des droits dans ce scénario."
+                : "Renouvellement prévu dans le calendrier de démonstration. Conditions commerciales à valider.",
               sub.cancelAtEnd
                 ? "Renovação desativada no protótipo. Os direitos mantêm-se até ao termo, a definir no contrato."
                 : "Renovação prevista no cenário. Data, modalidades e condições: por validar.",
@@ -1329,23 +1642,29 @@ export function Billing() {
   );
 }
 function Profile() {
-  const { state, t, act } = useWorkspace();
+  const { state, t, act, lang } = useWorkspace();
   return (
     <div className="ws-two">
       <Panel title={t("Profil et préférences", "Perfil e preferências")}>
         <Form
           onSave={(d) => {
-            act({
+            return act({
               type: "profile",
               profile: {
                 name: value(d, "name"),
                 country: value(d, "country"),
                 language: value(d, "language") as Lang,
+                currency: value(d, "currency") as Currency,
                 consent: d.has("consent"),
               },
             });
           }}
         >
+          <MarketChoice
+            lang={lang}
+            name="currency"
+            value={state.profile.currency || "EUR"}
+          />
           <Field label={t("Nom de démonstration", "Nome de demonstração")}>
             <input
               name="name"
@@ -1359,6 +1678,9 @@ function Profile() {
               {[
                 "France",
                 "Portugal",
+                "United States",
+                "Luxembourg",
+                "Belgique / België",
                 "Deutschland",
                 "United Kingdom",
                 "Schweiz / Suisse",
@@ -1372,14 +1694,17 @@ function Profile() {
             label={t("Langue de correspondance", "Idioma de correspondência")}
           >
             <select name="language" defaultValue={state.profile.language}>
-              <option value="fr">Français</option>
-              <option value="pt">Português</option>
+              {languages.map((l) => (
+                <option key={l} value={l}>
+                  {languageNames[l]}
+                </option>
+              ))}
             </select>
           </Field>
           <p>
             {t(
-              "EUR dans ce scénario. Les marchés, langues DE/EN et autres devises restent à cadrer.",
-              "EUR neste cenário. Mercados, idiomas DE/EN e outras moedas ainda por definir.",
+              "Les montants de démonstration restent en EUR. La devise souhaitée est transmise comme préférence pour un futur devis.",
+              "Os valores de demonstração mantêm-se em EUR. A moeda pretendida é transmitida como preferência para um futuro orçamento.",
             )}
           </p>
           <label className="ws-check">
@@ -1447,9 +1772,10 @@ function Profile() {
 }
 
 function Administration() {
-  const { state, t } = useWorkspace();
+  const { state, t, lang } = useWorkspace();
   return (
     <>
+      <PeopleDesk />
       <PartnerAccess />
       <div className="ws-two">
         <Panel
