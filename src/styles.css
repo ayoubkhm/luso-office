@@ -2394,3 +2394,21 @@ textarea {
     padding: 24px;
   }
 }
+
+.draft-resumed {
+  background: var(--pale);
+  padding: 16px;
+  margin-block: 18px;
+  font-size: 0.9rem;
+}
+.draft-resumed .text-link {
+  margin-top: 10px;
+  text-align: left;
+}
+.modal > [data-request-action] {
+  margin-block: 8px;
+}
+.workspace-loading {
+  padding: 16px;
+  background: var(--pale);
+}

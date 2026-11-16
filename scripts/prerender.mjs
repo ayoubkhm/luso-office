@@ -8,6 +8,8 @@ import {
   render,
 } from "../.ssr/entry-server.js";
 const template = await readFile("dist/index.html", "utf8");
+const manifest = JSON.parse(await readFile("dist/.vite/manifest.json", "utf8"));
+const workspaceStyles = manifest["src/workspace/Workspace.tsx"].css || [];
 const esc = (s) =>
   s.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
 for (const lang of ["fr", "pt", "en", "de"]) {
@@ -21,7 +23,15 @@ for (const lang of ["fr", "pt", "en", "de"]) {
         /<title>.*?<\/title>/,
         `<title>${esc(titles[page][lang])}</title>`,
       )
-      .replace("<!--page-meta-->", meta)
+      .replace(
+        "<!--page-meta-->",
+        meta +
+          (page === "workspace"
+            ? workspaceStyles
+                .map((file) => `<link rel="stylesheet" href="/${file}">`)
+                .join("")
+            : ""),
+      )
       .replace("<!--page-content-->", render(page, lang));
     await writeFile("dist" + href(page, lang), content);
   }

@@ -48,7 +48,7 @@ const boot = new JSDOM("<div/>", {
 globals(boot.window);
 const { createElement, act } = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { App, readHandoff, languageHref, requestText } =
+const { App, readHandoff, languageHref, requestText, filterServices } =
   await import("../.ssr/entry-server.js");
 const settle = () => new Promise((r) => setTimeout(r, 20));
 async function mount(page = "home", lang = "fr", suffix = "") {
@@ -340,4 +340,123 @@ test("Page metadata is distinct in all languages and partnership preparation is 
   await ui.click(".cultural-layout .button");
   assert.equal(document.querySelector('[name="subject"]').value, "partnership");
   await ui.close();
+});
+
+test("Resuming a plan keeps the edited period, including undecided, while a new preparation follows the selected card", async () => {
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const ui = await mount("membership", lang);
+    await ui.click(".plan button");
+    fill("name", "Audit");
+    fill("message", "My draft");
+    await choose('[name="period"]', "monthly");
+    await ui.click(".modal-close");
+    await ui.click(".plan button");
+    assert.equal(document.querySelector('[name="period"]').value, "monthly");
+    assert.ok(document.querySelector(".draft-resumed"));
+    await choose('[name="period"]', "");
+    await ui.click(".modal-close");
+    await ui.click(".plan button");
+    assert.equal(document.querySelector('[name="period"]').value, "");
+    assert.equal(document.querySelector('[name="message"]').value, "My draft");
+    await ui.click('[data-request-action="new"]');
+    assert.equal(document.querySelector('[name="period"]').value, "annual");
+    assert.equal(document.querySelector('[name="message"]').value, "");
+    assert.equal(
+      document.querySelector('[name="subject"]').value,
+      "plan-Member",
+    );
+    await ui.close();
+  }
+});
+
+test("An explicit Member CTA requires a choice before restoring a Family draft and preserves that draft when the choice is dismissed", async () => {
+  for (const action of ["resume", "new"]) {
+    const ui = await mount("membership");
+    await ui.click(".plan button");
+    fill("name", "Audit");
+    fill("message", "Family needs");
+    await choose('[name="subject"]', "plan-Family");
+    await choose('[name="period"]', "monthly");
+    await ui.click(".modal-close");
+    await ui.click(".plan button");
+    assert.equal(document.querySelector(".modal form"), null);
+    assert.match(
+      document.querySelector('[data-request-action="new"]').textContent,
+      /Member/,
+    );
+    await ui.click(".modal-close");
+    await ui.click(".plan button");
+    await ui.click(`[data-request-action="${action}"]`);
+    assert.equal(
+      document.querySelector('[name="subject"]').value,
+      action === "resume" ? "plan-Family" : "plan-Member",
+    );
+    assert.equal(
+      document.querySelector('[name="message"]').value,
+      action === "resume" ? "Family needs" : "",
+    );
+    assert.equal(
+      document.querySelector('[name="period"]').value,
+      action === "resume" ? "monthly" : "annual",
+    );
+    await ui.close();
+  }
+});
+
+test("Search returns the same services after switching language, including accented and mixed-language searches", async () => {
+  for (const query of [
+    "maison",
+    "casa",
+    "house",
+    "Haus",
+    "hérité",
+    "casa house",
+  ]) {
+    const expected = filterServices("all", query, "fr").map((s) => s.id);
+    assert.ok(expected.length > 0, query);
+    for (const lang of ["fr", "pt", "en", "de"]) {
+      assert.deepEqual(
+        filterServices("all", query, lang).map((s) => s.id),
+        expected,
+      );
+      const ui = await mount(
+        "services",
+        lang,
+        `?q=${encodeURIComponent(query)}`,
+      );
+      assert.deepEqual(
+        [...document.querySelectorAll(".service-row")].map((e) => e.id),
+        expected,
+      );
+      assert.equal(
+        new URL(
+          document.querySelector('.language-switch a[lang="de"]').href,
+        ).searchParams.get("q"),
+        query,
+      );
+      await ui.close();
+    }
+  }
+  assert.ok(
+    filterServices("maison", "house", "de").every((s) => s.area === "maison"),
+  );
+  assert.equal(filterServices("all", "no-such-service-xyz", "en").length, 0);
+});
+
+test("Business includes incentives and internationalisation in all four languages, linked to an existing scoping service", async () => {
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const prefix = lang === "fr" ? "" : lang + "/";
+    const d = new JSDOM(await readFile(`dist/${prefix}business.html`, "utf8"))
+      .window.document;
+    const topics = [...d.querySelectorAll(".business-paths article")];
+    assert.equal(topics.length, 9);
+    for (const topic of topics.slice(-2)) {
+      assert.ok(topic.querySelector("p").textContent.length > 100);
+      assert.equal(
+        topic.querySelector("a").getAttribute("href"),
+        "#business-entretien",
+      );
+      assert.ok(d.querySelector("#business-entretien"));
+    }
+  }
 });

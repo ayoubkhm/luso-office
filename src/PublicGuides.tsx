@@ -42,6 +42,8 @@ export function BusinessTopics({ lang }: { lang: Lang }) {
       "Organiser un projet d’investissement",
       "S’installer et trouver des fournisseurs",
       "Suivre l’activité depuis l’étranger",
+      copy.businessIncentivesTitle,
+      copy.businessInternationalTitle,
     ],
     pt: [
       "Criar empresa",
@@ -50,7 +52,9 @@ export function BusinessTopics({ lang }: { lang: Lang }) {
       "Preparar um dossier de financiamento",
       "Organizar um projeto de investimento",
       "Instalar-se e encontrar fornecedores",
-      "Acompanhar a atividade no estrangeiro",
+      "Acompanhar a atividade a partir do estrangeiro",
+      copy.businessIncentivesTitle,
+      copy.businessInternationalTitle,
     ],
     en: [
       "Start a business",
@@ -60,6 +64,8 @@ export function BusinessTopics({ lang }: { lang: Lang }) {
       "Organise an investment project",
       "Set up and find suppliers",
       "Follow the business from abroad",
+      copy.businessIncentivesTitle,
+      copy.businessInternationalTitle,
     ],
     de: [
       "Ein Unternehmen gründen",
@@ -69,6 +75,8 @@ export function BusinessTopics({ lang }: { lang: Lang }) {
       "Ein Investitionsvorhaben organisieren",
       "Sich etablieren und Anbieter finden",
       "Die Tätigkeit aus dem Ausland begleiten",
+      copy.businessIncentivesTitle,
+      copy.businessInternationalTitle,
     ],
   }[lang];
   const topics = [
@@ -79,6 +87,8 @@ export function BusinessTopics({ lang }: { lang: Lang }) {
     [copy.businessInvestment, "suivi-projet"],
     [copy.businessSuppliers, "recherche-fournisseurs"],
     [copy.businessFollowup, "suivi-projet"],
+    [copy.businessIncentives, "business-entretien"],
+    [copy.businessInternational, "business-entretien"],
   ];
   return (
     <div className="business-paths">

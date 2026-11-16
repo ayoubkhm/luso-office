@@ -1,11 +1,11 @@
 export const publicCopy = {
   fr: {
     oneOffBody:
-      "Vous avez un besoin précis ? Le projet prévoit des prestations sans adhésion, avec un périmètre à convenir avant toute intervention.",
+      "Une visite, des documents à réunir, une arrivée à préparer : choisissez une prestation selon votre besoin, avec un périmètre à convenir avant intervention.",
     membershipBody:
-      "Les formules envisagées associent tarifs adhérent et journal mensuel. Les prestations seraient facturées séparément.",
+      "Comparez les tarifs adhérent et la place du journal mensuel dans les formules. Chaque prestation reste facturée séparément.",
     withoutMembership:
-      "Des prestations ponctuelles sont prévues avec ou sans adhésion.",
+      "Le modèle présenté permet de choisir un service avec ou sans adhésion.",
     journalStatus: "Journal en préparation",
     journalTiming:
       "Le journal est prévu chaque mois. La date de la première édition et les modalités d’accès seront précisées une fois confirmées.",
@@ -13,14 +13,14 @@ export const publicCopy = {
       "LusoOffice se construit pour vous aider à organiser vos affaires au Portugal depuis l’étranger : une maison, des documents, un retour ou un projet professionnel.",
     homeAreas: "Qu’avez-vous à organiser au Portugal ?",
     homeAreasIntro:
-      "Choisissez votre situation pour découvrir les prestations envisagées et ce qu’elles couvrent.",
+      "Choisissez votre situation pour découvrir les prestations et leur périmètre.",
     intentHouse: "Prendre soin d’une maison",
     intentDocuments: "Organiser des démarches",
     intentFamily: "Préparer un dossier familial",
     intentReturn: "Préparer mon retour",
     intentBusiness: "Développer un projet professionnel",
     oneOff: "Préparer un service ponctuel",
-    considerMembership: "Envisager une adhésion",
+    considerMembership: "Comprendre l’adhésion",
     draftNotice:
       "Tarifs indicatifs. Le périmètre, la TVA, les déplacements et les frais de tiers sont à préciser avant toute intervention. Cette version permet de préparer un échange, sans commande ni souscription.",
     indicativePrice: "Prix indicatif",
@@ -32,7 +32,7 @@ export const publicCopy = {
     visitInherited:
       "Faire le point sur un bien reçu en héritage, dans le cadre de l’organisation du dossier familial.",
     membershipIntro:
-      "L’adhésion envisagée donne accès aux tarifs adhérent et au journal mensuel prévu. Chaque visite, démarche ou intervention est choisie et facturée séparément. Les limites d’orientation restent à définir.",
+      "Le modèle d’adhésion associe tarifs adhérent et journal mensuel. Les visites, démarches et interventions sont choisies et facturées séparément. Le niveau d’orientation de chaque formule reste à préciser.",
     annualSaving: "Écart indicatif par rapport à 12 mensualités :",
     premiumTitle: "Premium : une formule encore à l’étude",
     premiumNote:
@@ -50,9 +50,9 @@ export const publicCopy = {
       "LusoOffice prépare un accompagnement pour organiser les démarches pratiques de votre projet au Portugal et coordonner les échanges avec les professionnels concernés.",
     businessPrepareTitle: "Un premier entretien pour cadrer le projet",
     businessPrepare:
-      "Préparez votre objectif, le lieu envisagé, votre calendrier et les démarches déjà entreprises. L’entretien envisagé permettrait de préciser le besoin et les compétences à mobiliser.",
+      "Préparez votre objectif, le lieu, votre calendrier et les démarches déjà entreprises. Ces éléments servent à cadrer le besoin et à identifier les compétences nécessaires.",
     businessOutcome:
-      "Le livrable envisagé est une synthèse du besoin et des prochaines étapes. Une étude de viabilité ou un avis juridique, fiscal ou financier relève d’une mission spécialisée distincte.",
+      "Le format proposé comprend une synthèse du besoin et des prochaines étapes. Une étude de viabilité ou un avis juridique, fiscal ou financier relève d’une mission spécialisée distincte.",
     businessCreate:
       "Rassembler les informations du projet et organiser les rendez-vous ; les actes de constitution relèvent des professionnels habilités.",
     businessAccounts:
@@ -67,7 +67,7 @@ export const publicCopy = {
       "Rechercher des prestataires selon votre besoin et organiser leurs propositions pour vous permettre de choisir.",
     businessFollowup:
       "Rassembler les informations d’avancement et coordonner les tâches convenues pendant votre absence.",
-    seeSupport: "Voir l’accompagnement envisagé",
+    seeSupport: "Voir la prestation associée",
     journalPreviewLabel: "Exemple éditorial — non publié",
     journalPreviewIntro:
       "Voici une proposition de ton et de format, en portugais, la langue prévue pour le journal. Ce texte ne constitue pas une première édition.",
@@ -76,7 +76,7 @@ export const publicCopy = {
     contribute: "Proposer une contribution culturelle",
     journalAccess: "Comment accéder au journal ?",
     journalAccessText:
-      "L’édition complète est envisagée pour les adhérents, avec un extrait public. Découvrez les formules en préparation et la place du journal parmi les avantages prévus.",
+      "Le format proposé réserve l’édition complète aux adhérents, avec un extrait public. Retrouvez la place du journal dans les formules d’adhésion.",
     journalMembership: "Comprendre l’accès avec l’adhésion",
     metaHome:
       "Maison, documents, famille ou retour : découvrez le projet LusoOffice, un accompagnement envisagé au Portugal pour les Portugais et leurs descendants à l’étranger.",
@@ -88,13 +88,31 @@ export const publicCopy = {
       "Préparez votre projet professionnel au Portugal : premier entretien, coordination pratique et rôle des spécialistes dans l’accompagnement envisagé par LusoOffice.",
     metaJournal:
       "Découvrez le projet du journal portugais de LusoOffice, une proposition de lecture et le Coffret da Lis, projet culturel avec les écoles de la diaspora.",
+    draftChoiceTitle: "Reprendre ou commencer ?",
+    draftChoiceIntro:
+      "Un brouillon conservé sur cette page concerne un autre sujet :",
+    resumeDraft: "Reprendre ce brouillon",
+    newPreparation: "Commencer une nouvelle préparation",
+    draftResumed:
+      "Brouillon repris avec vos derniers choix. Il reste conservé tant que cette page est ouverte.",
+    workspaceLoading: "Chargement de l’espace de démonstration…",
+    workspaceLoadError:
+      "L’espace de démonstration n’a pas pu être chargé. Réessayez lorsque la connexion est disponible.",
+    retryLoading: "Réessayer",
+    businessIncentivesTitle: "Aides et dispositifs d’incitation",
+    businessInternationalTitle: "Internationalisation",
+    businessIncentives:
+      "Axe à développer avec les spécialistes : préciser les dispositifs à examiner et les pièces nécessaires. L’éligibilité, les conditions et les démarches restent à vérifier ; aucune aide n’est garantie.",
+    businessInternational:
+      "Axe à développer avec les partenaires : clarifier les marchés visés et organiser les premiers échanges. Le périmètre et les intervenants spécialisés seront définis selon le projet.",
   },
   pt: {
     oneOffBody:
-      "Tem uma necessidade concreta? O projeto prevê serviços sem adesão, com um âmbito a acordar antes de qualquer intervenção.",
+      "Uma visita, documentos a reunir, uma chegada a preparar: escolha um serviço conforme a necessidade, com um âmbito a acordar antes da intervenção.",
     membershipBody:
-      "As modalidades previstas combinam preços de aderente e um jornal mensal. Os serviços seriam cobrados separadamente.",
-    withoutMembership: "Estão previstos serviços pontuais com ou sem adesão.",
+      "Compare os preços de aderente e o lugar do jornal mensal nas modalidades. Cada serviço é cobrado separadamente.",
+    withoutMembership:
+      "O modelo apresentado permite escolher um serviço com ou sem adesão.",
     journalStatus: "Jornal em preparação",
     journalTiming:
       "O jornal está previsto para cada mês. A data da primeira edição e as condições de acesso serão divulgadas após confirmação.",
@@ -102,14 +120,14 @@ export const publicCopy = {
       "A LusoOffice está a ser criada para ajudar a organizar os seus assuntos em Portugal a partir do estrangeiro: uma casa, documentos, um regresso ou um projeto profissional.",
     homeAreas: "O que precisa de organizar em Portugal?",
     homeAreasIntro:
-      "Escolha a sua situação para conhecer os serviços previstos e o seu âmbito.",
+      "Escolha a sua situação para conhecer os serviços e o seu âmbito.",
     intentHouse: "Cuidar de uma casa",
     intentDocuments: "Organizar diligências",
     intentFamily: "Preparar um processo familiar",
     intentReturn: "Preparar o meu regresso",
     intentBusiness: "Desenvolver um projeto profissional",
     oneOff: "Preparar um serviço pontual",
-    considerMembership: "Considerar uma adesão",
+    considerMembership: "Compreender a adesão",
     draftNotice:
       "Preços indicativos. O âmbito, o IVA, as deslocações e os custos de terceiros devem ser definidos antes de qualquer intervenção. Esta versão permite preparar uma conversa, sem encomendas nem adesões.",
     indicativePrice: "Preço indicativo",
@@ -121,7 +139,7 @@ export const publicCopy = {
     visitInherited:
       "Fazer o ponto de situação de um imóvel herdado, no âmbito da organização do processo familiar.",
     membershipIntro:
-      "A adesão prevista dá acesso aos preços de aderente e ao jornal mensal planeado. Cada visita, diligência ou intervenção é escolhida e cobrada separadamente. Os limites da orientação estão por definir.",
+      "O modelo de adesão combina preços de aderente e jornal mensal. As visitas, diligências e intervenções são escolhidas e cobradas separadamente. O nível de orientação de cada modalidade está por definir.",
     annualSaving: "Diferença indicativa face a 12 mensalidades:",
     premiumTitle: "Premium: um plano ainda em estudo",
     premiumNote:
@@ -139,9 +157,9 @@ export const publicCopy = {
       "A LusoOffice prepara um acompanhamento para organizar as diligências práticas do seu projeto em Portugal e coordenar os contactos com os profissionais envolvidos.",
     businessPrepareTitle: "Uma primeira reunião para definir o projeto",
     businessPrepare:
-      "Prepare o objetivo, o local previsto, o calendário e as diligências já realizadas. A reunião prevista permitiria definir a necessidade e as competências a mobilizar.",
+      "Prepare o objetivo, o local, o calendário e as diligências já realizadas. Estes elementos ajudam a definir a necessidade e a identificar as competências necessárias.",
     businessOutcome:
-      "O resultado previsto é uma síntese das necessidades e dos próximos passos. Um estudo de viabilidade ou parecer jurídico, fiscal ou financeiro exige uma missão especializada distinta.",
+      "O formato proposto inclui uma síntese da necessidade e dos próximos passos. Um estudo de viabilidade ou um parecer jurídico, fiscal ou financeiro exige uma missão especializada distinta.",
     businessCreate:
       "Reunir a informação do projeto e organizar reuniões; os atos de constituição cabem aos profissionais habilitados.",
     businessAccounts:
@@ -156,7 +174,7 @@ export const publicCopy = {
       "Pesquisar prestadores de acordo com a necessidade e organizar as propostas para apoiar a sua escolha.",
     businessFollowup:
       "Reunir informação sobre o progresso e coordenar as tarefas acordadas durante a sua ausência.",
-    seeSupport: "Ver o acompanhamento previsto",
+    seeSupport: "Ver o serviço associado",
     journalPreviewLabel: "Exemplo editorial — não publicado",
     journalPreviewIntro:
       "Esta é uma proposta de tom e formato, em português, a língua prevista para o jornal. Este texto não constitui uma primeira edição.",
@@ -165,7 +183,7 @@ export const publicCopy = {
     contribute: "Propor um contributo cultural",
     journalAccess: "Como aceder ao jornal?",
     journalAccessText:
-      "A edição completa está prevista para os aderentes, com um excerto público. Conheça os planos em preparação e o papel do jornal nas vantagens previstas.",
+      "O formato proposto reserva a edição completa aos aderentes, com um excerto público. Conheça o lugar do jornal nas modalidades de adesão.",
     journalMembership: "Compreender o acesso com a adesão",
     metaHome:
       "Casa, documentos, família ou regresso: conheça o projeto LusoOffice, um apoio previsto em Portugal para portugueses e lusodescendentes no estrangeiro.",
@@ -177,14 +195,31 @@ export const publicCopy = {
       "Prepare o seu projeto profissional em Portugal: reunião inicial, coordenação prática e papel dos especialistas no acompanhamento previsto pela LusoOffice.",
     metaJournal:
       "Conheça o projeto do jornal da LusoOffice, uma proposta de leitura e o Coffret da Lis, projeto cultural com as escolas da diáspora.",
+    draftChoiceTitle: "Retomar ou começar?",
+    draftChoiceIntro:
+      "Um rascunho guardado nesta página diz respeito a outro assunto:",
+    resumeDraft: "Retomar este rascunho",
+    newPreparation: "Começar uma nova preparação",
+    draftResumed:
+      "Rascunho retomado com as últimas escolhas. É conservado enquanto esta página estiver aberta.",
+    workspaceLoading: "A carregar a área de demonstração…",
+    workspaceLoadError:
+      "Não foi possível carregar a área de demonstração. Tente novamente quando houver ligação.",
+    retryLoading: "Tentar novamente",
+    businessIncentivesTitle: "Apoios e incentivos",
+    businessInternationalTitle: "Internacionalização",
+    businessIncentives:
+      "Eixo a desenvolver com os especialistas: identificar os mecanismos a analisar e os documentos necessários. A elegibilidade, as condições e as diligências têm de ser verificadas; nenhum apoio é garantido.",
+    businessInternational:
+      "Eixo a desenvolver com os parceiros: clarificar os mercados pretendidos e organizar os primeiros contactos. O âmbito e os especialistas serão definidos conforme o projeto.",
   },
   en: {
     oneOffBody:
-      "Have a specific need? The project plans to offer services without membership, with the scope agreed before any work begins.",
+      "A visit, documents to gather or an arrival to prepare: choose a service for your needs, with the scope agreed before work begins.",
     membershipBody:
-      "The proposed plans combine member prices and a monthly journal. Services would be charged separately.",
+      "Compare member prices and the monthly journal included in the proposed plans. Each service is charged separately.",
     withoutMembership:
-      "One-off services are planned with or without membership.",
+      "The model presented allows services with or without membership.",
     journalStatus: "Journal in preparation",
     journalTiming:
       "The journal is planned as a monthly publication. The first issue date and access details will be announced once confirmed.",
@@ -192,14 +227,14 @@ export const publicCopy = {
       "LusoOffice is being developed to help you organise matters in Portugal from abroad: a home, documents, a return or a business project.",
     homeAreas: "What do you need to organise in Portugal?",
     homeAreasIntro:
-      "Choose your situation to explore the planned services and their scope.",
+      "Choose your situation to explore the services and their scope.",
     intentHouse: "Look after a home",
     intentDocuments: "Organise paperwork",
     intentFamily: "Prepare a family matter",
     intentReturn: "Plan my return",
     intentBusiness: "Develop a business project",
     oneOff: "Plan a one-off service",
-    considerMembership: "Consider membership",
+    considerMembership: "Understand membership",
     draftNotice:
       "Indicative prices. Scope, VAT, travel and third-party costs must be agreed before any work. This version lets you prepare a conversation, without placing an order or subscribing.",
     indicativePrice: "Indicative price",
@@ -211,7 +246,7 @@ export const publicCopy = {
     visitInherited:
       "Review an inherited property as part of organising a family matter.",
     membershipIntro:
-      "The proposed membership provides access to member prices and the planned monthly journal. Each visit, administrative task or intervention is chosen and billed separately. Guidance limits remain to be defined.",
+      "The membership model combines member prices and a monthly journal. Visits, administrative support and other services are chosen and charged separately. The guidance included in each plan remains to be defined.",
     annualSaving: "Indicative difference compared with 12 monthly payments:",
     premiumTitle: "Premium: a plan still under consideration",
     premiumNote:
@@ -229,9 +264,9 @@ export const publicCopy = {
       "LusoOffice is developing support to organise the practical steps of your project in Portugal and coordinate communication with the relevant professionals.",
     businessPrepareTitle: "A first conversation to define the project",
     businessPrepare:
-      "Prepare your goal, proposed location, timeline and any steps already taken. The planned conversation would help clarify your needs and the expertise required.",
+      "Prepare your objective, location, timeline and steps already taken. These details help define your needs and identify the skills required.",
     businessOutcome:
-      "The planned deliverable is a summary of your needs and next steps. A feasibility study or legal, tax or financial opinion requires a separate specialist assignment.",
+      "The proposed format includes a summary of your needs and next steps. A feasibility study or legal, tax or financial advice requires a separate specialist assignment.",
     businessCreate:
       "Gather project information and arrange meetings; company formation procedures remain with the authorised professionals.",
     businessAccounts:
@@ -246,7 +281,7 @@ export const publicCopy = {
       "Find providers for your needs and organise their proposals to help you choose.",
     businessFollowup:
       "Gather progress information and coordinate agreed tasks while you are away.",
-    seeSupport: "See the planned support",
+    seeSupport: "See the related service",
     journalPreviewLabel: "Editorial sample — unpublished",
     journalPreviewIntro:
       "This sample illustrates the proposed tone and format in Portuguese, the planned language of the journal. It is not a first edition.",
@@ -255,7 +290,7 @@ export const publicCopy = {
     contribute: "Propose a cultural contribution",
     journalAccess: "How will the journal be available?",
     journalAccessText:
-      "The full edition is planned for members, with a public excerpt. Explore the proposed plans and the journal’s place among the intended benefits.",
+      "The proposed format reserves the full edition for members, with a public excerpt. Explore how the journal fits into the membership plans.",
     journalMembership: "Understand access through membership",
     metaHome:
       "Home, documents, family or returning: discover LusoOffice’s planned support in Portugal for Portuguese people and their descendants living abroad.",
@@ -267,14 +302,30 @@ export const publicCopy = {
       "Prepare your business project in Portugal: an initial conversation, practical coordination and specialist roles in LusoOffice’s planned support.",
     metaJournal:
       "Discover LusoOffice’s proposed Portuguese journal, a reading sample and Coffret da Lis, a cultural project involving diaspora schools.",
+    draftChoiceTitle: "Resume or start again?",
+    draftChoiceIntro: "A draft kept on this page concerns a different subject:",
+    resumeDraft: "Resume this draft",
+    newPreparation: "Start a new preparation",
+    draftResumed:
+      "Draft resumed with your latest choices. It is kept while this page remains open.",
+    workspaceLoading: "Loading the demonstration area…",
+    workspaceLoadError:
+      "The demonstration area could not be loaded. Try again when a connection is available.",
+    retryLoading: "Try again",
+    businessIncentivesTitle: "Support schemes and incentives",
+    businessInternationalTitle: "Internationalisation",
+    businessIncentives:
+      "An area to develop with specialists: identify schemes to examine and documents needed. Eligibility, conditions and application steps must be checked; no support is guaranteed.",
+    businessInternational:
+      "An area to develop with partners: clarify target markets and organise initial discussions. The scope and specialist involvement will be defined for each project.",
   },
   de: {
     oneOffBody:
-      "Sie haben einen konkreten Bedarf? Geplant sind Leistungen ohne Mitgliedschaft, deren Umfang vor Beginn gemeinsam vereinbart wird.",
+      "Ein Besuch, Unterlagen oder eine bevorstehende Ankunft: Wählen Sie eine passende Leistung, deren Umfang vor Beginn vereinbart wird.",
     membershipBody:
-      "Die geplanten Modelle verbinden Mitgliederpreise mit einem monatlichen Journal. Leistungen würden separat berechnet.",
+      "Vergleichen Sie die Mitgliederpreise und die Rolle des monatlichen Journals in den Modellen. Jede Leistung wird separat berechnet.",
     withoutMembership:
-      "Einzelne Leistungen sind mit oder ohne Mitgliedschaft geplant.",
+      "Das vorgestellte Modell ermöglicht Leistungen mit oder ohne Mitgliedschaft.",
     journalStatus: "Journal in Vorbereitung",
     journalTiming:
       "Das Journal ist als monatliche Veröffentlichung geplant. Der Termin der ersten Ausgabe und die Zugangsbedingungen werden nach Bestätigung bekannt gegeben.",
@@ -282,14 +333,14 @@ export const publicCopy = {
       "LusoOffice entsteht, um Sie aus dem Ausland bei Angelegenheiten in Portugal zu unterstützen: Haus, Dokumente, Rückkehr oder berufliche Vorhaben.",
     homeAreas: "Was möchten Sie in Portugal organisieren?",
     homeAreasIntro:
-      "Wählen Sie Ihr Anliegen und entdecken Sie die geplanten Leistungen und ihren Umfang.",
+      "Wählen Sie Ihre Situation, um die Leistungen und ihren Umfang kennenzulernen.",
     intentHouse: "Ein Haus betreuen",
     intentDocuments: "Unterlagen und Behördengänge organisieren",
     intentFamily: "Eine Familienangelegenheit vorbereiten",
     intentReturn: "Meine Rückkehr planen",
     intentBusiness: "Ein berufliches Vorhaben entwickeln",
     oneOff: "Eine einzelne Leistung vorbereiten",
-    considerMembership: "Eine Mitgliedschaft erwägen",
+    considerMembership: "Die Mitgliedschaft verstehen",
     draftNotice:
       "Vorläufige Preise. Umfang, Mehrwertsteuer, Anfahrt und Fremdkosten sind vor einem Einsatz zu klären. Diese Version dient der Gesprächsvorbereitung; Bestellungen und Abschlüsse sind nicht möglich.",
     indicativePrice: "Vorläufiger Preis",
@@ -301,7 +352,7 @@ export const publicCopy = {
     visitInherited:
       "Eine geerbte Immobilie im Rahmen einer Familienangelegenheit in Augenschein nehmen.",
     membershipIntro:
-      "Die geplante Mitgliedschaft ermöglicht Mitgliedspreise und den Zugang zum vorgesehenen Monatsjournal. Besuche, Behördengänge und Einsätze werden einzeln gewählt und berechnet. Der Umfang der Orientierung ist noch festzulegen.",
+      "Das Mitgliedschaftsmodell verbindet Mitgliederpreise mit einem monatlichen Journal. Besuche, organisatorische Unterstützung und weitere Leistungen werden separat gewählt und berechnet. Der Umfang der Orientierung je Modell ist noch zu klären.",
     annualSaving: "Vorläufige Differenz gegenüber 12 Monatsbeiträgen:",
     premiumTitle: "Premium: ein Modell in Prüfung",
     premiumNote:
@@ -319,9 +370,9 @@ export const publicCopy = {
       "LusoOffice entwickelt eine Begleitung zur Organisation der praktischen Schritte Ihres Vorhabens in Portugal und zur Abstimmung mit den zuständigen Fachleuten.",
     businessPrepareTitle: "Ein Erstgespräch zur Klärung des Vorhabens",
     businessPrepare:
-      "Bereiten Sie Ihr Ziel, den vorgesehenen Ort, den Zeitplan und bereits unternommene Schritte vor. Das geplante Gespräch soll den Bedarf und die erforderlichen Fachkenntnisse klären.",
+      "Bereiten Sie Ihr Ziel, den Ort, den Zeitplan und die bisherigen Schritte vor. Diese Angaben helfen, den Bedarf und die erforderlichen Kompetenzen zu klären.",
     businessOutcome:
-      "Vorgesehen ist eine Zusammenfassung des Bedarfs und der nächsten Schritte. Eine Machbarkeitsstudie oder rechtliche, steuerliche oder finanzielle Stellungnahme erfordert einen gesonderten Fachauftrag.",
+      "Das vorgeschlagene Format umfasst eine Zusammenfassung des Bedarfs und der nächsten Schritte. Eine Machbarkeitsstudie oder rechtliche, steuerliche oder finanzielle Beratung erfordert einen gesonderten Fachauftrag.",
     businessCreate:
       "Projektinformationen zusammenstellen und Termine organisieren; die Gründungsakte übernehmen die befugten Fachleute.",
     businessAccounts:
@@ -336,7 +387,7 @@ export const publicCopy = {
       "Anbieter nach Ihrem Bedarf suchen und ihre Angebote für Ihre Auswahl zusammenstellen.",
     businessFollowup:
       "Fortschrittsinformationen sammeln und vereinbarte Aufgaben während Ihrer Abwesenheit koordinieren.",
-    seeSupport: "Geplante Begleitung ansehen",
+    seeSupport: "Zugehörige Leistung ansehen",
     journalPreviewLabel: "Redaktionelles Beispiel — unveröffentlicht",
     journalPreviewIntro:
       "Dieses Beispiel zeigt den vorgesehenen Ton und das Format auf Portugiesisch, der geplanten Sprache des Journals. Es ist keine erste Ausgabe.",
@@ -345,7 +396,7 @@ export const publicCopy = {
     contribute: "Einen kulturellen Beitrag vorschlagen",
     journalAccess: "Wie wird das Journal zugänglich sein?",
     journalAccessText:
-      "Die vollständige Ausgabe ist für Mitglieder vorgesehen, ergänzt durch einen öffentlichen Auszug. Entdecken Sie die geplanten Modelle und die Rolle des Journals unter den vorgesehenen Vorteilen.",
+      "Das vorgeschlagene Format sieht die vollständige Ausgabe für Mitglieder und einen öffentlichen Auszug vor. Erfahren Sie, welche Rolle das Journal in den Mitgliedschaftsmodellen spielt.",
     journalMembership: "Zugang über die Mitgliedschaft verstehen",
     metaHome:
       "Haus, Dokumente, Familie oder Rückkehr: Entdecken Sie die geplante Begleitung von LusoOffice in Portugal für Portugiesen und ihre Nachkommen im Ausland.",
@@ -357,5 +408,22 @@ export const publicCopy = {
       "Bereiten Sie Ihr berufliches Vorhaben in Portugal vor: Erstgespräch, praktische Koordination und Fachrollen in der geplanten Begleitung von LusoOffice.",
     metaJournal:
       "Entdecken Sie das geplante portugiesische Journal von LusoOffice, eine Leseprobe und Coffret da Lis, ein Kulturprojekt mit Schulen der Diaspora.",
+    draftChoiceTitle: "Fortsetzen oder neu beginnen?",
+    draftChoiceIntro:
+      "Ein auf dieser Seite gespeicherter Entwurf betrifft ein anderes Thema:",
+    resumeDraft: "Diesen Entwurf fortsetzen",
+    newPreparation: "Eine neue Vorbereitung beginnen",
+    draftResumed:
+      "Entwurf mit Ihren letzten Angaben fortgesetzt. Er bleibt gespeichert, solange diese Seite geöffnet ist.",
+    workspaceLoading: "Der Demonstrationsbereich wird geladen…",
+    workspaceLoadError:
+      "Der Demonstrationsbereich konnte nicht geladen werden. Versuchen Sie es erneut, sobald eine Verbindung verfügbar ist.",
+    retryLoading: "Erneut versuchen",
+    businessIncentivesTitle: "Förderprogramme und Anreize",
+    businessInternationalTitle: "Internationalisierung",
+    businessIncentives:
+      "Ein mit Fachleuten zu entwickelnder Bereich: geeignete Programme und erforderliche Unterlagen klären. Förderfähigkeit, Bedingungen und Antragsschritte sind zu prüfen; eine Förderung wird nicht zugesagt.",
+    businessInternational:
+      "Ein mit Partnern zu entwickelnder Bereich: Zielmärkte klären und erste Gespräche organisieren. Umfang und beteiligte Fachleute werden je nach Vorhaben festgelegt.",
   },
 } as const;

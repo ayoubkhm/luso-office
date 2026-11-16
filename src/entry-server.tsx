@@ -1,5 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { App } from "./App";
+import { Workspace } from "./workspace/Workspace";
 import type { Lang } from "./catalogue";
 import {
   pageNames,
@@ -15,7 +16,13 @@ export { pageDescription, languageHref } from "./routes";
 export { services, areas, plans, filterServices, price } from "./catalogue";
 export { requestText, route } from "./routes";
 export const render = (page: Page, lang: Lang) =>
-  renderToString(<App page={page} lang={lang} />);
+  renderToString(
+    page === "workspace" ? (
+      <Workspace lang={lang} />
+    ) : (
+      <App page={page} lang={lang} />
+    ),
+  );
 
 export * from "./workspace/model";
 

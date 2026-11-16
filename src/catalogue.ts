@@ -734,19 +734,24 @@ export const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
-export function filterServices(area: string, query: string, lang: Lang) {
+export function filterServices(area: string, query: string, _lang: Lang) {
   const terms = normalize(query).split(/\s+/).filter(Boolean);
   return services.filter(
     (s) =>
       (area === "all" || s.area === area) &&
       terms.every((term) =>
         normalize(
-          [
-            s.name[lang],
-            s.description[lang],
-            s.result[lang],
-            areas.find((a) => a.id === s.area)?.name[lang],
-          ].join(" "),
+          ["fr", "pt", "en", "de"]
+            .flatMap((language) => {
+              const lang = language as Lang;
+              return [
+                s.name[lang],
+                s.description[lang],
+                s.result[lang],
+                areas.find((a) => a.id === s.area)?.name[lang],
+              ];
+            })
+            .join(" "),
         ).includes(term),
       ),
   );

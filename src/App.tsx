@@ -11,8 +11,7 @@ import { About } from "./About";
 import { CountrySelect } from "./CountrySelect";
 import { MarketChoice, type Currency } from "./MarketChoice";
 import { translate, languages, languageNames } from "./locales";
-import { handoffKey, readHandoff } from "./workspace/session";
-import { Workspace } from "./workspace/Workspace";
+import { handoffKey, readHandoff } from "./requestHandoff";
 import {
   createContext,
   useContext,
@@ -293,7 +292,7 @@ export function App({
   lang,
   search = "",
 }: {
-  page: Page;
+  page: Exclude<Page, "workspace">;
   lang: Lang;
   search?: string;
 }) {
@@ -358,7 +357,6 @@ export function App({
   };
   const link = (p: Page, q = "") => href(p, lang, q);
 
-  if (page === "workspace") return <Workspace lang={lang} />;
   return (
     <SiteContext.Provider value={{ lang, open }}>
       <a className="skip-link" href="#main">
@@ -1034,7 +1032,7 @@ export function App({
         </div>
       </footer>
       {request !== null && (
-        <RequestModal
+        <RequestEntry
           lang={lang}
           initial={request.subject}
           initialPeriod={request.period}
@@ -1456,6 +1454,74 @@ type RememberedRequest = {
   currency: Currency;
   period?: RequestDraft["period"];
 };
+function requestSubject(initial: string) {
+  return plans.some((p) => p.id === initial)
+    ? `plan-${initial}`
+    : initial || "other";
+}
+function requestSubjectLabel(subject: string, lang: Lang) {
+  return (
+    services.find((s) => s.id === subject)?.name[lang] ||
+    (subject.startsWith("plan-")
+      ? `${translate("Adhésion", "Adesão", lang)} ${subject.slice(5)}`
+      : subject === "partnership"
+        ? translate(
+            "Partenariat ou association",
+            "Parceria ou associação",
+            lang,
+          )
+        : translate("À définir ensemble", "A definir em conjunto", lang))
+  );
+}
+type RequestEntryProps = {
+  lang: Lang;
+  initial: string;
+  initialPeriod?: RequestDraft["period"];
+  remembered?: RememberedRequest;
+  onRemember: (saved: RememberedRequest) => void;
+  onClose: () => void;
+};
+function RequestEntry(props: RequestEntryProps) {
+  const { lang, initial, remembered, onClose } = props;
+  const copy = publicCopy[lang];
+  const target = requestSubject(initial);
+  const [mode, setMode] = useState<"choose" | "resume" | "new">(
+    remembered && target !== "other" && remembered.subject !== target
+      ? "choose"
+      : "resume",
+  );
+  if (mode === "choose" && remembered)
+    return (
+      <Modal title={copy.draftChoiceTitle} lang={lang} onClose={onClose}>
+        <p>{copy.draftChoiceIntro}</p>
+        <p>
+          <strong>{requestSubjectLabel(remembered.subject, lang)}</strong>
+        </p>
+        <button
+          className="button primary full"
+          data-request-action="resume"
+          onClick={() => setMode("resume")}
+        >
+          {copy.resumeDraft}
+        </button>
+        <button
+          className="button secondary full"
+          data-request-action="new"
+          onClick={() => setMode("new")}
+        >
+          {copy.newPreparation} · {requestSubjectLabel(target, lang)}
+        </button>
+      </Modal>
+    );
+  return (
+    <RequestModal
+      {...props}
+      key={mode}
+      remembered={mode === "new" ? undefined : remembered}
+      onNew={() => setMode("new")}
+    />
+  );
+}
 function RequestModal({
   lang,
   initial,
@@ -1463,14 +1529,8 @@ function RequestModal({
   remembered,
   onRemember,
   onClose,
-}: {
-  lang: Lang;
-  initial: string;
-  initialPeriod?: RequestDraft["period"];
-  remembered?: RememberedRequest;
-  onRemember: (saved: RememberedRequest) => void;
-  onClose: () => void;
-}) {
+  onNew,
+}: RequestEntryProps & { onNew: () => void }) {
   const fr = lang === "fr",
     t = (a: string, b: string) => translate(a, b, lang);
   const [draft, setDraft] = useState<RequestDraft | null>(
@@ -1482,14 +1542,11 @@ function RequestModal({
     remembered?.currency || "EUR",
   );
   const [period, setPeriod] = useState<RequestDraft["period"]>(
-    initialPeriod || remembered?.period,
+    remembered ? remembered.period : initialPeriod,
   );
   const formRef = useRef<HTMLFormElement>(null);
   const copy = publicCopy[lang];
-  const selected = services.find((s) => s.id === initial),
-    plan = plans.find((p) => p.id === initial);
-  const initialSubject =
-    selected?.id || (plan ? `plan-${plan.id}` : initial || "other");
+  const initialSubject = requestSubject(initial);
   const options = [
     ...services.map((s) => ({ value: s.id, label: s.name[lang] })),
     ...plans.map((p) => ({
@@ -1607,6 +1664,19 @@ function RequestModal({
               "Este formulário prepara um documento para descarregar. Não envia pedidos nem cria adesões.",
             )}
           </p>
+          {remembered && (
+            <div className="draft-resumed">
+              <p>{copy.draftResumed}</p>
+              <button
+                className="text-link"
+                data-request-action="new"
+                onClick={onNew}
+              >
+                {copy.newPreparation} ·{" "}
+                {requestSubjectLabel(initialSubject, lang)}
+              </button>
+            </div>
+          )}
           <form ref={formRef} onSubmit={submit}>
             <p className="form-note">
               {t(
