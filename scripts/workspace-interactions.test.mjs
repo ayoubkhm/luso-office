@@ -164,7 +164,7 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
     "Tabs keep the mounted form without prompting",
   );
   const original = location.href;
-  await ui.click("Documents", document.querySelector(".ws-subnavigation"));
+  await ui.click("Documents", document.querySelector(".ws-navigation"));
   assert.equal(confirmations, 1);
   assert.equal(location.href, original);
   assert.equal(
@@ -172,7 +172,7 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
     "Unsaved internal note",
   );
   window.confirm = () => true;
-  await ui.click("Documents", document.querySelector(".ws-subnavigation"));
+  await ui.click("Documents", document.querySelector(".ws-navigation"));
   assert.equal(
     new URLSearchParams(location.hash.slice(1)).get("view"),
     "documents",
@@ -193,9 +193,24 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
   await ui.close();
 });
 
-test("All four languages retain the current route on language switch and expose a compact primary menu", async () => {
+test("All four languages retain the current route and expose direct workspace destinations", async () => {
   const ui = await mount({ hash: "#view=requests&role=member&case=DEMO-002" });
-  assert.ok(document.querySelectorAll(".ws-sidebar nav button").length <= 5);
+  assert.equal(document.querySelector(".ws-sidebar select"), null);
+  for (const destination of [
+    "Demandes",
+    "Documents",
+    "Messages",
+    "Mes biens",
+    "Mon compte",
+  ]) {
+    assert.ok(
+      [...document.querySelectorAll(".ws-navigation button")].some((button) =>
+        button.textContent.startsWith(destination),
+      ),
+      destination,
+    );
+  }
+  assert.equal(document.querySelector(".ws-subnavigation"), null);
   await ui.click("EN", document.querySelector(".ws-language"));
   assert.equal(document.documentElement.lang, "en");
   assert.equal(location.pathname, "/en/espace.html");
@@ -216,7 +231,7 @@ test("All four languages retain the current route on language switch and expose 
 
 test("Cancelled Back preserves both the original history entry and unsaved form; accepted Back and Forward restore language", async () => {
   const ui = await mount({ hash: "#view=overview&role=team" });
-  await ui.click("↗Dossiers", document.querySelector(".ws-sidebar"));
+  await ui.click("Demandes", document.querySelector(".ws-navigation"));
   await ui.click("Travail de l’équipe");
   const note = document.querySelector('textarea[name="note"]');
   note.value = "Keep this internal note";
@@ -297,7 +312,7 @@ test("Dirty forms also protect role, actor and case switches, while successful s
       await settle();
     });
   };
-  const role = document.querySelector(".ws-sidebar select");
+  const role = document.querySelector(".ws-demo-selectors select");
   await change(role, "partner");
   assert.equal(role.value, "team");
   const actor = [...document.querySelectorAll("label")]
@@ -318,7 +333,7 @@ test("Dirty forms also protect role, actor and case switches, while successful s
     "Save before switching",
   );
   await ui.submit(note.form);
-  await ui.click("Documents", document.querySelector(".ws-subnavigation"));
+  await ui.click("Documents", document.querySelector(".ws-navigation"));
   assert.equal(confirmations, 3, "Saved values do not trigger another prompt");
   assert.equal(
     new URLSearchParams(location.hash.slice(1)).get("view"),
@@ -361,5 +376,67 @@ test("Restoring an operator session or opening a financial URL cannot open the r
     "overview",
   );
   assert.equal(document.querySelector(".ws-settlement-layout"), null);
+  await ui.close();
+});
+
+test("Direct navigation exposes unread messages and the disclosure respects cancelled navigation and Escape", async () => {
+  let ui = await mount();
+  const nav = document.querySelector(".ws-navigation");
+  const message = [...nav.querySelectorAll("button")].find((b) =>
+    b.textContent.startsWith("Messages"),
+  );
+  assert.equal(message.querySelector(".ws-nav-count").textContent, "1");
+  assert.equal(document.querySelector(".ws-demo-tools").open, false);
+  await act(async () => {
+    message.click();
+    await settle();
+  });
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("view"),
+    "messages",
+  );
+  assert.equal(
+    document.querySelectorAll('.ws-navigation [aria-current="page"]').length,
+    1,
+  );
+  await ui.click("Marquer cette conversation comme lue");
+  assert.equal(document.querySelector(".ws-navigation .ws-nav-count"), null);
+  await ui.close();
+
+  ui = await mount({
+    hash: "#view=requests&role=team&case=DEMO-001&section=team",
+  });
+  const toggle = document.querySelector(".ws-navigation-toggle");
+  assert.equal(toggle.getAttribute("aria-controls"), "workspace-navigation");
+  const clickToggle = () =>
+    act(async () => {
+      toggle.click();
+      await settle();
+    });
+  await clickToggle();
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+  document.querySelector('textarea[name="note"]').value = "Keep this note";
+  window.confirm = () => false;
+  await ui.click("Documents", document.querySelector(".ws-navigation"));
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+  assert.equal(
+    document.querySelector('textarea[name="note"]').value,
+    "Keep this note",
+  );
+  await act(async () => {
+    document
+      .querySelector(".ws-navigation button")
+      .dispatchEvent(
+        new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    await settle();
+  });
+  assert.equal(toggle.getAttribute("aria-expanded"), "false");
+  assert.equal(document.activeElement, toggle);
+  await clickToggle();
+  window.confirm = () => true;
+  await ui.click("Documents", document.querySelector(".ws-navigation"));
+  assert.equal(toggle.getAttribute("aria-expanded"), "false");
+  assert.equal(document.activeElement, document.querySelector("h1"));
   await ui.close();
 });

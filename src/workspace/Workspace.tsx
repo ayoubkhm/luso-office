@@ -1,3 +1,4 @@
+import { WorkspaceNavigation } from "./WorkspaceNavigation";
 import { canAccessView } from "./permissions";
 import {
   hasUnsavedFields,
@@ -62,9 +63,7 @@ import {
   useWorkspace,
   labels,
   roleNames,
-  icons,
   type View,
-  navigationGroups,
   Button,
   Field,
   Panel,
@@ -372,7 +371,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     source = state,
     discardConfirmed = false,
   ) => {
-    if (!canAccessView(source, asRole, v)) return;
+    if (!canAccessView(source, asRole, v)) return false;
     if (
       !discardConfirmed &&
       (v !== view ||
@@ -380,7 +379,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
         (id !== undefined && id !== selected)) &&
       !confirmLeave()
     )
-      return;
+      return false;
     pushWorkspaceHistory(routeHash(v, asRole, id, destination));
     setRole(asRole);
     setView(v);
@@ -402,6 +401,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
     setNotice("");
     setActionError("");
     if (!destination) requestAnimationFrame(() => heading.current?.focus());
+    return true;
   };
   const act = (a: Action) => {
     if (["actor-select", "client-select"].includes(a.type) && !confirmLeave())
@@ -511,47 +511,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               "Dados fictícios. Gravação local facultativa em « Sessão de demonstração ».",
             )}
           </span>
-          <button onClick={() => go("guide")}>
-            {t("Parcours guidés", "Percursos guiados")}
-          </button>
-          <button onClick={() => setReset(!reset)}>
-            {t("Réinitialiser", "Repor")}
-          </button>
         </div>
-        {reset && (
-          <div className="ws-reset">
-            <p>
-              {t(
-                "Revenir au scénario initial ? Les modifications de cette maquette seront effacées.",
-                "Voltar ao cenário inicial? As alterações deste protótipo serão apagadas.",
-              )}
-            </p>
-            <Button
-              onClick={() => {
-                log.current = { version: 2, base: null, events: [] };
-                setState(initialState());
-                setScenarioId(null);
-                setCompleted(0);
-                setEpoch((x) => x + 1);
-                setReset(false);
-                setSelected("DEMO-001");
-                go(
-                  "overview",
-                  "DEMO-001",
-                  undefined,
-                  role,
-                  initialState(),
-                  true,
-                );
-              }}
-            >
-              {t("Revenir au début", "Voltar ao início")}
-            </Button>
-            <Button secondary onClick={() => setReset(false)}>
-              {t("Conserver", "Manter")}
-            </Button>
-          </div>
-        )}
         <header className="ws-top">
           <a href={href("home", lang)} className="wordmark">
             Luso<span>Office</span>
@@ -573,66 +533,15 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
             ))}
           </div>
         </header>
-        <SessionTools
-          t={t}
-          saved={savedSession}
-          enabled={saveEnabled}
-          error={storageError}
-          resume={resumeSave}
-          discard={discardSave}
-          enable={() => setSaveEnabled(true)}
-        />
-        {handoff && (
-          <div className="ws-handoff">
-            <h2>
-              {t(
-                "Votre préparation depuis le catalogue",
-                "A sua preparação do catálogo",
-              )}
-            </h2>
-            <p>
-              {handoff.name} · {handoff.country}
-            </p>
-            <p>{handoff.description}</p>
-            <p>
-              {t(
-                "Ce brouillon n’a pas été envoyé. Vous pourrez le modifier avant de créer une demande fictive.",
-                "Este rascunho não foi enviado. Pode alterá-lo antes de criar um pedido fictício.",
-              )}
-            </p>
-            <Button
-              onClick={() => {
-                setRole("member");
-                go("requests", undefined, undefined, "member");
-              }}
-            >
-              {t("Continuer ma demande", "Continuar pedido")}
-            </Button>
-            <Button
-              secondary
-              onClick={() => {
-                setHandoff(null);
-                try {
-                  sessionStorage.removeItem(handoffKey);
-                } catch {}
-              }}
-            >
-              {t("Abandonner cette préparation", "Descartar preparação")}
-            </Button>
-          </div>
-        )}
-        <div className="ws-layout">
-          <aside className="ws-sidebar">
-            <p className="ws-title">
-              O meu <br />
-              Portugal
-              <span>
-                {t(
-                  "Votre lien, au quotidien.",
-                  "A sua ligação, todos os dias.",
-                )}
-              </span>
-            </p>
+        <details
+          className="ws-demo-tools"
+          open={savedSession && !saveEnabled ? true : undefined}
+        >
+          <summary>
+            {t("Réglages de la démo", "Definições da demo")}
+            <span>{t(...roleNames[role])}</span>
+          </summary>
+          <div className="ws-demo-selectors">
             <Field label={t("Explorer la vue démo", "Explorar a vista demo")}>
               <select
                 value={role}
@@ -661,46 +570,101 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               </select>
             </Field>
             <PeopleSelectors />
-            <div className="ws-mobile-navigation">
-              <Field label={t("Rubrique", "Secção")}>
-                <select
-                  value={view}
-                  onChange={(e) => go(e.target.value as View)}
-                >
-                  {views.map((v) => (
-                    <option key={v} value={v}>
-                      {t(...labels[v])}
-                      {v === "messages" &&
-                      unreadMessages(state, role).length > 0
-                        ? ` (${unreadMessages(state, role).length})`
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+          </div>
+          <div className="ws-demo-actions">
+            {views.includes("guide") && (
+              <button onClick={() => go("guide")}>
+                {t("Parcours guidés", "Percursos guiados")}
+              </button>
+            )}
+            <button onClick={() => setReset(!reset)}>
+              {t("Réinitialiser", "Repor")}
+            </button>
+          </div>
+          {reset && (
+            <div className="ws-reset">
+              <p>
+                {t(
+                  "Revenir au scénario initial ? Les modifications de cette maquette seront effacées.",
+                  "Voltar ao cenário inicial? As alterações deste protótipo serão apagadas.",
+                )}
+              </p>
+              <Button
+                onClick={() => {
+                  log.current = { version: 2, base: null, events: [] };
+                  setState(initialState());
+                  setScenarioId(null);
+                  setCompleted(0);
+                  setEpoch((x) => x + 1);
+                  setReset(false);
+                  setSelected("DEMO-001");
+                  go(
+                    "overview",
+                    "DEMO-001",
+                    undefined,
+                    role,
+                    initialState(),
+                    true,
+                  );
+                }}
+              >
+                {t("Revenir au début", "Voltar ao início")}
+              </Button>
+              <Button secondary onClick={() => setReset(false)}>
+                {t("Conserver", "Manter")}
+              </Button>
             </div>
-            <nav aria-label={t("Navigation de l’espace", "Navegação da área")}>
-              {navigationGroups(views).map((group) => (
-                <button
-                  key={group.views[0]}
-                  aria-current={group.views.includes(view) ? "page" : undefined}
-                  onClick={() => go(group.views[0])}
-                >
-                  <span aria-hidden="true">{icons[group.views[0]]}</span>
-                  {t(...group.title)}
-                </button>
-              ))}
-            </nav>
-            <div className="ws-identity">
-              <span className="ws-avatar">LO</span>
-              <div>
-                <strong>{t(...roleNames[role])} · démo</strong>
-                <small>
-                  {t("Aucun compte connecté", "Nenhuma conta ligada")}
-                </small>
-              </div>
-            </div>
-          </aside>
+          )}
+          <SessionTools
+            t={t}
+            saved={savedSession}
+            enabled={saveEnabled}
+            error={storageError}
+            resume={resumeSave}
+            discard={discardSave}
+            enable={() => setSaveEnabled(true)}
+          />
+        </details>
+        {handoff && (
+          <div className="ws-handoff">
+            <h2>
+              {t(
+                "Votre préparation depuis le catalogue",
+                "A sua preparação do catálogo",
+              )}
+            </h2>
+            <p>
+              {handoff.name} · {handoff.country}
+            </p>
+            <p>{handoff.description}</p>
+            <p>
+              {t(
+                "Ce brouillon n’a pas été envoyé. Vous pourrez le modifier avant de créer une demande fictive.",
+                "Este rascunho não foi enviado. Pode alterá-lo antes de criar um pedido fictício.",
+              )}
+            </p>
+            <Button
+              onClick={() => {
+                go("requests", undefined, undefined, "member");
+              }}
+            >
+              {t("Continuer ma demande", "Continuar pedido")}
+            </Button>
+            <Button
+              secondary
+              onClick={() => {
+                setHandoff(null);
+                try {
+                  sessionStorage.removeItem(handoffKey);
+                } catch {}
+              }}
+            >
+              {t("Abandonner cette préparation", "Descartar preparação")}
+            </Button>
+          </div>
+        )}
+        <div className="ws-layout">
+          <WorkspaceNavigation view={view} />
           <main id="workspace-main" className="ws-main">
             <div className="ws-page-heading">
               <p>LusoOffice / {t(...roleNames[role])}</p>
@@ -721,29 +685,6 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                   : t(...labels[view])}
               </h1>
             </div>
-            {navigationGroups(views)
-              .filter((g) => g.views.includes(view) && g.views.length > 1)
-              .map((g) => (
-                <nav
-                  className="ws-subnavigation"
-                  key={g.views[0]}
-                  aria-label={t(...g.title)}
-                >
-                  {g.views.map((v) => (
-                    <button
-                      key={v}
-                      aria-current={view === v ? "page" : undefined}
-                      onClick={() => go(v)}
-                    >
-                      {t(...labels[v])}
-                      {v === "messages" &&
-                      unreadMessages(state, role).length > 0
-                        ? ` (${unreadMessages(state, role).length})`
-                        : ""}
-                    </button>
-                  ))}
-                </nav>
-              ))}
             <p className="ws-feedback" role="status" aria-live="polite">
               {notice}
             </p>

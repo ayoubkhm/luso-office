@@ -74,7 +74,7 @@ Ouvrir `/espace.html`, `/pt/espace.html`, `/en/espace.html` ou `/de/espace.html`
 
 Par défaut la session reste en mémoire. « Session de démonstration » permet d’activer une sauvegarde locale, de la reprendre après rechargement ou de l’effacer. Le stockage contient les saisies d’exemple ; il ne doit pas recevoir de données réelles. La restauration valide puis rejoue les actions ; une sauvegarde incompatible ou endommagée est refusée. Les formulaires non soumis ne sont pas tous sauvegardés ; les notes restent conservées entre les onglets d’un même dossier, et les brouillons de messages et du journal suivent la session. Une confirmation protège les formulaires modifiés avant un changement de rubrique, dossier, rôle ou intervenant et lors de Retour/Suivant ; la refuser conserve le formulaire et son entrée d’historique. Les onglets d’un même dossier conservent leur saisie sans confirmation. Le navigateur avertit aussi avant de fermer ou recharger une session non sauvegardée ou des champs modifiés.
 
-Validation actuelle : build et **88 tests réussis**, dont 12 contrôles des corrections des audits et 6 tests d’interaction React dans un DOM simulé. Les tests vérifient notamment remise/validation/correction, clients distincts, profils nommés, échéances, sauvegardes invalides, routes, langues, transfert de préparation, reprise explicite et Retour navigateur. L’audit des dépendances ne signale aucune vulnérabilité après mise à jour de Vite vers 7.3.8. Ces contrôles ne remplacent pas une revue visuelle : Chrome reste inaccessible via le pilotage automatisé, donc mobile, mise en page et navigation clavier complète restent à valider dans un navigateur réel.
+Validation actuelle : build et **89 tests réussis**, dont 12 contrôles des corrections des audits et 7 tests d’interaction React dans un DOM simulé. Les tests vérifient notamment remise/validation/correction, clients distincts, profils nommés, échéances, sauvegardes invalides, routes, langues, transfert de préparation, reprise explicite et Retour navigateur. L’audit des dépendances ne signale aucune vulnérabilité après mise à jour de Vite vers 7.3.8. Ces contrôles ne remplacent pas une revue visuelle : Chrome reste inaccessible via le pilotage automatisé, donc mobile, mise en page et navigation clavier complète restent à valider dans un navigateur réel.
 
 Les écrans constituent une proposition de conception issue du brief, pas une validation des conditions commerciales par Hélèna. Les états, rôles et règles détaillés ci-dessous sont proposés. Le navigateur contient toutes les données démo : les filtres de rôle ne sont pas une sécurité. Ne jamais connecter de données personnelles à cette implémentation.
 
@@ -86,6 +86,12 @@ Les écrans constituent une proposition de conception issue du brief, pas une va
 | Paiements | Provision séparée de l’adhésion, confirmation/refus, nouvelle tentative, changement de formule, résiliation à échéance ; bilan versionné, correction, accord et simulation de solde/remboursement | Prestataire de paiement, devis contractuel, prorata, rapprochement bancaire, exécution des remboursements, émission fiscale et avoirs |
 | Administration et partenaires | Plusieurs clients fictifs, intervenants nommés, charge par responsable, affectations, suspension individuelle, vues opérateur/éditeur/admin, partage documentaire explicite, activité | Identités et permissions serveur, invitations réelles, catalogue administrable et audit durable |
 | Newsletter | Brouillon de quatre rubriques, extrait, relecture, publication démo, audience, file de distribution annulable, désinscription, édition suivante et archives en session | Calendrier, éditeur/publieur distincts, moteur d’envoi, suivi des erreurs, rebonds/plaintes et archives publiques |
+
+### Navigation de l’espace
+
+La barre latérale donne un accès direct aux rubriques autorisées, avec un compteur de messages non lus et un seul lien actif. Les doubles menus, le sélecteur mobile de rubriques et le bloc d’identité fictive ont été retirés. Les outils de rôle, client, intervenant, parcours guidés, réinitialisation et sauvegarde sont regroupés dans « Réglages de la démo ».
+
+Sur grand écran, la navigation reste accessible au défilement, avec une hauteur limitée à la fenêtre. Sous 760 px, elle devient un menu dépliable ; Échap le ferme et rend le focus au bouton. Une navigation refusée conserve le menu ouvert et la saisie. Les tests DOM vérifient les accès directs, le compteur, la fermeture et le focus ; ils ne valident pas le rendu responsive. La revue visuelle reste à faire : l’accès automatisé à Chrome échoue et le contrôle natif n’a pas permis de maintenir l’onglet de travail actif.
 
 ### Corrections de l’audit — version courante
 
@@ -120,7 +126,7 @@ Les sections suivantes conservent l’historique des itérations ; leurs anciens
 - Une pièce déposée reste en attente de vérification. Un refus exige un motif ; son remplacement conserve la version précédente. Les pièces requises non acceptées bloquent le démarrage, la remise et la clôture ; les tâches ouvertes bloquent la remise et la clôture.
 - Suspendre le partenaire retire ses dossiers, pièces, tâches et conversations de sa vue démo. L’équipe conserve les attributions et peut reprendre ses tâches. Le rétablissement réactive les attributions conservées après confirmation explicite dans la maquette.
 - Une édition publiée peut être archivée pour commencer le brouillon suivant. Une campagne encore en attente doit d’abord être annulée. L’archive conserve le contenu et le bilan simulé ; aucune diffusion réelle.
-- La recherche de dossiers accepte accents et numéros, les fiches de biens sont modifiables, et la navigation mobile expose toutes les sections dans un sélecteur.
+- La recherche de dossiers accepte accents et numéros, les fiches de biens sont modifiables, et la navigation expose les rubriques directement ; sur mobile, le même menu se déplie sous la rubrique courante.
 
 Les cinq nouveaux scénarios automatisés couvrent les corrections documentaires, les restrictions et échéances des tâches, la suspension/reprise partenaire, les archives éditoriales et la recherche liée aux biens.
 

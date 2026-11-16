@@ -25,7 +25,7 @@ export type Context = {
   role: Role;
   lang: Lang;
   act: (a: Action) => boolean;
-  go: (v: View, id?: string, destination?: CaseDestination) => void;
+  go: (v: View, id?: string, destination?: CaseDestination) => boolean | void;
   caseIntent?: CaseIntent;
   error?: string;
   selected: string;
@@ -52,20 +52,6 @@ export const roleNames: Record<Role, [string, string]> = {
   member: ["Adhérent / client", "Aderente / cliente"],
   team: ["Équipe", "Equipa"],
   partner: ["Partenaire", "Parceiro"],
-};
-export const icons: Record<View, string> = {
-  guide: "◇",
-  settlements: "≋",
-  tasks: "✓",
-  overview: "◈",
-  requests: "↗",
-  properties: "⌂",
-  documents: "▤",
-  messages: "◌",
-  billing: "€",
-  profile: "◎",
-  newsletter: "▥",
-  admin: "⚙",
 };
 export function Button({
   children,
@@ -228,15 +214,20 @@ export function CaseSelect({
 
 export function navigationGroups(views: View[]) {
   const groups: { title: [string, string]; views: View[] }[] = [
-    { title: ["Accueil", "Início"], views: ["overview", "guide"] },
     {
       title: ["Dossiers", "Pedidos"],
-      views: ["requests", "documents", "tasks", "messages", "settlements"],
+      views: [
+        "overview",
+        "requests",
+        "tasks",
+        "documents",
+        "messages",
+        "properties",
+      ],
     },
-    { title: ["Biens", "Imóveis"], views: ["properties"] },
     {
       title: ["Compte et adhésion", "Conta e adesão"],
-      views: ["billing", "profile"],
+      views: ["billing", "settlements", "profile"],
     },
     { title: ["Le journal", "O jornal"], views: ["newsletter"] },
     { title: ["Administration", "Administração"], views: ["admin"] },

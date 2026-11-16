@@ -290,5 +290,13 @@
   "Brouillon propre à cette personne et à ce dossier, conservé pendant la session.": [
     "Draft for this person and this case, kept during the session.",
     "Entwurf für diese Person und diesen Vorgang, während der Sitzung gespeichert."
+  ],
+  "Réglages de la démo": [
+    "Demo settings",
+    "Demo-Einstellungen"
+  ],
+  "Menu de l’espace": [
+    "Workspace menu",
+    "Bereichsmenü"
   ]
 }
