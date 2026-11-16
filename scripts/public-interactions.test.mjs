@@ -460,3 +460,114 @@ test("Business includes incentives and internationalisation in all four language
     }
   }
 });
+
+test("The preview and actual download retain contact details, currency and every membership period, while a service has no membership period", async () => {
+  const expected = {
+    fr: {
+      country: "Suisse",
+      values: ["À définir ensemble", "Mensuelle", "Annuelle"],
+    },
+    pt: {
+      country: "Suíça",
+      values: ["A definir em conjunto", "Mensal", "Anual"],
+    },
+    en: {
+      country: "Switzerland",
+      values: ["To discuss together", "Monthly", "Annual"],
+    },
+    de: {
+      country: "Schweiz",
+      values: ["Gemeinsam zu klären", "Monatlich", "Jährlich"],
+    },
+  };
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const ui = await mount("membership", lang);
+    const originalCreate = URL.createObjectURL,
+      originalRevoke = URL.revokeObjectURL;
+    let downloaded;
+    URL.createObjectURL = (blob) => {
+      downloaded = blob;
+      return "blob:summary-audit";
+    };
+    URL.revokeObjectURL = () => {};
+    ui.dom.window.HTMLAnchorElement.prototype.click = function () {};
+    try {
+      await ui.click(".plan button");
+      fill("name", "Audit Example");
+      fill("email", "audit@example.com");
+      fill("message", "First line\nSecond line");
+      await choose('[name="country"]', "CH");
+      for (const [index, period] of ["", "monthly", "annual"].entries()) {
+        await choose('[name="period"]', period);
+        await ui.submit();
+        await choose(".market-choice select", "CHF");
+        const preview = document.querySelector(".request-summary");
+        const values = [...preview.querySelectorAll("dd")].map(
+          (e) => e.textContent,
+        );
+        for (const value of [
+          "Audit Example",
+          "audit@example.com",
+          expected[lang].country,
+          "CHF",
+          "First line\nSecond line",
+          expected[lang].values[index],
+        ])
+          assert.ok(
+            values.includes(value),
+            `${lang}: preview contains ${value}`,
+          );
+        // Download through the real UI, independently of its translated label.
+        const downloadButton = document.querySelector(
+          ".market-choice + button",
+        );
+        await ui.click(downloadButton);
+        const text = await downloaded.text();
+        for (const value of values)
+          assert.ok(text.includes(value), `${lang}: export contains ${value}`);
+        await ui.click(".modal button.text-link.full");
+      }
+      await choose('[name="subject"]', "visite-rapport");
+      await choose('[name="country"]', "");
+      fill("email", "");
+      await ui.submit();
+      const preview = document.querySelector(".request-summary");
+      // Switching to a service must remove the membership period from both outputs.
+      const textBeforeDownload = preview.textContent;
+      assert.ok(
+        !expected[lang].values.some((v) => textBeforeDownload.includes(v)),
+      );
+      assert.equal(
+        [...preview.querySelectorAll("dd")].filter((e) => e.textContent === "—")
+          .length,
+        2,
+      );
+      await ui.click(".market-choice + button");
+      const serviceText = await downloaded.text();
+      assert.ok(serviceText.includes("E-mail : —"));
+      assert.ok(!expected[lang].values.some((v) => serviceText.includes(v)));
+    } finally {
+      URL.createObjectURL = originalCreate;
+      URL.revokeObjectURL = originalRevoke;
+      await ui.close();
+    }
+  }
+});
+
+test("Insurance is presented as a future topic through an authorised partner in all public languages, without adding a priced service", async () => {
+  const terms = {
+    fr: ["assurances", "partenaire habilité", "aucune offre"],
+    pt: ["seguros", "parceiro habilitado", "não está disponível"],
+    en: ["Insurance", "authorised partner", "no insurance offer"],
+    de: ["Versicherungen", "zugelassenen Partner", "kein Versicherungsangebot"],
+  };
+  for (const lang of ["fr", "pt", "en", "de"]) {
+    const prefix = lang === "fr" ? "" : lang + "/";
+    const d = new JSDOM(await readFile(`dist/${prefix}services.html`, "utf8"))
+      .window.document;
+    const future = d.querySelector(".future-topics").textContent;
+    for (const term of terms[lang])
+      assert.ok(future.includes(term), `${lang}: ${term}`);
+    assert.equal(d.querySelectorAll(".service-row").length, 28);
+  }
+});

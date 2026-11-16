@@ -1,5 +1,7 @@
 export const publicCopy = {
   fr: {
+    insuranceExploration:
+      "Les assurances font également partie des pistes à étudier, via un partenaire habilité. Le partenaire, le périmètre et les conditions restent à confirmer ; aucune offre d’assurance n’est disponible dans cette version.",
     oneOffBody:
       "Une visite, des documents à réunir, une arrivée à préparer : choisissez une prestation selon votre besoin, avec un périmètre à convenir avant intervention.",
     membershipBody:
@@ -107,6 +109,8 @@ export const publicCopy = {
       "Axe à développer avec les partenaires : clarifier les marchés visés et organiser les premiers échanges. Le périmètre et les intervenants spécialisés seront définis selon le projet.",
   },
   pt: {
+    insuranceExploration:
+      "Os seguros também fazem parte dos temas a estudar, através de um parceiro habilitado. O parceiro, o âmbito e as condições estão por confirmar; não está disponível qualquer oferta de seguros nesta versão.",
     oneOffBody:
       "Uma visita, documentos a reunir, uma chegada a preparar: escolha um serviço conforme a necessidade, com um âmbito a acordar antes da intervenção.",
     membershipBody:
@@ -214,6 +218,8 @@ export const publicCopy = {
       "Eixo a desenvolver com os parceiros: clarificar os mercados pretendidos e organizar os primeiros contactos. O âmbito e os especialistas serão definidos conforme o projeto.",
   },
   en: {
+    insuranceExploration:
+      "Insurance is also an area to explore through an authorised partner. The partner, scope and conditions remain to be confirmed; no insurance offer is available in this version.",
     oneOffBody:
       "A visit, documents to gather or an arrival to prepare: choose a service for your needs, with the scope agreed before work begins.",
     membershipBody:
@@ -320,6 +326,8 @@ export const publicCopy = {
       "An area to develop with partners: clarify target markets and organise initial discussions. The scope and specialist involvement will be defined for each project.",
   },
   de: {
+    insuranceExploration:
+      "Versicherungen gehören ebenfalls zu den Themen, die mit einem entsprechend zugelassenen Partner geprüft werden sollen. Partner, Umfang und Bedingungen sind noch zu bestätigen; in dieser Version ist kein Versicherungsangebot verfügbar.",
     oneOffBody:
       "Ein Besuch, Unterlagen oder eine bevorstehende Ankunft: Wählen Sie eine passende Leistung, deren Umfang vor Beginn vereinbart wird.",
     membershipBody:

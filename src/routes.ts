@@ -111,12 +111,39 @@ export interface RequestDraft {
   email: string;
   country: string;
   subject: string;
+  subjectId?: string;
   message: string;
   currency?: Currency;
   period?: "monthly" | "annual";
 }
+export function requestSummaryFields(
+  d: RequestDraft,
+  lang: Lang,
+): [string, string][] {
+  const copy = publicCopy[lang];
+  const fields: [string, string][] = [
+    [translate("Nom", "Nome", lang), d.name],
+    ["E-mail", d.email || "—"],
+    [
+      translate("Pays de résidence", "País de residência", lang),
+      countryLabel(d.country, lang) || "—",
+    ],
+    [translate("Sujet", "Assunto", lang), d.subject],
+  ];
+  if (d.subjectId?.startsWith("plan-") || (!d.subjectId && d.period)) {
+    fields.push([
+      copy.periodLabel,
+      d.period === "annual"
+        ? translate("Annuelle", "Anual", lang)
+        : d.period === "monthly"
+          ? translate("Mensuelle", "Mensal", lang)
+          : copy.periodUndecided,
+    ]);
+  }
+  if (d.currency) fields.push([copy.currencyLabel, d.currency]);
+  return fields;
+}
 export function requestText(d: RequestDraft, lang: Lang) {
-  const fr = lang === "fr";
   return [
     "LusoOffice",
     translate(
@@ -125,18 +152,9 @@ export function requestText(d: RequestDraft, lang: Lang) {
       lang,
     ),
     "",
-    `${translate("Nom", "Nome", lang)} : ${d.name}`,
-    `E-mail : ${d.email || "—"}`,
-    `${translate("Pays de résidence", "País de residência", lang)} : ${countryLabel(d.country, lang) || "—"}`,
-    `${translate("Sujet", "Assunto", lang)} : ${d.subject}`,
-    ...(d.period
-      ? [
-          `${publicCopy[lang].periodLabel} : ${d.period === "annual" ? translate("Annuelle", "Anual", lang) : translate("Mensuelle", "Mensal", lang)}`,
-        ]
-      : []),
-    ...(d.currency
-      ? [`${publicCopy[lang].currencyLabel} : ${d.currency}`]
-      : []),
+    ...requestSummaryFields(d, lang).map(
+      ([label, value]) => `${label} : ${value}`,
+    ),
     "",
     d.message,
     "",

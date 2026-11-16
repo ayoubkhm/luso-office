@@ -13,6 +13,7 @@ import { MarketChoice, type Currency } from "./MarketChoice";
 import { translate, languages, languageNames } from "./locales";
 import { handoffKey, readHandoff } from "./requestHandoff";
 import {
+  Fragment,
   createContext,
   useContext,
   useEffect,
@@ -36,6 +37,7 @@ import {
   languageHref,
   titles,
   requestText,
+  requestSummaryFields,
   type Page,
   type RequestDraft,
 } from "./routes";
@@ -664,6 +666,7 @@ export function App({
                   "Nacionalidade portuguesa, NIF, pensões, cartas de condução, traduções, estudos ou veículo: estes temas estão em estudo. O âmbito e as condições estão por confirmar.",
                 )}
               </p>
+              <p>{copy.insuranceExploration}</p>
               <Button subject="other">
                 {t("Décrire un autre besoin", "Descrever outro assunto")}
               </Button>
@@ -1573,6 +1576,7 @@ function RequestModal({
         email: field("email"),
         country: field("country"),
         message: field("message"),
+        subjectId: subject,
         subject:
           options.find((option) => option.value === subject)?.label || "",
         currency,
@@ -1607,6 +1611,7 @@ function RequestModal({
       name: String(data.get("name")).trim(),
       email: String(data.get("email")).trim(),
       country: String(data.get("country")),
+      subjectId: subject,
       subject: options.find((o) => o.value === subject)?.label || "",
       message: String(data.get("message")).trim(),
     });
@@ -1625,6 +1630,7 @@ function RequestModal({
           requestText(
             {
               ...draft,
+              subjectId: subject,
               currency,
               period: subject.startsWith("plan-") ? period : undefined,
             },
@@ -1810,22 +1816,16 @@ function RequestModal({
             )}
           </p>
           <dl className="request-summary">
-            <dt>{t("Nom", "Nome")}</dt>
-            <dd>{draft?.name}</dd>
-            <dt>{t("Sujet", "Assunto")}</dt>
-            <dd>{draft?.subject}</dd>
-            {subject.startsWith("plan-") && (
-              <>
-                <dt>{copy.periodLabel}</dt>
-                <dd>
-                  {period === "annual"
-                    ? t("Annuelle", "Anual")
-                    : period === "monthly"
-                      ? t("Mensuelle", "Mensal")
-                      : copy.periodUndecided}
-                </dd>
-              </>
-            )}
+            {draft &&
+              requestSummaryFields(
+                { ...draft, subjectId: subject, currency, period },
+                lang,
+              ).map(([label, value]) => (
+                <Fragment key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </Fragment>
+              ))}
             <dt>{t("Situation", "Situação")}</dt>
             <dd>{draft?.message}</dd>
           </dl>
