@@ -35,7 +35,7 @@ function globals(win) {
 globals(boot.window);
 const { createElement, act } = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { Workspace } = await import("../.ssr/entry-server.js");
+const { Workspace, restoreSession } = await import("../.ssr/entry-server.js");
 const key = "lusooffice-demo-session-v2";
 const settle = () => new Promise((r) => setTimeout(r, 25));
 async function mount({ hash = "", saved, prepared, lang = "fr" } = {}) {
@@ -689,6 +689,341 @@ test("Team billing shows only the selected client’s quoted cases and identifie
   assert.match(
     document.querySelector(".ws-main").textContent,
     /Client concerné : Compte démo/,
+  );
+  await ui.close();
+});
+
+const selectedCase = () =>
+  document.querySelector(".ws-case-list button.selected small")?.textContent;
+const routeCase = () => new URLSearchParams(location.hash.slice(1)).get("case");
+async function traverse(direction) {
+  await act(async () => {
+    history[direction]();
+    await settle();
+    await settle();
+  });
+}
+
+test("Settlement filters protect the explanation when the selected detail would disappear", async () => {
+  const ui = await mount({
+    hash: "#view=settlements&role=team&case=DEMO-001",
+    saved: JSON.stringify({ version: 2, base: "settlement", events: [] }),
+  });
+  await ui.click("Reprendre la session sauvegardée");
+  let warnings = 0;
+  window.confirm = () => {
+    warnings++;
+    return false;
+  };
+  document.querySelector('textarea[name="explanation"]').value =
+    "Keep this settlement explanation";
+  await selectValue(labelledSelect("Afficher les bilans"), "open");
+  assert.equal(warnings, 0, "The same detail stays mounted");
+  await selectValue(labelledSelect("Afficher les bilans"), "done");
+  assert.equal(warnings, 1);
+  assert.equal(labelledSelect("Afficher les bilans").value, "open");
+  assert.equal(
+    document.querySelector('textarea[name="explanation"]').value,
+    "Keep this settlement explanation",
+  );
+  window.confirm = () => true;
+  await selectValue(labelledSelect("Afficher les bilans"), "done");
+  assert.equal(document.querySelector('textarea[name="explanation"]'), null);
+  window.confirm = () => {
+    throw new Error("No draft remains");
+  };
+  await selectValue(labelledSelect("Afficher les bilans"), "all");
+  assert.equal(
+    document.querySelector('textarea[name="explanation"]').value,
+    "",
+  );
+  await ui.close();
+});
+
+test("Task attribution and progress save independently without erasing sibling drafts or leaving saved fields dirty", async () => {
+  const ui = await mount({ hash: "#view=tasks&role=team&case=DEMO-001" });
+  window.confirm = () => {
+    throw new Error("Both forms remain mounted");
+  };
+  const card = document.querySelector(".ws-task-card");
+  const note = card.querySelector('textarea[name="note"]');
+  const assignee = card.querySelector('select[name="assignee"]');
+  note.value = "Comment still being written";
+  await selectValue(assignee, "team");
+  await ui.submit(assignee.form);
+  assert.equal(card.querySelector('textarea[name="note"]'), note);
+  assert.equal(note.value, "Comment still being written");
+  assert.equal(assignee.value, "team");
+  const due = card.querySelector('input[name="due"]');
+  due.value = "2030-02-03";
+  await ui.submit(note.form);
+  assert.equal(
+    due.value,
+    "2030-02-03",
+    "Saving progress keeps the pending attribution",
+  );
+  assert.match(
+    card.querySelector(".ws-task-note").textContent,
+    /Comment still being written/,
+  );
+  await ui.submit(due.form);
+  await ui.click("Documents", navigation());
+  await ui.click("Tâches et échéances", navigation());
+  const savedCard = [...document.querySelectorAll(".ws-task-card")].find(
+    (c) =>
+      c.querySelector(".ws-task-note")?.textContent ===
+      "Comment still being written",
+  );
+  assert.equal(
+    savedCard.querySelector('select[name="assignee"]').value,
+    "team",
+  );
+  assert.equal(
+    savedCard.querySelector('input[name="due"]').value,
+    "2030-02-03",
+  );
+  await ui.close();
+});
+
+test("An edit that removes a task from its filters protects the other form, in both directions", async () => {
+  for (const operation of ["assignment", "progress"]) {
+    const ui = await mount({ hash: "#view=tasks&role=team&case=DEMO-001" });
+    if (operation === "assignment")
+      await selectValue(labelledSelect("Responsable"), "partner");
+    const card = document.querySelector(".ws-task-card");
+    const note = card.querySelector('textarea[name="note"]');
+    const assignee = card.querySelector('select[name="assignee"]');
+    const due = card.querySelector('input[name="due"]');
+    let warnings = 0;
+    window.confirm = () => {
+      warnings++;
+      return false;
+    };
+    let form;
+    if (operation === "assignment") {
+      note.value = "Pending comment";
+      await selectValue(assignee, "team");
+      form = assignee.form;
+    } else {
+      due.value = "2030-02-03";
+      await selectValue(note.form.querySelector("select"), "done");
+      form = note.form;
+    }
+    await ui.submit(form);
+    assert.equal(warnings, 1);
+    assert.equal(card.isConnected, true);
+    assert.equal(
+      operation === "assignment" ? note.value : due.value,
+      operation === "assignment" ? "Pending comment" : "2030-02-03",
+    );
+    window.confirm = () => true;
+    await ui.submit(form);
+    assert.equal(
+      card.isConnected,
+      false,
+      "Accepted discard allows the saved task to leave the filter",
+    );
+    await ui.close();
+  }
+});
+
+test("Filtering cases synchronizes Documents and history, including a case opened through a section link", async () => {
+  for (const section of ["", "&section=team"]) {
+    const ui = await mount({
+      hash: `#view=requests&role=team&case=DEMO-001${section}`,
+    });
+    await selectValue(labelledSelect("État du dossier"), "quote");
+    assert.equal(labelledSelect("État du dossier").value, "quote");
+    assert.equal(selectedCase(), "DEMO-002");
+    assert.equal(routeCase(), "DEMO-002");
+    await ui.click("Documents", navigation());
+    assert.equal(labelledSelect("Filtrer par dossier").value, "DEMO-002");
+    await traverse("back");
+    assert.equal(selectedCase(), "DEMO-002");
+    await traverse("back");
+    assert.equal(selectedCase(), "DEMO-001");
+    assert.equal(labelledSelect("État du dossier").value, "all");
+    await traverse("forward");
+    assert.equal(selectedCase(), "DEMO-002");
+    await ui.close();
+  }
+});
+
+const twoClients = JSON.stringify({
+  version: 2,
+  base: null,
+  events: [
+    {
+      role: "member",
+      action: { type: "client-create", name: "Client B", country: "PT" },
+    },
+    {
+      role: "member",
+      action: {
+        type: "request",
+        service: "maison-inoccupee",
+        property: "",
+        description: "Client B request",
+      },
+    },
+    { role: "member", action: { type: "client-select", id: "demo" } },
+  ],
+});
+
+test("Back/Forward restore the explored client and case, preserve subsequent edits and replay the same client context", async () => {
+  const ui = await mount({
+    hash: "#view=requests&role=member&case=DEMO-001",
+    saved: twoClients,
+  });
+  await ui.click("Reprendre la session sauvegardée");
+  await selectValue(labelledSelect("Client fictif exploré"), "client-1");
+  assert.equal(selectedCase(), "DEMO-003");
+  await traverse("back");
+  assert.equal(labelledSelect("Client fictif exploré").value, "demo");
+  assert.equal(selectedCase(), "DEMO-001");
+  assert.equal(routeCase(), "DEMO-001");
+  await traverse("forward");
+  assert.equal(labelledSelect("Client fictif exploré").value, "client-1");
+  assert.equal(selectedCase(), "DEMO-003");
+  await ui.click("Mon compte", navigation());
+  const name = document.querySelector('input[name="name"]');
+  name.value = "Client B revised";
+  await ui.submit(name.form);
+  await traverse("back");
+  await traverse("back");
+  assert.equal(labelledSelect("Client fictif exploré").value, "demo");
+  let restored = restoreSession(localStorage.getItem(key)).state;
+  assert.equal(restored.activeClient, "demo");
+  assert.equal(
+    restored.accounts.find((a) => a.id === "client-1").profile.name,
+    "Client B revised",
+  );
+  await ui.click("Mon compte", navigation());
+  const country = document.querySelector('select[name="country"]');
+  await selectValue(country, "DE");
+  await ui.submit(country.form);
+  restored = restoreSession(localStorage.getItem(key)).state;
+  assert.equal(restored.profile.country, "DE");
+  assert.equal(
+    restored.accounts.find((a) => a.id === "client-1").profile.country,
+    "PT",
+  );
+  await ui.close();
+});
+
+test("Cancelling Back across clients keeps the client, route and draft; accepting restores the client", async () => {
+  const ui = await mount({
+    hash: "#view=profile&role=member&case=DEMO-001",
+    saved: twoClients,
+  });
+  await ui.click("Reprendre la session sauvegardée");
+  await selectValue(labelledSelect("Client fictif exploré"), "client-1");
+  const url = location.href;
+  document.querySelector('input[name="name"]').value = "Unsaved client B";
+  let warnings = 0;
+  window.confirm = () => {
+    warnings++;
+    return false;
+  };
+  await traverse("back");
+  assert.equal(warnings, 1);
+  assert.equal(location.href, url);
+  assert.equal(labelledSelect("Client fictif exploré").value, "client-1");
+  assert.equal(
+    document.querySelector('input[name="name"]').value,
+    "Unsaved client B",
+  );
+  assert.equal(
+    restoreSession(localStorage.getItem(key)).state.activeClient,
+    "client-1",
+  );
+  window.confirm = () => true;
+  await traverse("back");
+  assert.equal(labelledSelect("Client fictif exploré").value, "demo");
+  await traverse("forward");
+  assert.equal(labelledSelect("Client fictif exploré").value, "client-1");
+  assert.equal(document.querySelector('input[name="name"]').value, "Client B");
+  await ui.close();
+});
+
+test("History restores named team and partner actors; disabled historical actors remain unavailable", async () => {
+  for (const [role, first, second] of [
+    ["team", "operator-1", "operator-2"],
+    ["partner", "partner-1", "partner-2"],
+  ]) {
+    const ui = await mount({
+      hash: `#view=requests&role=${role}&case=DEMO-001`,
+    });
+    await selectValue(labelledSelect("Intervenant de démonstration"), second);
+    await traverse("back");
+    assert.equal(labelledSelect("Intervenant de démonstration").value, first);
+    assert.equal(selectedCase(), "DEMO-001");
+    await traverse("forward");
+    assert.equal(labelledSelect("Intervenant de démonstration").value, second);
+    assert.equal(selectedCase(), undefined);
+    await ui.close();
+  }
+  const ui = await mount({
+    hash: "#view=requests&role=team&case=DEMO-001",
+    saved: JSON.stringify({
+      version: 2,
+      base: null,
+      events: [
+        {
+          role: "team",
+          action: { type: "person-access", id: "operator-2", enabled: false },
+        },
+      ],
+    }),
+  });
+  await ui.click("Reprendre la session sauvegardée");
+  await act(async () => {
+    history.pushState(
+      {
+        lusoIndex: 1,
+        lusoIdentity: { operator: "operator-2", client: "demo" },
+      },
+      "",
+      "#view=requests&role=team&case=DEMO-001",
+    );
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await settle();
+  });
+  assert.equal(
+    labelledSelect("Intervenant de démonstration").value,
+    "operator-1",
+  );
+  assert.equal(history.state.lusoIdentity.operator, "operator-1");
+  assert.equal(
+    restoreSession(localStorage.getItem(key)).state.people.find(
+      (p) => p.id === "operator-2",
+    ).enabled,
+    false,
+  );
+  await ui.close();
+});
+
+test("A deep link to a saved case remains intact until the saved session is resumed", async () => {
+  const ui = await mount({
+    hash: "#view=requests&role=team&case=DEMO-003&section=team",
+    saved: twoClients,
+  });
+  assert.equal(routeCase(), "DEMO-003");
+  assert.equal(
+    selectedCase(),
+    "DEMO-001",
+    "Initial examples do not contain the saved case",
+  );
+  await ui.click("Reprendre la session sauvegardée");
+  assert.equal(routeCase(), "DEMO-003");
+  assert.equal(selectedCase(), "DEMO-003");
+  assert.match(
+    document.querySelector(".ws-case-detail").textContent,
+    /Client B request/,
+  );
+  assert.equal(
+    new URLSearchParams(location.hash.slice(1)).get("section"),
+    "team",
   );
   await ui.close();
 });

@@ -1,3 +1,5 @@
+import type { WorkspaceIdentity } from "./historyContext";
+
 // Every workspace entry carries a cursor so a cancelled Back/Forward can return
 // to the original entry without adding a duplicate entry or changing the form.
 export const navigationEvent = "luso-navigation";
@@ -10,13 +12,30 @@ export function initializeHistory() {
     "",
   );
 }
-export function pushWorkspaceHistory(url: string) {
-  history.pushState({ lusoIndex: historyCursor().index + 1 }, "", url);
+export function pushWorkspaceHistory(
+  url: string,
+  identity?: WorkspaceIdentity,
+) {
+  history.pushState(
+    {
+      lusoIndex: historyCursor().index + 1,
+      lusoIdentity: identity ?? history.state?.lusoIdentity,
+    },
+    "",
+    url,
+  );
   window.dispatchEvent(new Event(navigationEvent));
 }
-export function replaceWorkspaceHistory(url: string) {
+export function replaceWorkspaceHistory(
+  url: string,
+  identity?: WorkspaceIdentity,
+) {
   history.replaceState(
-    { ...history.state, lusoIndex: historyCursor().index },
+    {
+      ...history.state,
+      lusoIndex: historyCursor().index,
+      lusoIdentity: identity ?? history.state?.lusoIdentity,
+    },
     "",
     url,
   );

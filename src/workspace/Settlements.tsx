@@ -1,5 +1,5 @@
 import { canAccessView } from "./permissions";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   isClosed,
   visibleCases,
@@ -11,6 +11,7 @@ import {
 } from "./model";
 import {
   useWorkspace,
+  useDiscardChanges,
   useMoney,
   Panel,
   Badge,
@@ -98,6 +99,8 @@ function Amounts({ c, b }: { c: Case; b: Settlement }) {
 export function Settlements() {
   const { state, role, lang, t, selected, select, go } = useWorkspace();
   const [filter, setFilter] = useState("all");
+  const discard = useDiscardChanges();
+  const detail = useRef<HTMLDivElement>(null);
   const all = visibleCases(state, role).filter(
     (c) => c.payment === "paid" && (isClosed(c) || c.settlements.length),
   );
@@ -125,7 +128,26 @@ export function Settlements() {
         )}
       </p>
       <Field label={t("Afficher les bilans", "Mostrar balanços")}>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          value={filter}
+          onChange={(e) => {
+            const nextFilter = e.target.value;
+            const next = all.filter(
+              (c) =>
+                nextFilter === "all" ||
+                (nextFilter === "done") ===
+                  (c.settlements.at(-1)?.status === "settled"),
+            );
+            const nextCase = next.find((c) => c.id === selected) || next[0];
+            if (
+              nextCase?.id !== current?.id &&
+              !discard(detail.current || undefined)
+            )
+              return;
+            setFilter(nextFilter);
+            if (nextCase && nextCase.id !== selected) select(nextCase.id, true);
+          }}
+        >
           <option value="open">{t("À suivre", "Por acompanhar")}</option>
           <option value="done">
             {t("Soldés dans la démo", "Liquidados na demo")}
@@ -133,7 +155,7 @@ export function Settlements() {
           <option value="all">{t("Tous", "Todos")}</option>
         </select>
       </Field>
-      <div className="ws-case-layout ws-settlement-layout">
+      <div className="ws-case-layout ws-settlement-layout" ref={detail}>
         <section
           className="ws-case-list"
           aria-label={t("Dossiers à rapprocher", "Pedidos para reconciliação")}

@@ -13,6 +13,8 @@ import { useWorkspace, Button, Panel, Field, Form, Badge, value } from "./ui";
 import {
   canWork,
   visibleCases,
+  transition,
+  type Action,
   type Task,
   type TaskStatus,
   type Document,
@@ -42,7 +44,7 @@ export function Tasks({
   initialFilter?: "open" | "all";
   navigationToken?: number;
 }) {
-  const { state, role, lang, t, selected } = useWorkspace();
+  const { state, role, lang, t, selected, act } = useWorkspace();
   const discard = useDiscardChanges();
   const list = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<string>(initialFilter);
@@ -266,7 +268,26 @@ export function Tasks({
           <TaskCard
             task={task}
             today={today}
-            key={`${task.id}-${task.status}-${task.assignee}-${task.due}`}
+            key={task.id}
+            save={(action, sibling) => {
+              // A successful edit may remove this card from the active filters.
+              // Only the other form is unsaved; the submitted form is being saved.
+              const result = transition(state, role, action);
+              if (
+                result.ok &&
+                sibling &&
+                !matchingTasks(
+                  result.state,
+                  role,
+                  { ...filters, status: filter, timing },
+                  today,
+                  lang,
+                ).some((item) => item.id === task.id) &&
+                !discard(sibling)
+              )
+                return false;
+              return act(action);
+            }}
           />
         ))}
       </div>
@@ -376,9 +397,19 @@ function TaskCreate({
     </details>
   );
 }
-function TaskCard({ task, today }: { task: Task; today: string }) {
-  const { state, role, lang, t, act, go } = useWorkspace();
+function TaskCard({
+  task,
+  today,
+  save,
+}: {
+  task: Task;
+  today: string;
+  save: (action: Action, sibling?: ParentNode) => boolean;
+}) {
+  const { state, role, lang, t, go } = useWorkspace();
   const [status, setStatus] = useState(task.status);
+  const progress = useRef<HTMLDetailsElement>(null);
+  const assignment = useRef<HTMLDetailsElement>(null);
   const c = state.cases.find((c) => c.id === task.caseId)!;
   const timing = taskTiming(state, task, today);
   const date = task.due
@@ -433,16 +464,20 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
       )}
       {task.note && <p className="ws-task-note">{task.note}</p>}
       {role !== "member" && canWork(c) && (
-        <details>
+        <details ref={progress}>
           <summary>{t("Mettre à jour la tâche", "Atualizar tarefa")}</summary>
           <Form
+            resetOnSuccess={false}
             onSave={(d) =>
-              act({
-                type: "task-update",
-                id: task.id,
-                status,
-                note: value(d, "note"),
-              })
+              save(
+                {
+                  type: "task-update",
+                  id: task.id,
+                  status,
+                  note: value(d, "note"),
+                },
+                assignment.current || undefined,
+              )
             }
           >
             <Field label={t("Avancement", "Progresso")}>
@@ -482,7 +517,7 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
         </details>
       )}
       {role === "team" && canWork(c) && (
-        <details>
+        <details ref={assignment}>
           <summary>
             {t(
               "Modifier le responsable ou la date",
@@ -490,13 +525,17 @@ function TaskCard({ task, today }: { task: Task; today: string }) {
             )}
           </summary>
           <Form
+            resetOnSuccess={false}
             onSave={(d) => {
-              return act({
-                type: "task-assign",
-                id: task.id,
-                assignee: value(d, "assignee") as Task["assignee"],
-                due: value(d, "due"),
-              });
+              return save(
+                {
+                  type: "task-assign",
+                  id: task.id,
+                  assignee: value(d, "assignee") as Task["assignee"],
+                  due: value(d, "due"),
+                },
+                progress.current || undefined,
+              );
             }}
           >
             <Field label={t("Responsable", "Responsável")}>

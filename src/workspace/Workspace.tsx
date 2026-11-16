@@ -1,4 +1,5 @@
 import { CountrySelect } from "../CountrySelect";
+import { restoreHistoryIdentity, workspaceIdentity } from "./historyContext";
 import { countryLabel } from "../countries";
 import { WorkspaceNavigation } from "./WorkspaceNavigation";
 import { canAccessView } from "./permissions";
@@ -190,7 +191,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
   const [storageError, setStorageError] = useState("");
   const [handoff, setHandoff] = useState<RequestHandoff | null>(null);
   const [ready, setReady] = useState(false);
-  const applyRoute = (hash: string, source = state) => {
+  const applyRoute = (hash: string, source = state, normalize = false) => {
     const route = readWorkspaceRoute(hash);
     const c = visibleCases(source, route.role).find((c) => c.id === route.id);
     if (!route.destination)
@@ -200,9 +201,21 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       ? route.view
       : viewsForActor(source, route.role)[0];
     setView(target);
-    if (target !== route.view)
-      replaceWorkspaceHistory(routeHash(target, route.role));
-    setSelected(c?.id || visibleCases(source, route.role)[0]?.id || "");
+    const nextId = c?.id || visibleCases(source, route.role)[0]?.id || "";
+    replaceWorkspaceHistory(
+      // A deep link can refer to a case in the saved session, not loaded yet.
+      // Normalize inaccessible cases only once that session or history is applied.
+      normalize || target !== route.view
+        ? routeHash(
+            target,
+            route.role,
+            nextId,
+            c && target === route.view ? route.destination : undefined,
+          )
+        : hash,
+      workspaceIdentity(source),
+    );
+    setSelected(nextId);
     setCaseIntent(
       c && route.destination
         ? {
@@ -248,11 +261,19 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
         return;
       }
       const target = readWorkspaceRoute(location.hash);
-      const cases = visibleCases(state, target.role);
+      const restored = restoreHistoryIdentity(
+        state,
+        target.role,
+        history.state?.lusoIdentity,
+      );
+      const cases = visibleCases(restored.state, target.role);
       const id =
         cases.find((c) => c.id === target.id)?.id || cases[0]?.id || "";
       const leavesForm =
-        target.role !== role || target.view !== view || id !== selected;
+        restored.state !== state ||
+        target.role !== role ||
+        target.view !== view ||
+        id !== selected;
       if (leavesForm && !confirmLeave()) {
         const previous = cursor.current;
         const delta = previous ? previous.index - historyCursor().index : 0;
@@ -264,7 +285,12 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       }
       cursor.current = historyCursor();
       setLang(pageRoute(location.pathname, location.search).lang);
-      applyRoute(location.hash);
+      if (restored.events.length) {
+        log.current.events.push(...restored.events);
+        setState(restored.state);
+      }
+      if (leavesForm) setEpoch((x) => x + 1);
+      applyRoute(location.hash, restored.state, true);
     };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
@@ -323,7 +349,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       setEpoch((x) => x + 1);
       setScenarioId(null);
       setSaveEnabled(true);
-      applyRoute(location.hash, restored.state);
+      applyRoute(location.hash, restored.state, true);
       setStorageError("");
     } catch {
       setStorageError(
@@ -383,7 +409,10 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
       accessible.find((c) => c.id === (id ?? selected))?.id ||
       accessible[0]?.id ||
       "";
-    pushWorkspaceHistory(routeHash(v, asRole, nextId, destination));
+    pushWorkspaceHistory(
+      routeHash(v, asRole, nextId, destination),
+      workspaceIdentity(source),
+    );
     setRole(asRole);
     setView(v);
     setSelected(nextId);
@@ -439,9 +468,15 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
               ? view
               : allowed[0];
         setView(target);
-        setSelected(visibleCases(result.state, role)[0]?.id || "");
+        const nextId = visibleCases(result.state, role)[0]?.id || "";
+        setSelected(nextId);
         setCaseIntent(undefined);
-        pushWorkspaceHistory(routeHash(target, role));
+        pushWorkspaceHistory(
+          routeHash(target, role, nextId),
+          workspaceIdentity(result.state),
+        );
+      } else if (result.state.activeClient !== state.activeClient) {
+        replaceWorkspaceHistory(location.href, workspaceIdentity(result.state));
       }
       if (
         scenario &&
@@ -889,7 +924,12 @@ function Requests({
   useEffect(() => {
     setFilter("all");
     setQuery("");
-  }, [state.cases.length, caseIntent?.token]);
+  }, [state.cases.length]);
+  useEffect(() => {
+    if (caseIntent?.token === undefined) return;
+    setFilter("all");
+    setQuery("");
+  }, [caseIntent?.token]);
   const shown = matchingCases(state, role, query, filter, lang);
   const current = shown.find((c) => c.id === selected) || shown[0];
   const changeFilters = (nextQuery: string, nextFilter: string) => {
@@ -902,6 +942,7 @@ function Requests({
       return;
     setQuery(nextQuery);
     setFilter(nextFilter);
+    if (nextCase && nextCase.id !== selected) select(nextCase.id, true);
   };
   return (
     <>
