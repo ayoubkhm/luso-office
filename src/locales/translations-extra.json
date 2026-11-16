@@ -1,4 +1,6 @@
 {
+  "Préférences": ["Preferences", "Einstellungen"],
+  "Langue d’affichage": ["Display language", "Anzeigesprache"],
   "Accueil": [
     "Home",
     "Startseite"

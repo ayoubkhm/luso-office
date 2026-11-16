@@ -555,19 +555,6 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
           <a className="ws-back" href={href("home", lang)}>
             {t("Retour au site", "Voltar ao site")}
           </a>
-          <div className="ws-language" aria-label={t("Langue", "Idioma")}>
-            {languages.map((l) => (
-              <button
-                key={l}
-                aria-pressed={lang === l}
-                onClick={() => setLang(l)}
-                lang={l}
-                title={languageNames[l]}
-              >
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
         </header>
         <details
           className="ws-demo-tools"
@@ -761,7 +748,7 @@ export function Workspace({ lang: initialLang }: { lang: Lang }) {
                   {view === "messages" && <Messages />}
                   {view === "billing" && <Billing />}
                   {view === "settlements" && <Settlements />}
-                  {view === "profile" && <Profile />}
+                  {view === "profile" && <Profile onLanguageChange={setLang} />}
                   {view === "newsletter" && (
                     <Newsletter key={state.archives.length} />
                   )}
@@ -1737,11 +1724,36 @@ export function Billing() {
     </>
   );
 }
-function Profile() {
-  const { state, t, act, lang } = useWorkspace();
+function Profile({
+  onLanguageChange,
+}: {
+  onLanguageChange: (lang: Lang) => void;
+}) {
+  const { state, role, t, act, lang } = useWorkspace();
+  const displayLanguage = (
+    <Field label={t("Langue d’affichage", "Idioma de apresentação")}>
+      <select
+        id="workspace-display-language"
+        value={lang}
+        onChange={(e) => onLanguageChange(e.target.value as Lang)}
+      >
+        {languages.map((language) => (
+          <option key={language} value={language} lang={language}>
+            {languageNames[language]}
+          </option>
+        ))}
+      </select>
+    </Field>
+  );
+  // Staff preferences must never expose the currently explored client's profile.
+  if (role !== "member")
+    return (
+      <Panel title={t("Préférences", "Preferências")}>{displayLanguage}</Panel>
+    );
   return (
     <div className="ws-two">
       <Panel title={t("Profil et préférences", "Perfil e preferências")}>
+        {displayLanguage}
         <Form
           resetOnSuccess={false}
           onSave={(d) => {

@@ -193,103 +193,116 @@ test("Case shortcuts preserve a typed internal note, and browser Back restores t
   await ui.close();
 });
 
-test("All four languages retain the current route and expose direct workspace destinations", async () => {
-  const ui = await mount({ hash: "#view=requests&role=member&case=DEMO-002" });
-  assert.equal(document.querySelector(".ws-sidebar select"), null);
-  for (const destination of [
-    "Demandes",
-    "Documents",
-    "Messages",
-    "Mes biens",
-    "Mon compte",
-  ]) {
-    assert.ok(
-      [...document.querySelectorAll(".ws-navigation button")].some((button) =>
-        button.textContent.startsWith(destination),
+async function changeDisplayLanguage(language) {
+  await selectValue(
+    document.querySelector("#workspace-display-language"),
+    language,
+  );
+}
+
+test("Account display language works in all roles without exposing customer preferences to staff", async () => {
+  for (const role of ["member", "team", "partner"]) {
+    const ui = await mount({
+      hash: `#view=requests&role=${role}&case=DEMO-001`,
+    });
+    assert.equal(document.querySelector(".ws-language"), null);
+    assert.equal(document.querySelector("#workspace-display-language"), null);
+    await ui.click("Mon compte", navigation());
+    assert.deepEqual(
+      [...document.querySelectorAll("#workspace-display-language option")].map(
+        (option) => option.textContent,
       ),
-      destination,
+      ["Français", "Português", "English", "Deutsch"],
     );
+    assert.equal(
+      Boolean(document.querySelector('input[name="name"]')),
+      role === "member",
+    );
+    assert.equal(
+      Boolean(document.querySelector('select[name="language"]')),
+      role === "member",
+    );
+    for (const language of ["en", "de", "pt", "fr"]) {
+      await changeDisplayLanguage(language);
+      assert.equal(document.documentElement.lang, language);
+      assert.equal(
+        location.pathname,
+        language === "fr" ? "/espace.html" : `/${language}/espace.html`,
+      );
+      assert.equal(
+        new URLSearchParams(location.hash.slice(1)).get("view"),
+        "profile",
+      );
+      assert.equal(routeCase(), "DEMO-001");
+    }
+    if (role === "member")
+      assert.equal(
+        document.querySelector('select[name="language"]').value,
+        "fr",
+        "Display language does not change correspondence preferences",
+      );
+    await ui.click("Demandes", navigation());
+    assert.equal(selectedCase(), "DEMO-001");
+    await ui.close();
   }
-  assert.equal(document.querySelector(".ws-subnavigation"), null);
-  await ui.click("EN", document.querySelector(".ws-language"));
-  assert.equal(document.documentElement.lang, "en");
-  assert.equal(location.pathname, "/en/espace.html");
-  assert.match(document.querySelector("h1").textContent, /Requests|Cases/);
-  assert.equal(
-    new URLSearchParams(location.hash.slice(1)).get("case"),
-    "DEMO-002",
-  );
-  await ui.click("DE", document.querySelector(".ws-language"));
-  assert.equal(document.documentElement.lang, "de");
-  assert.equal(location.pathname, "/de/espace.html");
-  assert.match(
-    document.querySelector("h1").textContent,
-    /Anfragen|Vorgänge|Anträge/,
-  );
-  await ui.close();
 });
 
-test("Cancelled Back preserves both the original history entry and unsaved form; accepted Back and Forward restore language", async () => {
-  const ui = await mount({ hash: "#view=overview&role=team" });
-  await ui.click("Demandes", document.querySelector(".ws-navigation"));
+test("Cancelled Back protects case tabs and profile drafts; Back/Forward restore the display language", async () => {
+  let ui = await mount({ hash: "#view=overview&role=team" });
+  await ui.click("Demandes", navigation());
   await ui.click("Travail de l’équipe");
-  const note = document.querySelector('textarea[name="note"]');
-  note.value = "Keep this internal note";
+  document.querySelector('textarea[name="note"]').value =
+    "Keep this internal note";
   let confirmations = 0;
   window.confirm = () => {
     confirmations++;
     return false;
   };
-  await act(async () => {
-    history.back();
-    await settle();
-  });
+  await traverse("back");
   assert.equal(confirmations, 0, "Same-case tabs do not discard the form");
   const original = location.href;
-  await act(async () => {
-    history.back();
-    await settle();
-    await settle();
-  });
+  await traverse("back");
   assert.equal(confirmations, 1);
   assert.equal(location.href, original);
   assert.equal(
     document.querySelector('textarea[name="note"]').value,
     "Keep this internal note",
   );
-  await ui.click("EN", document.querySelector(".ws-language"));
-  assert.equal(document.documentElement.lang, "en");
-  await act(async () => {
-    history.back();
-    await settle();
-    await settle();
-  });
+  await ui.click("Mon compte", navigation());
+  assert.equal(
+    confirmations,
+    2,
+    "Opening account preferences protects the case draft",
+  );
+  assert.equal(document.querySelector("#workspace-display-language"), null);
+  await ui.close();
+
+  ui = await mount({ hash: "#view=overview&role=member" });
+  await ui.click("Mon compte", navigation());
+  const name = document.querySelector('input[name="name"]');
+  const originalName = name.value;
+  name.value = "Unsaved account name";
+  await changeDisplayLanguage("en");
+  assert.equal(name.value, "Unsaved account name");
+  window.confirm = () => false;
+  await traverse("back");
   assert.equal(location.pathname, "/en/espace.html");
   assert.equal(document.documentElement.lang, "en");
   assert.equal(
-    document.querySelector('textarea[name="note"]').value,
-    "Keep this internal note",
+    document.querySelector('input[name="name"]').value,
+    "Unsaved account name",
   );
   window.confirm = () => true;
-  await act(async () => {
-    history.back();
-    await settle();
-  });
+  await traverse("back");
   assert.equal(location.pathname, "/espace.html");
   assert.equal(document.documentElement.lang, "fr");
-  assert.match(
-    document.querySelector("h1").textContent,
-    /À chaque dossier, sa prochaine étape/,
-  );
-  assert.match(document.title, /Maquette/);
-  await act(async () => {
-    history.forward();
-    await settle();
-  });
+  await traverse("forward");
   assert.equal(location.pathname, "/en/espace.html");
   assert.equal(document.documentElement.lang, "en");
-  assert.match(document.querySelector("h1").textContent, /Requests|Cases/);
-  assert.equal(document.querySelector('textarea[name="note"]').value, "");
+  assert.equal(
+    document.querySelector('input[name="name"]').value,
+    originalName,
+  );
   await ui.close();
 });
 

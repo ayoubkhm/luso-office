@@ -39,17 +39,33 @@ export function viewsForRole(role: Role): View[] {
           "settlements",
           "newsletter",
           "admin",
+          "profile",
         ]
-      : ["overview", "guide", "requests", "tasks", "documents", "messages"];
+      : [
+          "overview",
+          "guide",
+          "requests",
+          "tasks",
+          "documents",
+          "messages",
+          "profile",
+        ];
 }
 
 export function viewsForActor(state: State, role: Role): View[] {
   if (role !== "team") return viewsForRole(role);
   const person = state.people.find((p) => p.id === state.operatorId);
   if (!person?.enabled) return ["overview"];
-  if (person?.kind === "editor") return ["newsletter"];
+  if (person?.kind === "editor") return ["newsletter", "profile"];
   if (person?.kind === "operator")
-    return ["overview", "requests", "tasks", "documents", "messages"];
+    return [
+      "overview",
+      "requests",
+      "tasks",
+      "documents",
+      "messages",
+      "profile",
+    ];
   return viewsForRole(role);
 }
 

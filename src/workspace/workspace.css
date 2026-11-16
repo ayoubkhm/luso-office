@@ -105,20 +105,6 @@ body:has(.workspace) {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.ws-language {
-  display: flex;
-  gap: 4px;
-}
-.ws-language button {
-  min-width: 42px;
-  min-height: 42px;
-  border-radius: 4px;
-}
-.ws-language button[aria-pressed="true"] {
-  background: #e9f2fc;
-  font-weight: 800;
-  color: #164bcb;
-}
 .ws-layout {
   display: grid;
   grid-template-columns: 264px minmax(0, 1fr);
@@ -1101,12 +1087,6 @@ body:has(.workspace) {
   .ws-back {
     font-size: 11px;
   }
-  .ws-language {
-    gap: 0;
-  }
-  .ws-language button {
-    min-width: 34px;
-  }
   .ws-layout {
     display: block;
   }
@@ -1185,9 +1165,6 @@ body:has(.workspace) {
     order: 3;
     flex-basis: 100%;
     margin-top: 5px;
-  }
-  .ws-language {
-    margin-left: auto;
   }
   .ws-panel {
     padding: 16px;
@@ -1759,9 +1736,6 @@ body:has(.workspace) {
   }
   .ws-top {
     flex-wrap: wrap;
-  }
-  .ws-language {
-    margin-left: auto;
   }
 }
 

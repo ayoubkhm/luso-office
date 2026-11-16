@@ -253,7 +253,7 @@ test("Named partners receive only their cases, and reassignment removes the prev
   s = apply(s, "team", { type: "actor-select", id: "editor-1" });
   assert.equal(visibleCases(s, "team").length, 0);
   assert.equal(visibleDocuments(s, "team").length, 0);
-  assert.deepEqual(viewsForActor(s, "team"), ["newsletter"]);
+  assert.deepEqual(viewsForActor(s, "team"), ["newsletter", "profile"]);
   reject(s, "team", { type: "client-select", id: "demo" });
   reject(s, "team", { type: "note", id: "DEMO-001", body: "private" });
 });
